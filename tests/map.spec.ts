@@ -31,7 +31,11 @@ test('map supports zoom, pan, fit, filtering and fullscreen without stealing pag
  for(const width of [390,320]){
   await page.setViewportSize({width,height:900})
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
-  const marker=(await map.locator('.small-region-hit').first().boundingBox())!;expect(marker.width).toBeGreaterThan(25)
+  await expect(map).toHaveCount(0)
+  await expect(page.getByRole('group',{name:'地区快速筛选'})).toBeVisible()
+  await expect(page.getByLabel('表格视图')).toBeVisible()
  }
- await map.screenshot({path:'tests/artifacts/map-mobile.png'})
+ await page.screenshot({path:'tests/artifacts/mobile-home.png'})
+ await page.setViewportSize({width:1440,height:1000})
+ await expect(map).toBeVisible()
 })

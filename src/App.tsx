@@ -88,7 +88,15 @@ export default function App({ siteDefaults = defaults }: {
     useEffect(() => { try { sessionStorage.setItem('monitor-next-collection-v1', JSON.stringify({ system })) } catch { /* Optional storage. */ } }, [system]);
     const [browseState, setBrowse] = useState<Browse>(() => {const old=readBrowse();return {...old,status:"all",query:"",sort:old.view === "table" ? old.sort : "default",direction:old.view === "table" ? old.direction : "asc"}});
     const browse = useMemo(()=>({...browseState, probe:prefs.probe}),[browseState,prefs.probe]);
-    const mapVisible = browse.view === "cards" && prefs.modules.map;
+    const [compactViewport, setCompactViewport] = useState(() => window.matchMedia('(max-width: 720px)').matches);
+    useEffect(() => {
+        const media = window.matchMedia('(max-width: 720px)');
+        const update = () => setCompactViewport(media.matches);
+        update();
+        media.addEventListener('change', update);
+        return () => media.removeEventListener('change', update);
+    }, []);
+    const mapVisible = browse.view === "cards" && prefs.modules.map && !compactViewport;
     const { status, region } = browse;
     const patchBrowse = (patch: Partial<Browse>) => setBrowse(prev => ({ ...prev, ...patch }));
     const setQuery = (query: string) => patchBrowse({ query });

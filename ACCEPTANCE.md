@@ -1,10 +1,10 @@
-# Monitor HEX 0.06 检查说明
+# Monitor HEX 0.07 检查说明
 
 当前源码的检查入口如下。测试使用本地演示数据，不代表已完成真实服务器部署验证。
 
 ## 最近验证
 
-2026-09-20 仓库清理后：静态检查、业务单元测试、361 处文字翻译覆盖检查和生产打包通过；Chrome 浏览器测试 25/25 通过。此次未重跑 Edge。
+2026-09-20 手机首页优化后：静态检查、业务单元测试、361 处文字翻译覆盖检查和生产打包通过；Chrome 浏览器测试 28/28 通过。此次未重跑 Edge。
 
 ## 自动检查
 
@@ -16,11 +16,13 @@ npm run package
 npm run test:e2e
 ```
 
+测试会启动独立预览服务；如果默认 4173 端口已被占用，先设置 `$env:THEME_DEMO_PORT = '4287'`。
+
 需要 Node.js 24，以及已安装的 Chrome。PowerShell 中运行 `$env:TEST_BROWSER = 'msedge'` 后可用同一命令验证 Edge。
 
 ## 浏览器检查范围
 
-25 项用例按功能组织：
+28 项用例按功能组织：
 
 - `detail-resources.spec.ts`：资源图切换、刷新、窄屏、图形风格、空数据、失败重试、离线与采样间断。
 - `detail-routes.spec.ts`：线路继承、比较、详情布局、缺失线路和长文本。
@@ -29,7 +31,7 @@ npm run test:e2e
 - `table.spec.ts`：流量计费、列控制、到期倒计时。
 - `load-alerts.spec.ts`：高负载历史、恢复、中断、持久化与键盘交互。
 - `defaults-and-freshness.spec.ts`：站点默认值、用户选择优先级、过期数据与连接恢复。
-- `map.spec.ts`、`regions.spec.ts`：地图缩放、拖拽、适配、全屏和地区筛选。
+- `map.spec.ts`、`regions.spec.ts`：桌面地图缩放、拖拽、适配、全屏，以及手机地区筛选。新增 320/390/720px 首次访问、筛选持久化、卡片/表格切换及 720/721px 边界验证。
 
 业务单元测试保存在 `src/lib/*.test.ts`，另有文字翻译覆盖检查。截图输出到忽略的 `tests/artifacts/`，测试运行结果输出到 `test-results/`。
 
