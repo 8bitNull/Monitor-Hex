@@ -2,7 +2,6 @@ import {RegionPicker} from './components/RegionPicker';
 import themeManifest from '../theme.json';
 import {useLoadAlerts} from './lib/useLoadAlerts';
 import {Flag} from './components/NodeIcons';
-import {Select} from '@/components/ui/select'
 import {probeRevision,subscribeProbes,clearNodeProbes} from './lib/nodeProbes';
 import { tr, locale, getLanguage, subscribeLanguage, setLanguage } from './lib/i18n.ts'
 import { readCollection } from '@/lib/collection';
@@ -178,7 +177,7 @@ export default function App({ siteDefaults = defaults }: {
           <button className="brand" onClick={() => go(null)}>
             <span>{me.site_name || "Monitor HEX"}<small>MONITOR HEX</small></span>
           </button>
-          <div className="flex-1"/><Select className="language-select" aria-label="Language / 语言" value={language} onChange={e => setLanguage(e.target.value === "en" ? "en" : "zh")}><option value="zh">简体中文</option><option value="en">English</option></Select>
+          <div className="flex-1"/>
           <Button variant="ghost" size="icon" onClick={() => setSettings(!settings)} aria-label={tr("外观设置")} aria-expanded={settings}><SlidersHorizontal /></Button>
           {/* The panel is a separate app built into the hub, not part of this
             theme, so this is a navigation rather than a route. */}
@@ -193,7 +192,6 @@ export default function App({ siteDefaults = defaults }: {
         </div>
       </header>
 
-      <main key={language} className="mx-auto max-w-[1400px] space-y-5 px-4 py-4 sm:px-6">
         {settings && <Preferences onClose={()=>setSettings(false)} probes={probes} value={prefs} onChange={setPrefs} siteDefaults={siteDefaults} backgroundError={background.error} onReset={scope => {
                 setPrefs(scope === 'all' ? { ...siteDefaults, modules: { ...siteDefaults.modules } } : restoreAppearance(prefs, siteDefaults));
                 if (scope === 'all') {
@@ -208,6 +206,8 @@ export default function App({ siteDefaults = defaults }: {
                     catch { /* Optional storage. */ }
                 }
             }}/>}
+
+      <main key={language} className="mx-auto max-w-[1400px] space-y-5 px-4 py-4 sm:px-6">
         {(error || meError) && <p role="alert" className="error-banner">{tr("连接异常，正在重试。")}{error || meError}</p>}
 
         {open !== null && selected && <div className="detail-navigation">

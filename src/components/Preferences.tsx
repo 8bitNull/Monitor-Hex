@@ -1,7 +1,7 @@
 import {Select} from '@/components/ui/select'
-import { tr } from '../lib/i18n.ts'
+import { tr, getLanguage, subscribeLanguage, setLanguage } from '../lib/i18n.ts'
 import {X, Circle, Minus, BarChart3, Hash, Rows2, Rows3} from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useSyncExternalStore } from 'react';
 import { palettes, graphStyles, moduleLabels, parsePreferences, safeBackground, type Preferences as Prefs } from '@/lib/appearance';
 function BackgroundInput({ value, onChange }: {
     value: string;
@@ -25,6 +25,7 @@ export function Preferences({ onClose, value, onChange, onReset, siteDefaults, b
     siteDefaults: Prefs;
     backgroundError: boolean;
 }) {
+    const language = useSyncExternalStore(subscribeLanguage, getLanguage);
     const dialog = useRef<HTMLDialogElement>(null);
     useEffect(()=>{
         const trigger=document.activeElement as HTMLElement | null;
@@ -39,6 +40,7 @@ export function Preferences({ onClose, value, onChange, onReset, siteDefaults, b
     const range = (label: string, key: 'backgroundBlur' | 'backgroundMask' | 'cardOpacity' | 'cardBlur', min: number, max: number, unit: string) => <label className="range-control">{label}<output>{value[key]}{unit}</output><input type="range" aria-label={label} min={min} max={max} value={value[key]} onChange={e => patch({ [key]: Number(e.target.value) })}/></label>;
     return <dialog ref={dialog} className="settings-drawer" aria-label={tr("外观设置")} onCancel={onClose}><section className="preferences" aria-label={tr("外观设置")}>
     <div className="settings-top"><h2>{tr("外观设置")}</h2><button aria-label={tr("关闭设置")} title={tr("关闭设置")} onClick={onClose}><X size={20}/></button></div>
+    <div className="settings-language"><span>语言 / Language</span><div role="group" aria-label="Language / 语言"><button lang="zh-CN" aria-pressed={language==='zh'} onClick={()=>setLanguage('zh')}>简体中文</button><button lang="en" aria-pressed={language==='en'} onClick={()=>setLanguage('en')}>English</button></div></div>
     <p className="preferences-note">{tr("即时预览；未单独修改的选项跟随站点默认")}</p>
     <nav className="settings-nav" aria-label={tr("设置分类")}><button onClick={()=>jump('appearance')}>{tr("外观")}</button><button onClick={()=>jump('home')}>{tr("首页")}</button><button onClick={()=>jump('routes')}>{tr("线路")}</button></nav>
     <fieldset data-settings="appearance"><legend>{tr("全局外观")}</legend><div className="preference-grid"><div className="visual-preference"><span>{tr("主题配色")}</span><div className="palette-options" role="group" aria-label={tr("主题配色")}>{Object.entries(palettes).map(([k,v],i)=><button key={k} title={tr(v)} aria-label={tr(v)} aria-pressed={value.palette===k} style={{'--swatch':['#356dcc','#167e90','#b86b3e','#238364','#8664c5','#b45289'][i]} as React.CSSProperties} onClick={()=>patch({palette:k as Prefs['palette']})}><i/></button>)}</div></div>

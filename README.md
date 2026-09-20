@@ -1,10 +1,10 @@
 # Monitor HEX
 
-HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.0.8**，主题短名 **hex**。
+HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.0.9**，主题短名 **hex**。
 
 ## 主题预览
 
-以下图片使用当前 0.0.8 版本与本地演示数据，移动端图片展示首页上半部分。点击图片可查看原图。
+以下图片使用当前 0.0.9 版本与本地演示数据，移动端图片展示首页上半部分。点击图片可查看原图。
 
 | 浅色首页 | 深色首页 |
 | --- | --- |
@@ -35,6 +35,10 @@ HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.0.8**，主题
 
 手动安装时解压至主题目录下的 `hex/`。由于短名已更改，后台会识别为新主题，安装后需选择启用。页面顶栏的站点主名称仍遵循后台站点设置，主题标识为 MONITOR HEX。
 
+## 语言切换
+
+手机和电脑端均在右上角设置按钮 → **语言 / Language** 中选择 **简体中文** 或 **English**，即时生效并记住选择。
+
 ## 默认显示
 
 - 手机端（宽度不超过 720px）采用单行地区选择与图标式视图切换；点击地区打开底部面板，查看国旗、地区名称和节点数。首页隐藏地图，优先展示节点。
@@ -53,7 +57,7 @@ HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.0.8**，主题
 
 ## 开发与验收
 
-`npm install`、`npm run build`、`npm run lint`、`npm test`。`npm run demo` 启动演示数据页面；`npm run package` 生成 theme.tar.gz。浏览器测试按功能组织，运行 `npm run test:e2e` 检查当前版本的 30 项交互用例（需已安装 Chrome）；设置 `TEST_BROWSER=msedge` 可改用 Edge。测试前先执行 `npm run build`。
+`npm install`、`npm run build`、`npm run lint`、`npm test`。`npm run demo` 启动演示数据页面；`npm run package` 生成 theme.tar.gz。浏览器测试按功能组织，运行 `npm run test:e2e` 检查当前版本的 33 项交互用例（需已安装 Chrome）；设置 `TEST_BROWSER=msedge` 可改用 Edge。测试前先执行 `npm run build`。
 
 截图由当前生产构建配合本地演示数据生成，不代表已部署至用户线上站点。许可和参考来源见 NOTICE.md、LICENSE、LICENSE.komari-next。
 
