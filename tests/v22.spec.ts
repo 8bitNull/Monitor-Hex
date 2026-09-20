@@ -1,0 +1,63 @@
+import {test,expect} from '@playwright/test'
+import {nodes,metrics} from '../scripts/fixtures.mjs'
+async function setup(page:any) {
+ await page.addInitScript(()=>{
+  localStorage.setItem('monitor-next',JSON.stringify({designVersion:1,probe:'1'}))
+  localStorage.setItem('monitor-next-node-probes-v1',JSON.stringify({'1':'2'}))
+ })
+ await page.route('**/api/nodes/*/metrics?*',(r:any)=>{const d=metrics();return r.fulfill({json:{...d,ping:[{task_id:1,ts:Date.now()/1000-60,latency:20},{task_id:1,ts:Date.now()/1000,latency:25},{task_id:2,ts:Date.now()/1000-60,latency:80},{task_id:2,ts:Date.now()/1000,latency:90}],probes:{1:'Route A',2:'Route B',3:'Empty route'},loss:{2:2.5}}})})
+ await page.goto('/node/1#latency')
+ await expect(page.locator('.probe-options button')).toHaveCount(3)
+}
+test('detail defaults to home route, supports comparison without changing home selection and keeps height stable',async({page})=>{
+ await setup(page)
+ const a=page.getByRole('button',{name:'Route A',exact:true}),b=page.getByRole('button',{name:'Route B',exact:true})
+ await expect(a).toHaveAttribute('aria-pressed','false');await expect(b).toHaveAttribute('aria-pressed','true')
+ await expect(page.getByLabel('平滑显示')).not.toBeChecked()
+ const frame=page.locator('.detail-chart-frame');const height=(await frame.boundingBox())!.height
+ await a.click();await expect(a).toHaveAttribute('aria-pressed','true')
+ await frame.hover({position:{x:100,y:100}})
+ expect((await frame.boundingBox())!.height).toBe(height)
+ await page.getByLabel('平滑显示').check()
+ expect((await frame.boundingBox())!.height).toBe(height)
+ await page.getByRole('button',{name:'隐藏全部线路'}).click()
+ await expect(frame).toContainText('没有选中任何探测')
+ expect((await frame.boundingBox())!.height).toBe(height)
+ await page.getByRole('button',{name:'首页线路',exact:true}).click()
+ await expect(a).toHaveAttribute('aria-pressed','false');await expect(b).toHaveAttribute('aria-pressed','true')
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('monitor-next-node-probes-v1')!)['1'])).toBe('2')
+ await page.getByRole('button',{name:'1 小时',exact:true}).click()
+ await expect(b).toHaveAttribute('title','丢包统计范围：1 小时')
+ await expect(b).toHaveAttribute('aria-pressed','true')
+})
+test('detail prioritizes charts, renders complete facts and compact controls at all widths',async({page})=>{
+ await setup(page)
+ for(const width of [320,390,768,1440]) {
+  await page.setViewportSize({width,height:1000})
+  const live=await page.locator('.detail-live').boundingBox(),history=await page.locator('.detail-history').boundingBox(),facts=await page.locator('.detail-information').boundingBox()
+  if(width<900){expect(live!.y).toBeLessThan(history!.y);expect(history!.y).toBeLessThan(facts!.y)}else{expect(history!.x).toBeGreaterThan(live!.x+live!.width);expect(Math.abs(history!.y-live!.y)).toBeLessThan(2)}
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+  await expect(page.getByRole('button',{name:'刷新历史',exact:true})).toBeVisible()
+ }
+ await page.getByRole('button',{name:'资源',exact:true}).click()
+ await expect(page).not.toHaveURL(/#latency/)
+ await page.reload()
+ await expect(page.locator('.detail-resource-charts')).toBeVisible()
+ await expect(page.getByRole('region',{name:'流量与到期'})).toContainText('每月 1 日')
+ await page.getByRole('button',{name:'网络延迟',exact:true}).click()
+ await expect(page).toHaveURL(/#latency$/)
+})
+test('missing home route stays empty, offline live metrics are unknown, long names do not overflow',async({page})=>{
+ await page.addInitScript(()=>localStorage.setItem('monitor-next',JSON.stringify({designVersion:1,probe:'99'})))
+ const node={...nodes()[0],online:false,name:'Very long node name '.repeat(12),cpu_name:'Long CPU description '.repeat(15)}
+ await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[node]}}))
+ await page.goto('/node/1#latency')
+ await expect(page.locator('.detail-chart-frame')).toContainText('无该线路记录')
+ await expect(page.locator('.detail-live .bar-number')).toHaveText(['—','—','—','—'])
+ for(const width of [320,390]) {
+  await page.setViewportSize({width,height:900})
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+ }
+ await page.getByRole('button',{name:'显示全部线路'}).click()
+ await expect(page.locator('.detail-chart-frame .recharts-wrapper')).toBeVisible()
+})

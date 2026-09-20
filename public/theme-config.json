@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 2,
+  "homeRoutes": 1,
+  "palette": "default",
+  "appearance": "system",
+  "layout": "comfortable",
+  "graph": "columns",
+  "showTotals": true,
+  "icons": true,
+  "backgroundUrl": "",
+  "backgroundBlur": 0,
+  "backgroundMask": 45,
+  "backgroundType": "soft",
+  "glass": false,
+  "cardOpacity": 88,
+  "cardBlur": 12,
+  "speedStyle": "spark",
+  "modules": {
+    "online": true,
+    "busiest": true,
+    "traffic": true,
+    "speed": true,
+    "regions": false,
+    "clock": false,
+    "map": true
+  },
+  "designVersion": 1,
+  "probe": "auto"
+}

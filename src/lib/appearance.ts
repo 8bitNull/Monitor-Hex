@@ -1,0 +1,121 @@
+import { tr } from './i18n.ts'
+export const palettes = { default: '经典蓝', ocean: '海洋', sunset: '落日', forest: '森林', midnight: '午夜', rose: '玫瑰' };
+export const cardLayouts = { classic: '经典', modern: '现代', minimal: '极简', detailed: '详细', compact: '紧凑行' };
+export const graphStyles = { ring: '圆环', bar: '进度条', columns: '分段柱条', minimal: '极简数字' };
+export const moduleLabels = { online: '在线节点', busiest: '高负载提示', traffic: '流量统计', speed: '实时网速', regions: '地区统计', clock: '当前时间', map: '首页地图' };
+export type Preferences = {
+    // Legacy import metadata only; v2 uses one shared visual system.
+    probe: string;
+    homeRoutes: number;
+    skin: 'lumina' | 'original';
+    mobileLayout: keyof typeof cardLayouts | 'inherit';
+    designVersion: 1;
+    schemaVersion: 2;
+    palette: keyof typeof palettes;
+    graph: keyof typeof graphStyles;
+    layout: 'comfortable' | 'compact';
+    cardLayout: keyof typeof cardLayouts;
+    appearance: 'system' | 'light' | 'dark';
+    map: boolean;
+    showTotals: boolean;
+    icons: boolean;
+    backgroundUrl: string;
+    backgroundBlur: number;
+    backgroundMask: number;
+    backgroundType: 'soft' | 'glass';
+    glass: boolean;
+    cardOpacity: number;
+    cardBlur: number;
+    speedStyle: 'spark';
+    modules: Record<keyof typeof moduleLabels, boolean>;
+};
+export const defaults: Preferences = {
+    probe: 'auto', homeRoutes: 1, skin: 'lumina', mobileLayout: 'inherit', designVersion: 1, schemaVersion: 2, palette: 'default', graph: 'columns', layout: 'comfortable', cardLayout: 'classic', appearance: 'system', map: false,
+    showTotals: true, icons: true, backgroundUrl: '', backgroundBlur: 0, backgroundMask: 45, backgroundType: 'soft', glass: false, cardOpacity: 88, cardBlur: 12, speedStyle: 'spark',
+    modules: { online: true, busiest: true, traffic: true, speed: true, regions: false, clock: false, map: true },
+};
+function object(v: unknown): Record<string, unknown> { return v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {}; }
+export function safeBackground(value: unknown): string {
+    if (typeof value !== 'string' || value.length > 2048)
+        return '';
+    const s = value.trim();
+    if (!s || [...s].some(c => c.charCodeAt(0) <= 32 || c === '\\'))
+        return '';
+    if (s.startsWith('/') && !s.startsWith('//'))
+        return s;
+    try {
+        const url = new URL(s);
+        return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password ? url.href : '';
+    }
+    catch {
+        return '';
+    }
+}
+export function normalizePreferences(input: unknown, base: Preferences = defaults): Preferences {
+    const v = object(input);
+    const choose = <T extends string>(value: unknown, choices: readonly T[], fallback: T): T => choices.includes(value as T) ? value as T : fallback;
+    const bool = (key: keyof Preferences) => typeof v[key] === 'boolean' ? v[key] as boolean : base[key] as boolean;
+    const number = (key: keyof Preferences, min: number, max: number) => typeof v[key] === 'number' && Number.isFinite(v[key]) ? Math.max(min, Math.min(max, v[key] as number)) : base[key] as number;
+    const modules = { ...base.modules };
+    for (const key of Object.keys(moduleLabels) as (keyof typeof moduleLabels)[]) {
+        if (typeof object(v.modules)[key] === 'boolean')
+            modules[key] = object(v.modules)[key] as boolean;
+    }
+    return {
+        probe: v.probe === 'auto' || (typeof v.probe === 'string' && /^[1-9]\d*$/.test(v.probe) && Number.isSafeInteger(Number(v.probe))) ? v.probe : base.probe,
+        homeRoutes: Math.round(number('homeRoutes', 1, 3)),
+        skin: choose(v.skin, ['lumina', 'original'], base.skin),
+        mobileLayout: choose(v.mobileLayout, ['inherit', ...Object.keys(cardLayouts)] as Preferences['mobileLayout'][], Object.hasOwn(v, 'cardLayout') && !Object.hasOwn(v, 'mobileLayout') ? 'inherit' : base.mobileLayout),
+        designVersion: 1,
+        schemaVersion: 2,
+        palette: choose(v.palette, Object.keys(palettes) as (keyof typeof palettes)[], base.palette),
+        graph: choose(v.graph, Object.keys(graphStyles) as (keyof typeof graphStyles)[], base.graph),
+        // v1.1/v1.2 layout was density, not a card design. Preserve that meaning.
+        layout: choose(v.layout, ['comfortable', 'compact'], v.cardLayout === 'compact' ? 'compact' : base.layout),
+        cardLayout: choose(v.cardLayout, Object.keys(cardLayouts) as (keyof typeof cardLayouts)[], base.cardLayout),
+        appearance: choose(v.appearance, ['system', 'light', 'dark'], base.appearance),
+        map: bool('map'), showTotals: bool('showTotals'), icons: bool('icons'), glass: bool('glass'),
+        backgroundUrl: typeof v.backgroundUrl === 'string' ? safeBackground(v.backgroundUrl) : base.backgroundUrl,
+        backgroundBlur: number('backgroundBlur', 0, 30), backgroundMask: number('backgroundMask', 0, 90),
+        backgroundType: choose(v.backgroundType, ['soft', 'glass'], base.backgroundType),
+        cardOpacity: number('cardOpacity', 55, 100), cardBlur: number('cardBlur', 0, 24),
+        speedStyle: 'spark', modules,
+    };
+}
+export function parsePreferences(text: string, base: Preferences = defaults): Preferences {
+    if (text.length > 65536)
+        throw new Error(tr("\u914D\u7F6E\u6587\u4EF6\u4E0D\u80FD\u8D85\u8FC7 64 KB"));
+    let v: unknown;
+    try {
+        v = JSON.parse(text);
+    }
+    catch {
+        throw new Error(tr("\u6587\u4EF6\u4E0D\u662F\u6709\u6548\u7684 JSON \u914D\u7F6E"));
+    }
+    if (!v || typeof v !== 'object' || Array.isArray(v))
+        throw new Error(tr("\u914D\u7F6E\u5FC5\u987B\u662F\u4E00\u4E2A\u5BF9\u8C61"));
+    const data = object(v);
+    if (data.schemaVersion !== undefined && data.schemaVersion !== 1 && data.schemaVersion !== 2)
+        throw new Error(tr("\u4E0D\u652F\u6301\u6B64\u914D\u7F6E\u7248\u672C"));
+    if (!Object.keys(data).some(key => key !== 'schemaVersion' && Object.hasOwn(defaults, key)))
+        throw new Error(tr("\u6CA1\u6709\u53EF\u7528\u7684\u5916\u89C2\u8BBE\u7F6E"));
+    if (data.backgroundUrl && !safeBackground(data.backgroundUrl))
+        throw new Error(tr("\u80CC\u666F\u4EC5\u652F\u6301 HTTP(S) \u5730\u5740\u6216\u7AD9\u5185\u7EDD\u5BF9\u8DEF\u5F84"));
+    return normalizePreferences(data, base);
+}
+export function restoreAppearance(current: Preferences, site: Preferences): Preferences {
+    return { ...site, probe:current.probe, homeRoutes:current.homeRoutes, map: current.map, modules: { ...current.modules } };
+}
+
+/** Store only differing fields; nested module choices inherit independently. */
+export function preferenceOverrides(value: Preferences, base: Preferences): Record<string, unknown> {
+ const out: Record<string,unknown>={}
+ for(const key of Object.keys(defaults) as (keyof Preferences)[]) {
+  if(['schemaVersion','designVersion','modules'].includes(key)) continue
+  if(value[key]!==base[key]) out[key]=value[key]
+ }
+ const modules:Record<string,boolean>={}
+ for(const key of Object.keys(moduleLabels) as (keyof typeof moduleLabels)[]) if(value.modules[key]!==base.modules[key]) modules[key]=value.modules[key]
+ if(Object.keys(modules).length) out.modules=modules
+ return out
+}
