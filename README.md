@@ -2,7 +2,26 @@
 
 HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.06**，主题短名 **hex**。
 
+## 主题预览
+
+以下图片使用当前 0.06 版本与本地演示数据，移动端图片展示首页上半部分。点击图片可查看原图。
+
+| 浅色首页 | 深色首页 |
+| --- | --- |
+| ![浅色首页：总览、世界地图与节点卡片](screenshots/home-light.png) | ![深色首页：总览、世界地图与节点卡片](screenshots/home-dark.png) |
+
+| 节点资源详情 | 多线路延迟历史 |
+| --- | --- |
+| ![节点详情：实时资源与历史图表](screenshots/detail-light.png) | ![深色模式下的多线路延迟历史](screenshots/latency-dark.png) |
+
+<p align="center">
+  <img src="screenshots/mobile-light.png" width="280" alt="手机浅色首页" />
+  <img src="screenshots/mobile-dark.png" width="280" alt="手机深色首页" />
+</p>
+
 ## 安装
+
+从 [最新 Release](https://github.com/8bitNull/Monitor-Hex/releases/latest) 下载 **[theme.tar.gz](https://github.com/8bitNull/Monitor-Hex/releases/latest/download/theme.tar.gz)**。
 
 在后台主题管理上传 `theme.tar.gz`，然后选择 **Monitor HEX**。请勿上传源码 ZIP。安装包根目录包含 theme.json、dist、preview.png 和许可证。
 
@@ -27,7 +46,7 @@ HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.06**，主题�
 
 `npm install`、`npm run build`、`npm run lint`、`npm test`。`npm run demo` 启动演示数据页面；`npm run package` 生成 theme.tar.gz。浏览器测试按功能组织，运行 `npm run test:e2e` 检查当前版本的 25 项交互用例（需已安装 Chrome）；设置 `TEST_BROWSER=msedge` 可改用 Edge。测试前先执行 `npm run build`。
 
-截图由最终安装包解压后的生产资源配合演示数据生成，不代表已部署至用户线上站点。许可和参考来源见 NOTICE.md、LICENSE、LICENSE.komari-next。
+截图由当前生产构建配合本地演示数据生成，不代表已部署至用户线上站点。许可和参考来源见 NOTICE.md、LICENSE、LICENSE.komari-next。
 
 ## 详情页
 
@@ -52,7 +71,7 @@ npm test
 npm run package
 ```
 
-生成的 `theme.tar.gz` 用于后台安装。依赖、构建文件和安装包不提交到源码仓库；如需发布安装包，可另外上传至 GitHub Releases。
+生成的 `theme.tar.gz` 用于后台安装。依赖、构建文件和安装包不提交到源码仓库；安装包通过 [GitHub Releases](https://github.com/8bitNull/Monitor-Hex/releases) 发布。
 
 每次开发前，在工作区没有未提交修改时运行 `git pull --ff-only` 获取远端更新。修改完成后检查并上传：
 
@@ -64,4 +83,4 @@ git commit -m "说明本次修改"
 git push
 ```
 
-保存文件不会自动上传；提交并推送后才会同步至 GitHub。当前版本检查说明见 `ACCEPTANCE.md`。浏览器测试和截图脚本生成的图片保存在 `tests/artifacts/`，不提交到源码仓库。
+保存文件不会自动上传；提交并推送后才会同步至 GitHub。当前版本检查说明见 `ACCEPTANCE.md`。浏览器测试和截图脚本的原始图片保存在 `tests/artifacts/`，不提交到源码仓库；用于首页展示的精选图片保存在 `screenshots/`。
