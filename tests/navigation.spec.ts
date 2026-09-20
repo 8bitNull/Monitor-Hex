@@ -17,7 +17,7 @@ test('title picker searches, preserves range/route and returns focus without ove
  for(const width of [1440,390,320]){
   await page.setViewportSize({width,height:900});await page.getByRole('button',{name:'切换节点',exact:true}).click()
   const box=(await page.getByRole('dialog').boundingBox())!;expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(width)
-  await page.getByRole('dialog').screenshot({path:`../hex06-picker-${width}.png`})
+  await page.getByRole('dialog').screenshot({path:`tests/artifacts/node-picker-${width}.png`})
   await page.keyboard.press('Escape');await expect(page.getByRole('button',{name:'切换节点',exact:true})).toBeFocused()
  }
  await expect(page.locator('.detail-node-switcher')).toHaveCount(0)

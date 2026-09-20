@@ -10,7 +10,7 @@ test('palette swatches are centred at desktop and mobile widths',async({page})=>
    expect(Math.abs(outer.y+outer.height/2-inner.y-inner.height/2)).toBeLessThan(1)
   }
  }
- await page.locator('.palette-options').screenshot({path:'../hex-v0.03-palette.png'})
+ await page.locator('.palette-options').screenshot({path:'tests/artifacts/appearance-palette.png'})
 })
 test('each card layout fits its indicator, keeps data visible and persists selection',async({page})=>{
  await page.addInitScript(()=>{if(!localStorage.getItem('monitor-next'))localStorage.setItem('monitor-next',JSON.stringify({designVersion:1,modules:{map:false},homeRoutes:1}))})
@@ -31,7 +31,7 @@ test('each card layout fits its indicator, keeps data visible and persists selec
      const box=(await metric.boundingBox())!,value=(await number.boundingBox())!
      expect(value.x+value.width).toBeLessThanOrEqual(box.x+box.width+1)
     }
-    if(width===390)await card.screenshot({path:`../hex-v0.03-card-${graph}-${appearance}.png`})
+    if(width===390)await card.screenshot({path:`tests/artifacts/appearance-card-${graph}-${appearance}.png`})
    }
   }
  }

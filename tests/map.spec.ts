@@ -27,11 +27,11 @@ test('map supports zoom, pan, fit, filtering and fullscreen without stealing pag
  await expect.poll(()=>page.evaluate(()=>!!document.fullscreenElement)).toBeFalsy()
  await map.getByRole('button',{name:'所有地区',exact:true}).click()
  await map.getByRole('button',{name:'适配全部',exact:true}).click()
- await map.screenshot({path:'tests/artifacts/v280-map-desktop.png'})
+ await map.screenshot({path:'tests/artifacts/map-desktop.png'})
  for(const width of [390,320]){
   await page.setViewportSize({width,height:900})
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
   const marker=(await map.locator('.small-region-hit').first().boundingBox())!;expect(marker.width).toBeGreaterThan(25)
  }
- await map.screenshot({path:'tests/artifacts/v280-map-mobile.png'})
+ await map.screenshot({path:'tests/artifacts/map-mobile.png'})
 })

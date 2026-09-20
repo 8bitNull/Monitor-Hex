@@ -12,15 +12,12 @@ for(const appearance of ['light','dark']){
  const page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'});await configure(page,appearance)
  await page.goto((process.env.CAPTURE_URL||'http://127.0.0.1:4174')+'/node/1');await page.locator('.resource-chart-panel .recharts-wrapper').waitFor()
  for(const width of [1440,1024,768,390,320]){
-  await page.setViewportSize({width,height:1000});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`../monitor-hex-v${version}-detail-${width}-${appearance}.png`,fullPage:true})
+  await page.setViewportSize({width,height:1000});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`tests/artifacts/monitor-hex-v${version}-detail-${width}-${appearance}.png`,fullPage:true})
  }
  await page.getByRole('button',{name:'网络延迟',exact:true}).click();await page.getByRole('button',{name:'显示全部线路'}).click();await page.locator('.detail-chart-frame .recharts-wrapper').waitFor()
  for(const width of [1440,390]){
-  await page.setViewportSize({width,height:1000});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`../monitor-hex-v${version}-latency-${width}-${appearance}.png`,fullPage:true})
+  await page.setViewportSize({width,height:1000});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`tests/artifacts/monitor-hex-v${version}-latency-${width}-${appearance}.png`,fullPage:true})
  }
  await page.close()
-}
-if(process.env.CAPTURE_BEFORE==='1'){
- const page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'});await configure(page,'light');await page.goto('http://127.0.0.1:4175/node/1');await page.locator('.resource-chart-panel .recharts-wrapper').first().waitFor();await page.screenshot({path:'../monitor-hex-v0.02-before-detail.png',fullPage:true});await page.close()
 }
 await browser.close()

@@ -1,6 +1,6 @@
 # Monitor HEX
 
-HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.06**，初始版本为 0.01，主题短名 **hex**。
+HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.06**，主题短名 **hex**。
 
 ## 安装
 
@@ -25,11 +25,11 @@ HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.06**，初始�
 
 ## 开发与验收
 
-`npm install`、`npm run build`、`npm run lint`、`npm test`。`npm run demo` 启动演示数据页面；`npm run package` 生成 theme.tar.gz。源码内测试为多次迭代积累，旧版本端到端测试可能保留已移除界面的断言，请参考随包验收记录列出的本次检查范围。
+`npm install`、`npm run build`、`npm run lint`、`npm test`。`npm run demo` 启动演示数据页面；`npm run package` 生成 theme.tar.gz。浏览器测试按功能组织，运行 `npm run test:e2e` 检查当前版本的 25 项交互用例（需已安装 Chrome）；设置 `TEST_BROWSER=msedge` 可改用 Edge。测试前先执行 `npm run build`。
 
 截图由最终安装包解压后的生产资源配合演示数据生成，不代表已部署至用户线上站点。许可和参考来源见 NOTICE.md、LICENSE、LICENSE.komari-next。
 
-## 0.02 详情页
+## 详情页
 
 桌面采用 300px（中等屏幕 260px）概况栏与自适应历史图表。900px 以下按身份、实时指标、历史分析、流量与设备资料排序。资源主图可切换四项指标；备注在 Agent 后完整显示，TCP/UDP 常驻。详情样式统一在 detail.css；构建及验收报告随版本交付。
 
@@ -64,4 +64,4 @@ git commit -m "说明本次修改"
 git push
 ```
 
-保存文件不会自动上传；提交并推送后才会同步至 GitHub。最新 0.06 验收记录见 `ACCEPTANCE-HEX-v0.06.md`，其中截图和浏览器日志为原始交付目录内的历史验收附件。
+保存文件不会自动上传；提交并推送后才会同步至 GitHub。当前版本检查说明见 `ACCEPTANCE.md`。浏览器测试和截图脚本生成的图片保存在 `tests/artifacts/`，不提交到源码仓库。
