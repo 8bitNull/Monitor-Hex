@@ -21,7 +21,7 @@ export function PingStats({ online = true, id, probe = "auto", onOpenRoutes, cou
   {!stats?<p className="ping-empty">{snapshot?.failed?tr("无法读取探测记录"):tr("正在读取探测记录…")}</p>:!stats.length?<p className="ping-empty">{tr("暂无探测记录")}</p>:!primary?<p className="ping-empty">{tr("无该线路记录")}</p>:<>
    {shown.map(s=><div className="ping-probe" key={s.id}>
     <div className="matrix-values">
-     <div className="latency-stat"><div className="latency-reading"><span title={s.name}>{s.name}</span><button className="latency-link" onClick={()=>onOpenRoutes(s.id)} aria-label={tr("查看线路：{0}",s.name)} data-tone={tone(s.latest.latency)} title={tr("延迟")}>{s.latest.latency===null?tr("超时"):<>{Math.round(s.latest.latency)}<small> ms</small></>}</button></div>
+     <div className="latency-stat"><div className="latency-reading"><span title={s.name}>{shown.length===1?tr("延迟"):s.name}</span><button className="latency-link" onClick={()=>onOpenRoutes(s.id)} aria-label={tr("查看线路：{0}",s.name)} data-tone={tone(s.latest.latency)} title={tr("延迟")}>{s.latest.latency===null?tr("超时"):<>{Math.round(s.latest.latency)}<small> ms</small></>}</button></div>
      <div className="latency-columns" role="img" aria-label={tr("近期延迟采样")} title={tr("近期延迟采样")} >{s.rows.map((row,i)=><i key={i} data-tone={tone(row.latency)} title={`${new Date(row.ts*1000).toLocaleString(locale())} · ${row.latency===null?tr("超时"):`${Math.round(row.latency)} ms`}`}/>)}</div></div>
      <LossMetric value={s.loss}/>
     </div>

@@ -16,11 +16,12 @@ function BackgroundInput({ value, onChange }: {
         onChange(url);
     } }}>{tr("应用背景")}</button>{error && <p role="alert">{error}</p>}</div>;
 }
-export function Preferences({ onClose, value, onChange, onReset, siteDefaults, backgroundError, probes }: {
+export function Preferences({ onClose, value, onChange, onGraphChange, onReset, siteDefaults, backgroundError, probes }: {
     onClose:()=>void;
     probes: Map<number,string>;
     value: Prefs;
     onChange: (next: Prefs) => void;
+    onGraphChange: (graph: Prefs['graph']) => void;
     onReset: (scope: 'appearance' | 'all') => void;
     siteDefaults: Prefs;
     backgroundError: boolean;
@@ -45,7 +46,7 @@ export function Preferences({ onClose, value, onChange, onReset, siteDefaults, b
     <nav className="settings-nav" aria-label={tr("设置分类")}><button onClick={()=>jump('appearance')}>{tr("外观")}</button><button onClick={()=>jump('home')}>{tr("首页")}</button><button onClick={()=>jump('routes')}>{tr("线路")}</button></nav>
     <fieldset data-settings="appearance"><legend>{tr("全局外观")}</legend><div className="preference-grid"><div className="visual-preference"><span>{tr("主题配色")}</span><div className="palette-options" role="group" aria-label={tr("主题配色")}>{Object.entries(palettes).map(([k,v],i)=><button key={k} title={tr(v)} aria-label={tr(v)} aria-pressed={value.palette===k} style={{'--swatch':['#356dcc','#167e90','#b86b3e','#238364','#8664c5','#b45289'][i]} as React.CSSProperties} onClick={()=>patch({palette:k as Prefs['palette']})}><i/></button>)}</div></div>
       <label>{tr("明暗模式")}<Select aria-label={tr("明暗模式")} value={value.appearance} onChange={e => patch({ appearance: e.target.value as Prefs['appearance'] })}><option value="system">{tr("跟随系统")}</option><option value="light">{tr("浅色")}</option><option value="dark">{tr("深色")}</option></Select></label>
-      <div className="visual-preference"><span>{tr("指标样式")}</span><div className="graph-options" role="group" aria-label={tr("指标样式")}>{Object.entries(graphStyles).map(([k,v])=>{const Icon=k==='ring'?Circle:k==='bar'?Minus:k==='columns'?BarChart3:Hash;return <button key={k} aria-label={tr(v)} aria-pressed={value.graph===k} onClick={()=>patch({graph:k as Prefs['graph']})}><Icon size={22}/><small>{tr(v)}</small></button>})}</div></div>
+      <div className="visual-preference"><span>{tr("指标样式")}</span><div className="graph-options" role="group" aria-label={tr("指标样式")}>{Object.entries(graphStyles).map(([k,v])=>{const Icon=k==='ring'?Circle:k==='bar'?Minus:k==='columns'?BarChart3:Hash;return <button key={k} aria-label={tr(v)} aria-pressed={value.graph===k} onClick={()=>onGraphChange(k as Prefs['graph'])}><Icon size={22}/><small>{tr(v)}</small></button>})}</div></div>
       <div className="visual-preference"><span>{tr("卡片密度")}</span><div className="density-options" role="group" aria-label={tr("卡片密度")}>{(['comfortable','compact'] as const).map(k=><button key={k} aria-pressed={value.layout===k} onClick={()=>patch({layout:k})}>{k==='compact'?<Rows3 size={22}/>:<Rows2 size={22}/>}<small>{tr(k==='compact'?"紧凑":"舒适")}</small></button>)}</div></div>
       <label className="check-control"><input type="checkbox" checked={value.showTotals} onChange={e => patch({ showTotals: e.target.checked })}/>{tr("显示已用 / 总容量")}</label>
       <label className="check-control"><input type="checkbox" checked={value.icons} onChange={e => patch({ icons: e.target.checked })}/>{tr("国旗与系统图标")}</label>

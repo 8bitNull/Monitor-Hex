@@ -30,7 +30,7 @@ export type Preferences = {
     modules: Record<keyof typeof moduleLabels, boolean>;
 };
 export const defaults: Preferences = {
-    probe: 'auto', homeRoutes: 1, skin: 'lumina', mobileLayout: 'inherit', designVersion: 1, schemaVersion: 2, palette: 'default', graph: 'columns', layout: 'comfortable', cardLayout: 'classic', appearance: 'system', map: false,
+    probe: 'auto', homeRoutes: 1, skin: 'lumina', mobileLayout: 'inherit', designVersion: 1, schemaVersion: 2, palette: 'default', graph: 'bar', layout: 'comfortable', cardLayout: 'classic', appearance: 'system', map: false,
     showTotals: true, icons: true, backgroundUrl: '', backgroundBlur: 0, backgroundMask: 45, backgroundType: 'soft', glass: false, cardOpacity: 88, cardBlur: 12, speedStyle: 'spark',
     modules: { online: true, busiest: true, traffic: true, speed: true, regions: false, clock: false, map: true },
 };

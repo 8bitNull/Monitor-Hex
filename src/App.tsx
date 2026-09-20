@@ -77,7 +77,7 @@ export default function App({ siteDefaults = defaults }: {
     const [meError, setMeError] = useState("");
     const { nodes, error, closed, connection, lastUpdated } = useNodes();
     const [open, go] = useNodeRoute();
-    const [prefs, setPrefs] = usePreferences(siteDefaults);
+    const [prefs, setPrefs, selectGraph] = usePreferences(siteDefaults);
     const loadAlerts=useLoadAlerts(nodes,prefs.modules.busiest);
     useSyncExternalStore(subscribeProbes,probeRevision);
     const dark = useAppearance(prefs.appearance);
@@ -192,8 +192,8 @@ export default function App({ siteDefaults = defaults }: {
         </div>
       </header>
 
-        {settings && <Preferences onClose={()=>setSettings(false)} probes={probes} value={prefs} onChange={setPrefs} siteDefaults={siteDefaults} backgroundError={background.error} onReset={scope => {
-                setPrefs(scope === 'all' ? { ...siteDefaults, modules: { ...siteDefaults.modules } } : restoreAppearance(prefs, siteDefaults));
+        {settings && <Preferences onClose={()=>setSettings(false)} probes={probes} value={prefs} onChange={setPrefs} onGraphChange={selectGraph} siteDefaults={siteDefaults} backgroundError={background.error} onReset={scope => {
+                setPrefs(scope === 'all' ? { ...siteDefaults, modules: { ...siteDefaults.modules } } : restoreAppearance(prefs, siteDefaults), true);
                 if (scope === 'all') {
                     clearNodeProbes(); setLanguage('zh');
                     setSystem('all');

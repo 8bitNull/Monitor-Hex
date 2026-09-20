@@ -4,7 +4,7 @@
   "palette": "default",
   "appearance": "system",
   "layout": "comfortable",
-  "graph": "columns",
+  "graph": "bar",
   "showTotals": true,
   "icons": true,
   "backgroundUrl": "",

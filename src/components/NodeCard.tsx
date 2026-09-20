@@ -30,13 +30,15 @@ export function NodeCard({ node, onOpen, onOpenRoutes, probe = 'auto', prefs }: 
       <div className="resources"><ResourceMetric label="CPU" value={m?.cpu ?? null} foot={tr("{0} 核", node.cpu_cores)}/><ResourceMetric label={tr("内存")} value={m ? percent(m.mem_used, m.mem_total) : null} foot={m ? (prefs.showTotals ? pair(m.mem_used, m.mem_total) : bytes(m.mem_used)) : tr("容量 {0}", bytes(node.mem_total))}/><ResourceMetric label={tr("硬盘")} value={m ? percent(m.disk_used, m.disk_total) : null} foot={m ? (prefs.showTotals ? pair(m.disk_used, m.disk_total) : bytes(m.disk_used)) : tr("容量 {0}", bytes(node.disk_total))}/><ResourceMetric label={tr("负载")} value={m && node.cpu_cores > 0 ? m.load[0] / node.cpu_cores * 100 : null} displayValue={m ? m.load[0].toFixed(2) : "—"} foot={tr("1 分钟 · {0} 核",node.cpu_cores)}/></div>
       <SpeedIndicators key={node.id} node={node}/>
     </button>
+      <PingStats count={prefs.homeRoutes} online={node.online} id={node.id} probe={probe} onOpenRoutes={onOpenRoutes}/>
+      <div className="node-secondary">
       <div className="network-box traffic-summary"><div><span><CalendarDays size={14}/><small>{tr("本月用量")}</small></span><b>{bytes(used)} / {node.traffic_limit > 0 ? bytes(node.traffic_limit) : FOREVER}</b></div>{node.traffic_limit > 0 && <div className="quota"><i style={{ width: `${Math.min(100, percent(used, node.traffic_limit))}%` }}/></div>}</div>
       <div className="node-connections">{([ ["TCP",m?.tcp], ["UDP",m?.udp] ] as const).map(([label,value])=><div key={label}><span><Network size={14}/>{label}</span><b>{value === undefined ? "—" : value.toLocaleString()}</b></div>)}</div>
-      <PingStats count={prefs.homeRoutes} online={node.online} id={node.id} probe={probe} onOpenRoutes={onOpenRoutes}/>
       <section className="node-more" aria-label={tr("更多信息")}>
       <div className="node-timing"><span title={tr("在线时长")}><Clock3 size={14}/><b>{m ? uptime(m.uptime) : '—'}</b></span>{days !== null && <span className={days <= 7 ? 'expiring' : ''}><CalendarDays size={14}/><b>{expiry}</b></span>}</div>
       {(node.price > 0 || notes.length > 0) && <div className="node-footer">{node.price > 0 && <span className="tag node-price">{money(node.price, node.currency)} / {tr(Object.hasOwn(CYCLES, node.billing_cycle) ? CYCLES[node.billing_cycle] : node.billing_cycle)}</span>}{notes.length > 0 && <div className="node-remarks" aria-label={tr("备注")}><RemarkTags texts={notes.slice(0,3)} compact/>{(notes.length>3 || notes.some(text=>Array.from(text).length>24)) && <button className="remark-more" onClick={onOpen} aria-label={tr("查看完整备注")} title={tr("查看完整备注")}>{notes.length>3?`+${notes.length-3}`:<ArrowUpRight size={14}/>}</button>}</div>}</div>}
       </section>
+      </div>
 
   </article>;
 }

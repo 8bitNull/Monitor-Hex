@@ -9,7 +9,7 @@ export function usePreferences(siteDefaults: Preferences) {
       const saved = JSON.parse(stored || '{}')
       const modern = saved?._storageVersion === 1
       const next = normalizePreferences(saved, siteDefaults)
-      if (!modern && stored && saved && typeof saved === 'object' && !Array.isArray(saved) && Object.keys(saved).length > 0 && saved.designVersion !== 1) { next.skin = "lumina"; next.graph = "columns" }
+      if (!modern && stored && saved && typeof saved === 'object' && !Array.isArray(saved) && Object.keys(saved).length > 0 && saved.designVersion !== 1) { next.skin = "lumina" }
       if (!modern && !saved?.appearance) {
         const mode = localStorage.getItem('monitor-next-mode')
         if (mode === 'dark' || mode === 'light') next.appearance = mode
@@ -19,13 +19,22 @@ export function usePreferences(siteDefaults: Preferences) {
           if (typeof old.probe === 'string' && /^[1-9]\d*$/.test(old.probe) && Number.isSafeInteger(Number(old.probe))) next.probe = old.probe;
         } catch { /* Old browse storage is optional. */ }
       }
-      return preferenceOverrides(next,siteDefaults)
+      const overrides = preferenceOverrides(next,siteDefaults)
+      // A recorded graph choice stays explicit even when it equals the site default.
+      if (Object.hasOwn(saved || {}, 'graph') && ['bar','ring','columns','minimal'].includes(saved.graph)) overrides.graph = next.graph
+      return overrides
     } catch { return {} }
   })
   const prefs=useMemo(()=>normalizePreferences(overrides,siteDefaults),[overrides,siteDefaults])
-  const setPrefs=useCallback((next:SetStateAction<Preferences>)=>setOverrides(current=>preferenceOverrides(typeof next==='function'?next(normalizePreferences(current,siteDefaults)):next,siteDefaults)),[siteDefaults])
+  const setPrefs=useCallback((next:SetStateAction<Preferences>, resetGraph=false)=>setOverrides(current=>{
+    const resolved=typeof next==='function'?next(normalizePreferences(current,siteDefaults)):next
+    const overrides=preferenceOverrides(resolved,siteDefaults)
+    if(!resetGraph && Object.hasOwn(current,'graph')) overrides.graph=resolved.graph
+    return overrides
+  }),[siteDefaults])
+  const selectGraph=useCallback((graph:Preferences['graph'])=>setOverrides(current=>({...current,graph})),[])
   useEffect(() => { try { localStorage.setItem('monitor-next', JSON.stringify({_storageVersion:1,schemaVersion:2,designVersion:1,...overrides})) } catch { /* Storage may be disabled. */ } }, [overrides])
-  return [prefs, setPrefs] as const
+  return [prefs, setPrefs, selectGraph] as const
 }
 export function useAppearance(mode: Preferences['appearance']) {
   const [systemDark, setSystemDark] = useState(() => matchMedia('(prefers-color-scheme: dark)').matches)

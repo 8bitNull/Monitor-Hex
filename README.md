@@ -1,10 +1,10 @@
 # Monitor HEX
 
-HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.0.9**，主题短名 **hex**。
+HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.0.10**，主题短名 **hex**。
 
 ## 主题预览
 
-以下图片使用当前 0.0.9 版本与本地演示数据，移动端图片展示首页上半部分。点击图片可查看原图。
+以下图片使用当前 0.0.10 版本与本地演示数据，移动端图片展示首页上半部分。点击图片可查看原图。
 
 | 浅色首页 | 深色首页 |
 | --- | --- |
@@ -27,6 +27,14 @@ HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.0.9**，主题
 </p>
 </details>
 
+<details>
+<summary>v0.0.10 手机首页精修前后对比（左旧版，右新版）</summary>
+
+![浅色对比](screenshots/compare-mobile-light.png)
+![深色对比](screenshots/compare-mobile-dark.png)
+
+</details>
+
 ## 安装
 
 从 [最新 Release](https://github.com/8bitNull/Monitor-Hex/releases/latest) 下载 **[theme.tar.gz](https://github.com/8bitNull/Monitor-Hex/releases/latest/download/theme.tar.gz)**。
@@ -43,6 +51,7 @@ HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.0.9**，主题
 
 - 手机端（宽度不超过 720px）采用单行地区选择与图标式视图切换；点击地区打开底部面板，查看国旗、地区名称和节点数。首页隐藏地图，优先展示节点。
 - 桌面地图默认 169% 缩放，默认聚焦北美、欧洲和东亚，可拖动、缩放、全屏及筛选地区。
+- 默认资源样式为细进度条，卡片按身份、资源、网速、延迟、辅助资料排列；已有明确保存的样式选择继续保留。
 - 总览为节点、今日流量、实时网速、高负载提示四栏，手机为两列。
 - 首页默认一条线路，可在主题设置中调整为最多三条；详情页查看全部线路。
 - 支持深浅色、资源与网速指标、备注标签及延迟历史图表。
@@ -57,7 +66,7 @@ HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.0.9**，主题
 
 ## 开发与验收
 
-`npm install`、`npm run build`、`npm run lint`、`npm test`。`npm run demo` 启动演示数据页面；`npm run package` 生成 theme.tar.gz。浏览器测试按功能组织，运行 `npm run test:e2e` 检查当前版本的 33 项交互用例（需已安装 Chrome）；设置 `TEST_BROWSER=msedge` 可改用 Edge。测试前先执行 `npm run build`。
+`npm install`、`npm run build`、`npm run lint`、`npm test`。`npm run demo` 启动演示数据页面；`npm run package` 生成 theme.tar.gz。浏览器测试按功能组织，运行 `npm run test:e2e` 检查当前版本的 40 项交互用例（需已安装 Chrome）；设置 `TEST_BROWSER=msedge` 可改用 Edge。测试前先执行 `npm run build`。
 
 截图由当前生产构建配合本地演示数据生成，不代表已部署至用户线上站点。许可和参考来源见 NOTICE.md、LICENSE、LICENSE.komari-next。
 
