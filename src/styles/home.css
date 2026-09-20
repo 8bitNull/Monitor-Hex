@@ -129,3 +129,22 @@
 .node-card:not([data-indicator=ring]) .loss-reading>small {display:inline;font-size:11px}
 .node-card .loss-stat[data-tone=good] {color:var(--foreground)}
 .node-card .latency-link small {font-size:12px;color:var(--muted-foreground)}
+
+/* Mobile metadata: remarks lead, price stays quietly aligned on the right. */
+@media(max-width:720px){
+ .node-card .node-footer {display:grid;grid-template-columns:minmax(0,1fr) fit-content(45%);align-items:start;gap:8px 12px}
+ .node-card .node-footer .node-remarks {grid-column:1;grid-row:1;justify-content:flex-start;min-width:0}
+ .node-card .node-footer .node-price {grid-column:2;grid-row:1;justify-self:end;max-width:100%;min-width:0;padding-block:3px;line-height:1.5;text-align:right;white-space:normal;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+ .node-card .node-footer:not(:has(.node-price)) {grid-template-columns:minmax(0,1fr)}
+}
+
+/* Native route menu with a concise closed label; inheritance stays in the menu. */
+.node-card .route-picker {position:relative;flex:1;min-width:0;height:44px;border-radius:6px}
+.node-card .route-picker-label {display:flex;align-items:center;gap:6px;height:100%;font-size:12px;color:var(--muted-foreground);pointer-events:none}
+.node-card .route-picker-label>span {overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0}
+.node-card .route-picker-label>svg {flex-shrink:0}
+.node-card .route-picker .route-select {position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;field-sizing:fixed}
+.node-card .route-picker:focus-within {outline:2px solid var(--tone);outline-offset:2px}
+.node-card .route-picker:hover {background:var(--muted)}
+.node-card .route-matrix {padding-top:0;padding-bottom:8px}
+.node-card .route-matrix .matrix-values {margin-top:2px;margin-bottom:6px}

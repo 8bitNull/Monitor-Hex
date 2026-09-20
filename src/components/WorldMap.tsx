@@ -1,6 +1,6 @@
 import {Flag} from './NodeIcons'
 import {tr,locale} from '../lib/i18n.ts'
-import {RotateCcw,Plus,Minus,Scan,Maximize,Minimize,Globe,Info} from 'lucide-react'
+import {RotateCcw,Plus,Minus,Scan,Maximize,Minimize,Globe} from 'lucide-react'
 import {useMemo,useState,useRef,useEffect,type ReactNode} from 'react'
 import {geoNaturalEarth1,geoPath,geoCentroid} from 'd3-geo'
 import {feature} from 'topojson-client'
@@ -57,8 +57,7 @@ export function WorldMap({nodes,region='all',onRegion,viewSwitch}:{nodes:Node[];
    {selected&&view.k>=1.8&&<div className="map-node-preview"><strong>{countryName(selected.code)}</strong><div>{selected.nodes.slice(0,6).map(n=><span key={n.id}><i className={n.online?'dot online':'dot'}/>{n.name}</span>)}</div>{selected.total>6&&<small>+{selected.total-6}</small>}</div>}
    <output className="map-scale">{Math.round(view.k*100)}%</output>
   </div>
-  <div className="explorer-footer"><div className="region-list"><button onClick={()=>onRegion('all')} title={tr("所有地区")} aria-label={tr("所有地区")} aria-pressed={region==='all'}><Globe size={16}/></button>{regions.map(r=><button key={r.code} data-region={r.code} aria-pressed={region===r.code} onClick={()=>onRegion(r.code)}>{r.code!==UNKNOWN_REGION&&<Flag code={r.code}/>}<span>{countryName(r.code)}</span><b>{r.total}</b></button>)}</div><button className="map-help" title={tr("地图说明")} aria-label={tr("地图说明")} onClick={()=>setHelp(!help)}><Info size={16}/></button></div>
+  <div className="explorer-footer"><div className="region-list"><button onClick={()=>onRegion('all')} title={tr("所有地区")} aria-label={tr("所有地区")} aria-pressed={region==='all'}><Globe size={16}/></button>{regions.map(r=><button key={r.code} data-region={r.code} aria-pressed={region===r.code} onClick={()=>onRegion(r.code)}>{r.code!==UNKNOWN_REGION&&<Flag code={r.code}/>}<span>{countryName(r.code)}</span><b>{r.total}</b></button>)}</div></div>
   {viewSwitch&&<div className="map-view-switch">{viewSwitch}</div>}
-  {help&&<p className="map-note">{tr("拖拽移动；Ctrl / ⌘ + 滚轮缩放，全屏内直接滚轮缩放。地图表示地区分组，不是机房精确位置。")}</p>}
- </section>
+ {help&&<p className="map-note">{tr("拖拽移动；Ctrl / ⌘ + 滚轮缩放，全屏内直接滚轮缩放。地图表示地区分组，不是机房精确位置。")}</p>}</section>
 }
