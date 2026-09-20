@@ -412,5 +412,7 @@ export const english: Record<string, string> = {
  "适配全部":"Fit all",
  "退出全屏":"Exit fullscreen",
  "全屏地图":"Fullscreen map",
- "拖拽移动；Ctrl / ⌘ + 滚轮缩放，全屏内直接滚轮缩放。地图表示地区分组，不是机房精确位置。":"Drag to pan; Ctrl / ⌘ + scroll to zoom, or scroll directly in fullscreen. Locations represent regions, not exact datacentres."
+ "拖拽移动；Ctrl / ⌘ + 滚轮缩放，全屏内直接滚轮缩放。地图表示地区分组，不是机房精确位置。":"Drag to pan; Ctrl / ⌘ + scroll to zoom, or scroll directly in fullscreen. Locations represent regions, not exact datacentres.",
+  "选择地区": "Select region",
+  "{0} 个节点": "{0} nodes"
 }

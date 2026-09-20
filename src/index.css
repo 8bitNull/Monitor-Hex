@@ -6,6 +6,7 @@
 @import "./styles/detail.css";
 @import "./styles/experience.css";
 @import "./styles/home.css";
+@import "./styles/mobile-browser.css";
 @import "./styles/card-layouts.css";
 
 @source "../index.html";
