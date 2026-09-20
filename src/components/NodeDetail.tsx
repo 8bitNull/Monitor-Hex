@@ -48,7 +48,7 @@ const AXIS = { stroke: "currentColor", fontSize: 11, tickLine: false, axisLine: 
 // No grow-in animation: it would spend 1.5 s drawing a line across the panel on
 // every range change, on a page meant to be read at a glance, and on the latency
 // chart across seven hundred points per probe.
-const SERIES = { dot: false as const, strokeWidth: 1.5, isAnimationActive: false };
+const SERIES = { dot: false as const, strokeWidth: 1.7, isAnimationActive: false };
 // Stable colours identify routes across time windows.
 const PALETTE = [
     { stroke: "var(--color-chart-1)" },
@@ -261,12 +261,12 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch }: {
             <div className="detail-chart-frame text-muted-foreground">
               {shownProbes.length === 0 ? (<p className="py-8 text-center text-sm">{(selectedProbes?.length || selectedProbes === null && choice.probe !== "auto") ? tr("无该线路记录") : tr("没有选中任何探测")}</p>) : !shownProbes.some(s=>s.points.length) ? <p className="py-8 text-center text-sm">{tr("这段时间没有延迟数据")}</p> : (<ResponsiveContainer>
                   <ComposedChart data={pingRows}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false}/>
+                    <CartesianGrid strokeDasharray="3 5" stroke="var(--border)" vertical={false}/>
                     <XAxis {...timeAxis(pingRows, Math.min(zoom?.[0] ?? 0, pingRows.length - 1), Math.min(zoom?.[1] ?? pingRows.length - 1, pingRows.length - 1))}/>
                     {/* Not anchored at zero: these lines live in a narrow band
                     far from it, and zero flattens every wobble. */}
                     <YAxis unit="ms" width={52} domain={["auto", "auto"]} {...AXIS}/>
-                    <Tooltip isAnimationActive={false} labelFormatter={(ts) => new Date(Number(ts)).toLocaleString(locale())} 
+                    <Tooltip allowEscapeViewBox={{x:false,y:false}} cursor={{stroke:"var(--border)",strokeDasharray:"3 4"}} isAnimationActive={false} labelFormatter={(ts) => new Date(Number(ts)).toLocaleString(locale())}
             // The line is drawn from what answered, so without this a
             // bucket that lost most of its packets reads as normal.
             // `dataKey` is `t7`/`s7`; the loss sits at `l7`.
@@ -284,7 +284,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch }: {
                     bands overlap into a fog and their extremes drag the
                     axis from 165-385 out to 140-420. */}
                     {shownProbes.length === 1 &&
-                    shownProbes.map((s) => (<Area key={`band${s.id}`} dataKey={`b${s.id}`} stroke="none" fill={style(s.id).stroke} fillOpacity={0.16} isAnimationActive={false} tooltipType="none" legendType="none" connectNulls={false}/>))}
+                    shownProbes.map((s) => (<Area key={`band${s.id}`} dataKey={`b${s.id}`} stroke="none" fill={style(s.id).stroke} fillOpacity={0.10} isAnimationActive={false} tooltipType="none" legendType="none" connectNulls={false}/>))}
                     {shownProbes.map((s) => (<Line key={s.id} dataKey={`${smooth ? "s" : "t"}${s.id}`} name={s.name} stroke={style(s.id).stroke} {...SERIES} strokeOpacity={highlightProbe!==null && visibleIds.includes(highlightProbe) && highlightProbe!==s.id ? 0.2 : 1} onMouseEnter={()=>setHighlightProbe(s.id)} onMouseLeave={()=>setHighlightProbe(null)} connectNulls={false}/>))}
                     {/* Drag either handle to zoom into a stretch of the trend. */}
                     <Brush dataKey="ts" height={22} travellerWidth={8} tickFormatter={clockFor(hours)} fill="var(--muted)" className="fill-muted" stroke="var(--color-muted-foreground)" onChange={(r) => setZoom([r.startIndex ?? 0, r.endIndex ?? pingRows.length - 1])}/>

@@ -297,3 +297,53 @@
 .settings-language button[aria-pressed=true] {background:var(--card);color:var(--foreground);box-shadow:0 1px 4px #0000000a}
 .settings-language button:focus-visible {outline:2px solid var(--tone);outline-offset:2px}
 @media(max-width:360px){.settings-language {align-items:flex-start;flex-direction:column;gap:8px}.settings-language>div {width:100%}.settings-language button {flex:1}}
+/* Settings: quiet groups, consistent touch targets and a persistent close action. */
+.settings-drawer {scrollbar-gutter:stable;overscroll-behavior:contain}
+.settings-drawer .preferences {padding:16px 24px 32px}
+.settings-top {top:-16px;padding:12px 0;margin-bottom:12px;border-bottom:1px solid var(--border)}
+.settings-top h2 {font-size:18px;letter-spacing:-.3px}
+.settings-top button {width:44px;height:44px;border:0;background:transparent;color:var(--muted-foreground)}
+.settings-drawer .settings-language {margin-block:16px 12px}
+.settings-language button {min-height:44px}
+.settings-drawer .preferences-note {font-size:12px;line-height:1.7}
+.settings-nav {gap:4px;margin-top:20px}
+.settings-nav button {min-height:44px;border:0;background:transparent;color:var(--muted-foreground)}
+.settings-nav button:hover {background:var(--card);color:var(--foreground)}
+.settings-drawer fieldset {margin-top:28px;padding-top:20px;border-color:color-mix(in srgb,var(--border) 70%,transparent)}
+.settings-drawer legend {font-size:13px;font-weight:600;color:var(--foreground);padding-right:12px}
+.settings-drawer .preference-grid {gap:20px}
+.settings-drawer .preference-grid>label {flex-direction:row;align-items:center;gap:12px}
+.settings-drawer .preference-grid>label>select {width:55%;min-height:44px;padding:9px 10px;border-radius:8px;background:var(--background)}
+.settings-drawer .visual-preference {gap:12px}
+.settings-drawer .palette-options {gap:6px}
+.settings-drawer .palette-options button {width:44px;height:44px;min-height:44px;flex-basis:44px;background:transparent}
+.settings-drawer .palette-options button[aria-pressed=true] {background:var(--tone-soft)}
+.settings-drawer .graph-options {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.settings-drawer .graph-options button,.settings-drawer .density-options button {min-width:0;min-height:72px;padding:12px 4px;gap:8px;background:transparent;color:var(--muted-foreground);border-color:var(--border)}
+.settings-drawer .graph-options small,.settings-drawer .density-options small {font-size:11px;line-height:1.4;overflow-wrap:anywhere}
+.settings-drawer :is(.graph-options,.density-options) button[aria-pressed=true] {background:var(--tone-soft);border-color:var(--tone);color:var(--tone)}
+.settings-drawer .check-control {min-height:44px;line-height:1.5;width:100%}
+.settings-drawer .module-switches {display:grid;grid-template-columns:1fr 1fr;gap:8px 16px}
+.settings-drawer .range-control {padding-top:24px;display:block!important}
+.settings-drawer .range-control output {top:0}
+.settings-drawer .range-control input {height:44px;display:block;margin-top:6px}
+.settings-drawer .background-input button,.settings-drawer .background-presets button {min-height:44px}
+.settings-drawer .settings-reset {border-top:1px solid var(--border);margin-top:32px;padding-top:24px}
+.settings-reset h3 {font-size:13px;font-weight:600}
+.settings-drawer .preference-actions {border:0;margin-top:16px;padding-top:0;gap:10px}
+.settings-drawer .preference-actions button,.settings-drawer .import-control {min-height:44px;background:transparent;line-height:1.5}
+.settings-drawer :is(button,input,select):focus-visible {outline:2px solid var(--tone);outline-offset:2px}
+@media(max-width:600px){
+ .settings-drawer .preferences {padding:12px 18px max(24px,env(safe-area-inset-bottom))}
+ .settings-top {top:-12px}
+ .settings-drawer .preference-grid>label>select {width:100%}
+ .settings-drawer .preference-grid>label {gap:8px}
+ .settings-drawer .palette-options {justify-content:space-between;gap:0}
+ .settings-drawer .module-switches {grid-template-columns:1fr;gap:2px}
+}
+
+@media(max-width:360px){
+ .settings-drawer .palette-options {display:grid;grid-template-columns:repeat(3,44px);justify-content:space-between;row-gap:6px}
+ .settings-drawer .graph-options {grid-template-columns:repeat(2,minmax(0,1fr))}
+ .settings-drawer .graph-options small {overflow-wrap:normal}
+}

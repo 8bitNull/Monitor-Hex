@@ -1,4 +1,9 @@
 export const english: Record<string, string> = {
+"网速": "Network",
+"显示内容": "Display",
+"提醒": "Alerts",
+"偏好管理": "Preferences management",
+"CPU 达到 85% 时记录，低于 80% 时标记恢复。记录仅保存在当前浏览器。": "Recorded at 85% CPU; marked recovered below 80%. History stays in this browser.",
 "复制失败，请手动选择文本": "Copy failed; select the text manually",
 "已复制": "Copied",
 "复制：{0}": "Copy: {0}",
