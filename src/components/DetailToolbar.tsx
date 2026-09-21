@@ -25,13 +25,13 @@ function Tab({ active, onClick, children, label }: {
     </button>);
 }
 export type HistoryTab='resources'|'latency'
-export function DetailToolbar({updated,tab,hours,smooth,hasProbes,onTab,onHours,onSmooth,onProbes,onRefresh}:{updated:number|null;tab:HistoryTab;hours:number;smooth:boolean;hasProbes:boolean;onTab:(tab:HistoryTab)=>void;onHours:(hours:number)=>void;onSmooth:(value:boolean)=>void;onProbes:(mode:'home'|'all'|'none')=>void;onRefresh:()=>void}){
+export function DetailToolbar({busy,updated,tab,hours,smooth,hasProbes,onTab,onHours,onSmooth,onProbes,onRefresh}:{busy:boolean;updated:number|null;tab:HistoryTab;hours:number;smooth:boolean;hasProbes:boolean;onTab:(tab:HistoryTab)=>void;onHours:(hours:number)=>void;onSmooth:(value:boolean)=>void;onProbes:(mode:'home'|'all'|'none')=>void;onRefresh:()=>void}){
  return (      <div id="latency" className="detail-chart-toolbar">
         <div className="detail-tabs" role="group" aria-label={tr("图表类型")}>{TABS.map(t=><Tab key={t.key} label={tr(t.label)} active={tab===t.key} onClick={()=>onTab(t.key)}>{t.key==="resources" ? <Activity size={15}/> : <Network size={15}/>}<span>{tr(t.key==="resources" ? "资源" : "延迟")}</span></Tab>)}</div>
         <div className="detail-ranges" role="group" aria-label={tr("时间范围")}>{RANGES_FOR[tab].map(r=><Tab key={r.hours} label={tr(r.label)} active={hours===r.hours} onClick={()=>onHours(r.hours)}>{r.hours===168 ? "7d" : `${r.hours}h`}</Tab>)}</div>
         {tab === "latency" && <label className="detail-smooth" title={tr("平滑仅改变图线显示，不修改原始数据。")}><input type="checkbox" aria-label={tr("平滑显示")} checked={smooth} onChange={e=>onSmooth(e.target.checked)}/><Waves size={16} aria-hidden="true"/>{tr("平滑")}</label>}
         {tab === "latency" && hasProbes && <div className="probe-actions"><button aria-label={tr("首页线路")} title={tr("首页线路")} onClick={()=>onProbes("home")}><Home size={16}/></button><button aria-label={tr("显示全部线路")} title={tr("显示全部线路")} onClick={()=>onProbes("all")}><Eye size={16}/></button><button aria-label={tr("隐藏全部线路")} title={tr("隐藏全部线路")} onClick={()=>onProbes("none")}><EyeOff size={16}/></button></div>}
-        <button className="detail-refresh" aria-label={tr("刷新历史")} title={updated?tr("最后成功获取：{0}",new Date(updated).toLocaleString(locale())):tr("刷新历史")} onClick={onRefresh}><RefreshCw size={16}/></button>
+        <button className="detail-refresh" disabled={busy} aria-busy={busy} aria-label={tr("刷新历史")} title={updated?tr("最后成功获取：{0}",new Date(updated).toLocaleString(locale())):tr("刷新历史")} onClick={onRefresh}><RefreshCw size={16}/></button>
       </div>
 )
 }

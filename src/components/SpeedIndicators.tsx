@@ -1,5 +1,5 @@
 import {liveMetrics,nodeState} from '@/lib/freshness'
-import {ArrowUp, ArrowDown, Clock3} from 'lucide-react'
+import {ArrowUp, ArrowDown} from 'lucide-react'
 import {nodeSpeedPeak, type Node} from '@/lib/api'
 import {rate} from '@/lib/format'
 import {tr, locale} from '@/lib/i18n'
@@ -17,8 +17,7 @@ export function SpeedIndicators({node, detail=false}: {node:Node; detail?:boolea
       const ratio=value===undefined?0:value/peak*100
       const [amount,unit]=value===undefined?['—','']:rate(value).split(' ')
       return <div className={direction} key={direction} aria-label={`${label} ${amount} ${unit}${stale?' · '+tr("数据已过期"):''}`}>
-        <Icon size={16}/><strong>{amount}<small>{unit}</small></strong>
-        {stale&&<Clock3 className="speed-stale-icon" size={12} aria-label={tr("数据已过期")}/>}
+        <Icon size={16}/><strong><span className="speed-amount">{amount}</span><small>{unit || "\u00a0"}</small></strong>
         <span className="speed-columns" aria-hidden="true">{Array.from({length:20},(_,i)=><span key={i}><i style={{width:`${Math.max(0,Math.min(100,(ratio-i*5)*20))}%`}}/></span>)}</span>
         <svg className="speed-ring" viewBox="0 0 28 28" aria-hidden="true"><circle className="speed-ring-track" cx="14" cy="14" r="11"/><circle cx="14" cy="14" r="11" pathLength="100" strokeDasharray={`${ratio} 100`}/></svg>
         <span className="speed-track" aria-hidden="true"><i style={{width:`${value===undefined?0:value/peak*100}%`}}/></span>

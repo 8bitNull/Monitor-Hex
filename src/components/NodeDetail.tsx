@@ -6,7 +6,7 @@ import {useNodeProbe} from '@/lib/nodeProbes'
 import {primaryPing} from '@/lib/browse'
 import { probeCatalog, windowLoss } from '@/lib/ping'
 import { tr, locale } from '../lib/i18n.ts'
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { median } from "d3-array";
 import { Area, Brush, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -122,6 +122,10 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch }: {
     // the connection the agents report through. Rendered as an empty window, a 503
     // would misdirect the reader.
     const [failed, setFailed] = useState("");
+    const [loading,setLoading]=useState(true);
+    const busy=useRef(true);
+    const retained=useRef<{key:string;value:NonNullable<typeof data>}|null>(null);
+    const refresh=()=>{if(!busy.current){busy.current=true;setLoading(true);setRetry(n=>n+1);}};
     const [updated,setUpdated]=useState<number|null>(null);
     useEffect(()=>{const q=new URLSearchParams(location.search);q.set('rh',String(ranges.resources));q.set('lh',String(ranges.latency));q.set('metric',resourceMetric);if(selectedProbes===null)q.delete('routes');else q.set('routes',selectedProbes.join(','));history.replaceState({},'',location.pathname+'?'+q+(tab==='latency'?'#latency':''))},[ranges,resourceMetric,selectedProbes,tab]);
     // Where the brush has been dragged, so the axis reticks for the visible span
@@ -137,7 +141,10 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch }: {
         // The charts must not continue drawing the old range while the new one is in
         // flight.
         // oxlint-disable-next-line react/set-state-in-effect
-        setData(null);
+        const key=`${node.id}:${hours}:${tab}`;
+        const previous=retained.current?.key===key?retained.current.value:null;
+        setData(previous);
+        busy.current=true;setLoading(true);
         // oxlint-disable-next-line react/set-state-in-effect
         setZoom(null);
         // oxlint-disable-next-line react/set-state-in-effect
@@ -158,7 +165,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch }: {
             probes: Probes;
             loss?: Loss;
         }>(`/nodes/${node.id}/metrics?hours=${hours}&points=${points}&series=${series}`, { signal: controller.signal, cache: 'no-store' })
-            .then((next) => { clearTimeout(timeout); if (active) {setData(next);setUpdated(Date.now());} })
+            .then((next) => { clearTimeout(timeout); if (active) {retained.current={key,value:next};setData(next);setUpdated(Date.now());busy.current=false;setLoading(false);} })
             .catch((e: Error) => {
             // `|| "..."` as in App.tsx: HTTP/2 dropped statusText, so a bodiless
             // failure from a proxy arrives as the empty string and renders as no
@@ -166,7 +173,8 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch }: {
             clearTimeout(timeout);
             if (active) {
                 setFailed(e.message || tr("网络错误"));
-                setData({ metrics: [], ping: [], probes: {} });
+                setData(previous || { metrics: [], ping: [], probes: {} });
+                busy.current=false;setLoading(false);
             }
         });
         return () => { active = false; clearTimeout(timeout); controller.abort(); };
@@ -240,10 +248,11 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch }: {
       <div className="detail-workspace">
       <DetailLiveOverview node={node}/>
       <section className="detail-history" aria-label={tr("历史图表")}>
-      <DetailToolbar updated={updated} tab={tab} hours={hours} smooth={smooth} hasProbes={pingSeries.length>0} onTab={setTab} onHours={value=>setRanges(all=>({...all,[tab]:value}))} onSmooth={setSmooth} onProbes={mode=>{setHighlightProbe(null);setSelectedProbes(mode==='home'?null:mode==='all'?pingSeries.map(s=>s.id):[])}} onRefresh={()=>setRetry(n=>n+1)}/>
+      <DetailToolbar busy={loading} updated={updated} tab={tab} hours={hours} smooth={smooth} hasProbes={pingSeries.length>0} onTab={setTab} onHours={value=>setRanges(all=>({...all,[tab]:value}))} onSmooth={setSmooth} onProbes={mode=>{setHighlightProbe(null);setSelectedProbes(mode==='home'?null:mode==='all'?pingSeries.map(s=>s.id):[])}} onRefresh={refresh}/>
       {eventStart>0&&<p className="event-context">{tr('告警时段：{0} — {1}',new Date(eventStart).toLocaleString(locale()),new Date(eventEnd).toLocaleString(locale()))}{age>168||hours<age?<span>{tr('当前历史范围无法覆盖完整告警时段。')}</span>:data&&!(data.metrics??[]).some(p=>p.ts*1000>=eventStart&&p.ts*1000<=eventEnd)?<span>{tr('此告警时段没有返回历史样本。')}</span>:null}</p>}
+      {failed && <div className="history-notice" role="alert"><span>{data && (data.metrics?.length || data.ping?.length)?tr("更新失败，保留上次历史记录。"):tr("读取历史数据失败：")}{failed}</span><button disabled={loading} onClick={refresh}>{tr("重试")}</button></div>}
       <div className="detail-history-body" data-history={tab}>
-      {!data ? (<Skeleton className="h-40 w-full"/>) : failed ? (<p className="py-8 text-center text-sm text-destructive" role="alert">{tr("读取历史数据失败：")}{failed}<button className="detail-refresh" onClick={() => setRetry(n => n + 1)}>{tr("重试")}</button></p>) : tab === "latency" ? (pingSeries.length === 0 ? (<p className="py-8 text-center text-sm text-muted-foreground">{tr("这段时间没有延迟数据")}</p>) : (
+      {!data ? (<div className="history-loading" aria-label={tr("正在读取历史数据")} aria-busy="true"><Skeleton className="h-40 w-full"/></div>) : failed && !data.metrics?.length && !data.ping?.length ? (<p className="history-empty">{tr("暂无可用历史数据")}</p>) : tab === "latency" ? (pingSeries.length === 0 ? (<p className="py-8 text-center text-sm text-muted-foreground">{tr("这段时间没有延迟数据")}</p>) : (
         <div className="latency-view">
             <div className="detail-probe-legend">
 

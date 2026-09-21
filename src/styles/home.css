@@ -166,3 +166,33 @@
 .settings-drawer .advanced-appearance>summary:focus-visible {outline:2px solid var(--tone);outline-offset:2px}
 .settings-drawer .advanced-appearance fieldset {margin-top:10px}
 @media(max-width:360px){.settings-drawer .card-info-switches {grid-template-columns:1fr}.settings-drawer .mobile-info-control select {width:100%}}
+/* Stable live readings: the unit has its own slot, including unknown values. */
+.node-card .speed-pair strong {display:grid;grid-template-columns:minmax(0,1fr) 32px;align-items:baseline;column-gap:5px;row-gap:3px;white-space:nowrap}
+.speed-pair strong .speed-amount {display:block;font-size:inherit;font-weight:inherit;min-width:0;text-align:right}
+.node-card .speed-pair strong small {margin-left:0;text-align:right;min-height:1.35em}
+.node-card .node-timing>span {min-width:0;overflow-wrap:anywhere}
+.node-card .node-timing b {min-width:0}
+.node-card .ping-empty {min-height:65px;display:flex;align-items:center;line-height:1.6}
+.node-card .ping-stale {font-size:11px;line-height:1.5;color:var(--muted-foreground)}
+.node-card .latency-link {min-width:5.5ch}
+@media(min-width:721px){
+ .node-grid {align-items:stretch}
+ .node-grid>.node-card {display:flex;flex-direction:column}
+ .node-grid>.node-card>.node-secondary {margin-top:auto}
+}
+@media(max-width:360px){.node-card .speed-pair strong {grid-template-columns:minmax(0,1fr)}.node-card .speed-pair strong small {grid-column:1}}
+.loading-card {min-width:0;border:1px solid var(--home-line);border-radius:14px;padding:20px 18px;background:var(--card);min-height:520px}
+.loading-card [data-slot=skeleton],.history-loading [data-slot=skeleton] {animation:none}
+.loading-title {width:65%;height:44px;margin-bottom:26px}
+.loading-metrics {display:grid;grid-template-columns:1fr 1fr;gap:24px 20px}
+.loading-metrics>div {height:62px}
+.loading-speed {height:55px;margin-top:26px}
+.loading-route {height:90px;margin-top:26px}
+.history-notice {display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding:10px 12px;border-radius:8px;background:var(--muted);color:var(--muted-foreground);font-size:12px;line-height:1.6}
+.history-notice>span {min-width:0;overflow-wrap:anywhere}
+.history-notice button {flex-shrink:0;min-width:44px;color:var(--tone)}
+.history-loading {height:510px;padding:16px 0}
+.history-loading>[data-slot=skeleton] {height:100%}
+.detail-refresh[aria-busy=true] {opacity:.5;cursor:progress}
+@media(max-width:899px){.history-loading {height:430px}}
+@media(max-width:600px){.history-loading {height:382px}}

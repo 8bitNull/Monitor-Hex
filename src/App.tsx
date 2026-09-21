@@ -36,36 +36,42 @@ const WorldMap = lazy(() => import('@/components/WorldMap').then(m => ({ default
 // leaves the detail view rather than the site. The hub serves index.html for any
 // unknown path, so no server-side route is required.
 function useNodeRoute() {
-    const read = () => {
-        const match = location.pathname.match(/^\/node\/(\d+)/);
-        return match ? Number(match[1]) : null;
-    };
-    const [id, setId] = useState(read);
-    const home = useRef({y:0,node:0});
-    const pending = useRef(false);
-    useEffect(() => {
-        const previous = history.scrollRestoration;
-        history.scrollRestoration = 'manual';
-        const sync = () => {pending.current = read() === null; setId(read());};
-        addEventListener("popstate", sync);
-        return () => {removeEventListener("popstate", sync); history.scrollRestoration = previous;};
-    }, []);
-    useLayoutEffect(() => {
-        if (id !== null || !pending.current) return;
-        pending.current = false;
-        const frame = requestAnimationFrame(() => {
-            document.querySelector<HTMLElement>(`[data-node-id="${home.current.node}"]`)?.focus({preventScroll:true});
-            scrollTo(0,home.current.y);
-        });
-        return () => cancelAnimationFrame(frame);
-    }, [id]);
-    return [id, (next: number | null, section?: string, query = "") => {
-        if (id === null && next !== null) home.current = {y:scrollY,node:next};
-        const anchor = section ?? (id !== null && next !== null ? location.hash.slice(1) : "");
-        pending.current = next === null;
-        history.pushState({}, "", next === null ? "/" : `/node/${next}${query}${anchor ? "#"+anchor : ""}`);
-        setId(next);
-        if (next !== null) scrollTo(0,0);
+    const read = () => {const match=location.pathname.match(/^\/node\/(\d+)/);return match?Number(match[1]):null;};
+    const [id,setId]=useState(read);
+    const home=useRef({y:0,node:0,offset:0,width:0});
+    const pending=useRef(false);
+    useEffect(()=>{
+        const previous=history.scrollRestoration;history.scrollRestoration='manual';
+        const sync=()=>{pending.current=read()===null;setId(read());};
+        addEventListener('popstate',sync);
+        return()=>{removeEventListener('popstate',sync);history.scrollRestoration=previous;};
+    },[]);
+    useLayoutEffect(()=>{
+        if(id!==null || !pending.current)return;
+        pending.current=false;
+        let stopped=false;
+        const restore=()=>{
+            if(stopped)return;
+            const target=document.querySelector<HTMLElement>(`[data-node-id="${home.current.node}"]`);
+            if(!target){scrollTo(0,home.current.y);return;}
+            const top=(document.querySelector('header')?.getBoundingClientRect().bottom || 0)+12;
+            const desired=home.current.width===innerWidth?Math.max(top,Math.min(home.current.offset,innerHeight-80)):top;
+            scrollTo(0,scrollY+target.getBoundingClientRect().top-desired);
+            target.focus({preventScroll:true});
+        };
+        const observer=new ResizeObserver(restore);
+        const main=document.querySelector('main');if(main)observer.observe(main);
+        const stop=()=>{stopped=true;observer.disconnect();};
+        for(const event of ['wheel','touchstart','pointerdown','keydown'])addEventListener(event,stop,{passive:true,once:true});
+        const frame=requestAnimationFrame(restore),timer=setTimeout(stop,500);
+        return()=>{stop();cancelAnimationFrame(frame);clearTimeout(timer);for(const event of ['wheel','touchstart','pointerdown','keydown'])removeEventListener(event,stop);};
+    },[id]);
+    return [id,(next:number|null,section?:string,query='')=>{
+        if(id===null && next!==null){const target=document.querySelector<HTMLElement>(`[data-node-id="${next}"]`);home.current={y:scrollY,node:next,offset:target?.getBoundingClientRect().top || 0,width:innerWidth};}
+        const anchor=section ?? (id!==null && next!==null?location.hash.slice(1):'');
+        pending.current=next===null;
+        history.pushState({},'',next===null?'/':`/node/${next}${query}${anchor?'#'+anchor:''}`);
+        setId(next);if(next!==null)scrollTo(0,0);
     }] as const;
 }
 export default function App({ siteDefaults = defaults }: {
@@ -218,8 +224,8 @@ export default function App({ siteDefaults = defaults }: {
         {open !== null ? (!nodes ? (<Skeleton className="h-96"/>) : selected ? (<Suspense fallback={<Skeleton className="h-96"/>}>
               <NodeDetail key={selected.id} node={selected} probe={prefs.probe} nodes={sorted} onSwitch={id=>{const q=new URLSearchParams(location.search);q.delete("eventStart");q.delete("eventEnd");go(id,location.hash.slice(1),q.size?"?"+q:"")}}/>
             </Suspense>) : (<p className="py-16 text-center text-sm text-muted-foreground">{tr("节点不存在或未公开。")}<button className="underline" onClick={() => go(null)}>{tr("返回列表")}</button>
-            </p>)) : !nodes ? (<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {[0, 1, 2].map((i) => (<Skeleton key={i} className="h-72"/>))}
+            </p>)) : !nodes ? (<div className="node-grid home-loading" aria-label={tr("正在加载节点")} aria-busy="true">
+            {[0, 1, 2].map((i) => (<div key={i} className="loading-card" aria-hidden="true"><Skeleton className="loading-title"/><div className="loading-metrics">{[0,1,2,3].map(n=><Skeleton key={n}/>)}</div><Skeleton className="loading-speed"/><Skeleton className="loading-route"/></div>))}
           </div>) : (<>
             <section className="overview-heading"><div className="page-heading"><h1>{tr("服务器总览")}</h1><span className={`live-label connection-${connection}`} role="status" title={[{connecting:tr("正在连接"),realtime:tr("实时连接"),polling:tr("轮询更新"),disconnected:tr("连接中断 \u00B7 数据可能已过期")}[connection],lastUpdated ? new Date(lastUpdated).toLocaleString(locale()) : tr("等待首次数据")].join(" · ")}><Radio size={14}/><span>{{ connecting: tr("正在连接"), realtime: tr("实时连接"), polling: tr("轮询更新"), disconnected: tr("连接中断 \u00B7 数据可能已过期") }[connection]}</span></span></div>
             <p className="update-time">{lastUpdated ? tr("最后更新：{0}", new Date(lastUpdated).toLocaleString(locale())) : tr("等待首次数据")}</p></section>

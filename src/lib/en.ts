@@ -1,4 +1,8 @@
 export const english: Record<string, string> = {
+"暂无可用历史数据": "No history is available.",
+"更新失败，保留上次历史记录。": "Update failed. Showing the last history. ",
+"正在读取历史数据": "Loading history",
+"正在加载节点": "Loading nodes",
 "高级外观": "Advanced appearance",
 "仅影响宽度不超过 720px 的首页卡片。": "Applies to home cards at widths up to 720px.",
 "仅影响首页卡片，详情页保留完整资料。": "Applies to home cards only. Details keep all information.",

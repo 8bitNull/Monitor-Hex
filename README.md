@@ -1,12 +1,12 @@
 # Monitor HEX
 
-HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.0.13**，主题短名 **hex**。
+HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.0.14**，主题短名 **hex**。
 
-**0.0.13** 新增卡片辅助信息开关、手机独立显示设置和桌面列数。默认保持原版外观。验收见 [REVIEW-v0.0.13.md](REVIEW-v0.0.13.md)。
+**0.0.14** 优化桌面卡片对齐、动态网速排版和异常状态；详情刷新失败保留上次图表，返回首页按节点恢复位置。已有显示偏好继续保留。验收见 [REVIEW-v0.0.14.md](REVIEW-v0.0.14.md)。
 
 ## 主题预览
 
-以下图片使用本地演示数据，首页与自定义预览展示 0.0.13，详情和设置保留 0.0.11 预览。移动端首页图片展示上半部分。点击图片可查看原图。
+以下图片使用本地演示数据：首页展示 0.0.14，自定义预览保留 0.0.13，详情和设置保留 0.0.11 预览。移动端首页图片展示上半部分。点击图片可查看原图。
 
 | 浅色首页 | 深色首页 |
 | --- | --- |
@@ -42,6 +42,16 @@ HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.0.13**，主�
 
 ![手机详情前后对比](screenshots/v0.0.11/mobile-detail-comparison.png)
 ![手机设置前后对比](screenshots/v0.0.11/mobile-settings-comparison.png)
+
+</details>
+
+<details>
+<summary>v0.0.14 卡片对齐与异常状态（对比图左旧版，右新版）</summary>
+
+![桌面卡片浅色对比](screenshots/v0.0.14/compare-1440-light.png)
+![手机深色对比](screenshots/v0.0.14/compare-390-dark.png)
+![离线、过期、等待、请求失败与超时](screenshots/v0.0.14/states.png)
+![刷新失败保留历史图表](screenshots/v0.0.14/history-retained.png)
 
 </details>
 
