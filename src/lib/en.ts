@@ -1,4 +1,10 @@
 export const english: Record<string, string> = {
+"关闭图表提示":"Close chart tooltip",
+"展开名称":"Expand name",
+"收起名称":"Collapse name",
+"搜索线路":"Search routes",
+"按名称搜索":"Search by name",
+"没有匹配的线路":"No matching routes",
 "详情页": "Detail page",
 "设备资料展开方式": "Device information display",
 "自动：手机折叠，桌面展开": "Auto: collapse on mobile",

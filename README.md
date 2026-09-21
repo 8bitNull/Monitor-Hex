@@ -1,35 +1,35 @@
 # Monitor HEX
 
-HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.0.16**，主题短名 **hex**。
+HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.0.17**，主题短名 **hex**。
 
-**0.0.16** 精修详情页信息层级与图表工具栏，新增设备资料自动展开偏好，优化多线路选择与手机图表点选。已有显示偏好继续保留。验收见 [REVIEW-v0.0.16.md](REVIEW-v0.0.16.md)。
+**0.0.17** 优化详情页底部资料布局，新增线路搜索、长名称展开与手机图表提示关闭，完善复制反馈。已有显示偏好继续保留。验收见 [REVIEW-v0.0.17.md](REVIEW-v0.0.17.md)。
 
 ## 主题预览
 
-以下图片均为 **v0.0.16**，使用本地演示数据。移动端首页展示上半部分，点击图片可查看原图。
+以下图片均为 **v0.0.17**，使用本地演示数据。移动端首页展示上半部分，点击图片可查看原图。
 
 | 浅色首页 | 深色首页 |
 | --- | --- |
-| ![v0.0.16 浅色首页](screenshots/home-light.png) | ![v0.0.16 深色首页](screenshots/home-dark.png) |
+| ![v0.0.17 浅色首页](screenshots/home-light.png) | ![v0.0.17 深色首页](screenshots/home-dark.png) |
 
 <p align="center">
-  <img src="screenshots/mobile-light.png" width="280" alt="v0.0.16 手机浅色首页" />
-  <img src="screenshots/mobile-dark.png" width="280" alt="v0.0.16 手机深色首页" />
+  <img src="screenshots/mobile-light.png" width="280" alt="v0.0.17 手机浅色首页" />
+  <img src="screenshots/mobile-dark.png" width="280" alt="v0.0.17 手机深色首页" />
 </p>
 
 | 浅色显示设置 | 深色显示设置 |
 | --- | --- |
-| ![v0.0.16 浅色显示预设](screenshots/v0.0.16/presets-390-light.png) | ![v0.0.16 深色显示预设](screenshots/v0.0.16/presets-390-dark.png) |
+| ![v0.0.17 浅色显示预设](screenshots/v0.0.17/presets-390-light.png) | ![v0.0.17 深色显示预设](screenshots/v0.0.17/presets-390-dark.png) |
 
 ## 详情页预览
 
 | 资源详情 | 延迟图表 |
 | --- | --- |
-| ![v0.0.16 资源详情](screenshots/detail-light.png) | ![v0.0.16 延迟图表](screenshots/latency-dark.png) |
+| ![v0.0.17 资源详情](screenshots/detail-light.png) | ![v0.0.17 延迟图表](screenshots/latency-dark.png) |
 
 <p align="center">
-  <img src="screenshots/v0.0.16/mobile-detail-light.png" width="280" alt="v0.0.16 手机详情" />
-  <img src="screenshots/v0.0.16/mobile-latency-dark.png" width="280" alt="v0.0.16 手机延迟图表" />
+  <img src="screenshots/v0.0.17/mobile-detail-light.png" width="280" alt="v0.0.17 手机详情" />
+  <img src="screenshots/v0.0.17/mobile-latency-dark.png" width="280" alt="v0.0.17 手机延迟图表" />
 </p>
 
 ## 安装
@@ -67,7 +67,7 @@ HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.0.16**，主�
 
 | 完整卡片 | 精简卡片 |
 | --- | --- |
-| ![v0.0.16 完整卡片](screenshots/v0.0.16/card-full-light.png) | ![v0.0.16 精简卡片](screenshots/v0.0.16/slim-390-light-card.png) |
+| ![v0.0.17 完整卡片](screenshots/v0.0.17/card-full-light.png) | ![v0.0.17 精简卡片](screenshots/v0.0.17/slim-390-light-card.png) |
 
 ## 高负载记录
 
@@ -79,13 +79,13 @@ HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.0.16**，主�
 
 ## 开发与验收
 
-`npm install`、`npm run build`、`npm run lint`、`npm test`。`npm run demo` 启动演示数据页面；`npm run package` 生成 theme.tar.gz。浏览器测试按功能组织，运行 `npm run test:e2e` 检查当前版本的 97 项交互用例（需已安装 Chrome）；设置 `TEST_BROWSER=msedge` 可改用 Edge。测试前先执行 `npm run build`。
+`npm install`、`npm run build`、`npm run lint`、`npm test`。`npm run demo` 启动演示数据页面；`npm run package` 生成 theme.tar.gz。浏览器测试按功能组织，运行 `npm run test:e2e` 检查当前版本的 110 项交互用例（需已安装 Chrome）；设置 `TEST_BROWSER=msedge` 可改用 Edge。测试前先执行 `npm run build`。
 
 截图由当前生产构建配合本地演示数据生成，不代表已部署至用户线上站点。许可和参考来源见 NOTICE.md、LICENSE、LICENSE.komari-next。
 
 ## 详情页
 
-桌面采用 320px（中等屏幕 280px）概况栏与自适应历史图表。900px 以下按身份、实时指标、历史分析、流量与设备资料排序。资源主图可切换四项指标，手机点按数据点查看提示。较多或较长备注可展开查看；Agent 版本移入硬件资料，TCP/UDP 仍在实时概况中。延迟线路通过选择面板管理，支持全部显示、全部隐藏和恢复首页线路。
+桌面上方采用 320px（中等屏幕 280px）概况栏与自适应历史图表，设备资料在下方占满整行：900–1199px 两列、1200px 起三列。900px 以下按身份、实时指标、历史分析、流量与设备资料排序。资源主图可切换四项指标，手机点按数据点查看提示。较多或较长备注可展开查看；Agent 版本移入硬件资料，TCP/UDP 仍在实时概况中。延迟线路超过 6 条时支持名称搜索；搜索只筛选列表，全部显示、全部隐藏和恢复首页线路仍作用于完整线路集合。打开面板时已选优先，连续多选期间保持顺序，避免滚动跳动；Escape 关闭并返回入口焦点。手机图表提示可点击关闭或点外部关闭，长提示可内部滚动。超长名称默认最多两行，可独立展开；复制成功提示 2 秒后消失，失败可重试。
 
 设置 → **详情页 → 设备资料展开方式**提供自动、展开、折叠。自动模式在 900px 以下折叠、900px 及以上展开；手动展开或折叠会记住选择。可在设置中恢复自动。偏好支持导入导出，“恢复默认外观”保留该选择，“重置全部偏好”恢复站点默认。资料按硬件与系统、网络与流量、费用与到期分组。
 
