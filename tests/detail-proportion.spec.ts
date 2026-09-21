@@ -9,7 +9,7 @@ for(const width of [899,900,1024,1199,1200,1440,1920])test(`detail proportions a
  await page.setViewportSize({width,height:900});await setup(page)
  if(width<900)await page.locator('.detail-facts-toggle').click()
  const groups=page.locator('.detail-fact-groups'),sections=groups.locator('section'),hardware=(await sections.nth(0).boundingBox())!,network=(await sections.nth(1).boundingBox())!,billing=(await sections.nth(2).boundingBox())!
- if(width>=1200){expect(hardware.width).toBeGreaterThan(network.width);expect(network.width).toBeGreaterThan(billing.width);expect(billing.height).toBeLessThan(hardware.height*.7);expect(Math.abs(hardware.y-billing.y)).toBeLessThanOrEqual(1)}
+ if(width>=1200){expect(hardware.width).toBeGreaterThan(network.width);expect(network.width).toBeGreaterThan(billing.width);expect(Math.abs(billing.height-hardware.height)).toBeLessThanOrEqual(1);expect(Math.abs(hardware.y-billing.y)).toBeLessThanOrEqual(1)}
  if(width>=900&&width<1200){expect(Math.abs(billing.y-hardware.y)).toBeLessThanOrEqual(1);expect(billing.width).toBeLessThan(hardware.width);expect(billing.width).toBeLessThan(network.width)}
  if(width===1440){const first=(await sections.first().locator("dl>div").first().boundingBox())!;expect(first.y+first.height).toBeLessThanOrEqual(900);expect((await page.locator('.detail-chart-frame').boundingBox())!.height).toBeGreaterThanOrEqual(360)}
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()

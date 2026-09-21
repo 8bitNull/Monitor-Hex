@@ -246,3 +246,43 @@ main:has(>.node-detail)>.detail-navigation {margin-bottom:4px}
  .detail-facts .fact-long dd {text-align:left;justify-content:start}
  .detail-facts .fact-long dd .fact-value {justify-self:start;padding-top:8px}
 }
+
+/* v0.0.22: desktop detail modules use one quiet frame with internal grids. */
+@media(min-width:900px){
+ .detail-information {border:1px solid var(--detail-line);border-radius:12px;background:var(--card);overflow:visible}
+ .detail-information .detail-fact-groups {grid-template-columns:minmax(0,1.18fr) minmax(0,1.1fr) minmax(0,.78fr);gap:0;align-items:stretch}
+ .detail-information .detail-fact-groups>section {min-width:0;padding:18px 20px 20px;border:0;border-radius:0;background:var(--card)}
+ .detail-information .detail-fact-groups>section+section {border-left:1px solid var(--detail-line)}
+ .detail-information .detail-fact-groups>section:first-child {border-radius:11px 0 0 11px}
+ .detail-information .detail-fact-groups>section:last-child {border-radius:0 11px 11px 0}
+ .detail-information .detail-fact-groups>section h3 {margin:0 0 14px}
+ .detail-information .detail-facts {gap:10px}
+ .detail-information .detail-facts>div {grid-template-columns:96px minmax(0,1fr);gap:10px}
+ .detail-information .detail-facts dd {line-height:1.5}
+ .detail-information .detail-facts dd:has(.copy-control) .fact-value {text-align:right}
+ .detail-information .detail-billing {align-self:stretch}
+
+ .detail-live {padding:0 20px 16px}
+ .detail-live .detail-module-heading {min-height:52px;margin:0 -20px 18px;padding:0 20px;border-bottom:1px solid var(--detail-line)}
+ .detail-live .detail-resources {gap:0}
+ .detail-live .detail-resources>.resource {padding:0 20px 0 2px}
+ .detail-live .detail-resources>.resource+.resource {padding-left:20px;border-left:1px solid var(--detail-line)}
+ .detail-live .detail-speed.speed-indicators {gap:0;margin-top:16px;padding-top:14px}
+ .detail-live .detail-speed.speed-indicators>div {padding-right:20px}
+ .detail-live .detail-speed.speed-indicators>div+div {padding-left:20px;border-left:1px solid var(--detail-line)}
+ .detail-live .detail-speed.speed-indicators strong {font-size:17px}
+ .detail-live .detail-speed.speed-indicators small {display:inline;margin:0 0 0 3px}
+ .detail-live .detail-auxiliary {grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;margin-top:16px;padding-top:12px}
+ .detail-live .detail-auxiliary .detail-connections {grid-template-columns:repeat(2,max-content);gap:18px;margin:0;padding:0;border:0}
+}
+
+@media(min-width:1200px){
+ .detail-history {padding:0}
+ .detail-history .detail-chart-toolbar {min-height:56px;padding:0 20px;border-bottom:1px solid var(--detail-line)}
+ .detail-history .detail-tabs {align-self:center;height:50px;gap:20px;padding:0;background:transparent;border-radius:0}
+ .detail-history .detail-tabs button {position:relative;align-self:stretch;border-radius:0;background:transparent;color:var(--muted-foreground);box-shadow:none}
+ .detail-history .detail-ranges {align-self:center}
+ .detail-history .detail-tabs button[aria-pressed=true] {background:transparent;color:var(--foreground);box-shadow:none}
+ .detail-history .detail-tabs button[aria-pressed=true]::after {position:absolute;right:0;bottom:-1px;left:0;height:2px;background:var(--tone);content:""}
+ .detail-history .detail-history-body {padding:16px 20px 20px}
+}

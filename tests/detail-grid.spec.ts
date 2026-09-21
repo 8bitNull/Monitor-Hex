@@ -18,6 +18,8 @@ test('detail page uses a light modular reading order',async({page})=>{
  expect(await page.locator('.detail-fact-groups>section')).toHaveCount(3)
  expect(await page.locator('.detail-fact-groups').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(3)
  expect(await page.locator('.detail-fact-groups h3 svg')).toHaveCount(3)
+ const factsFrame=await page.locator('.detail-information').evaluate(el=>({border:getComputedStyle(el).borderTopWidth,sections:[...el.querySelectorAll('.detail-fact-groups>section')].map(section=>getComputedStyle(section).borderLeftWidth)}))
+ expect(factsFrame.border).toBe('1px');expect(factsFrame.sections).toEqual(['0px','1px','1px'])
  const backgrounds=await page.locator('.detail-live,.detail-history,.detail-fact-groups>section').evaluateAll(elements=>elements.map(el=>getComputedStyle(el).backgroundColor))
  expect(new Set(backgrounds)).toEqual(new Set(['rgb(255, 255, 255)']))
  await expect(page.locator('.detail-live')).toContainText('实时使用率')
