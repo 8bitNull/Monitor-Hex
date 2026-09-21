@@ -196,3 +196,42 @@
 .detail-refresh[aria-busy=true] {opacity:.5;cursor:progress}
 @media(max-width:899px){.history-loading {height:430px}}
 @media(max-width:600px){.history-loading {height:382px}}
+/* Reading hierarchy and explicit, independently scoped display presets. */
+.overview-heading {margin-bottom:16px}
+.node-card .node-heading {gap:8px}
+.node-card .node-symbol {display:flex;align-items:center;justify-content:center;align-self:flex-start;margin-top:4px;flex-shrink:0}
+.node-card .node-identity p {display:flex;align-items:center;gap:4px}
+.node-card .node-identity p svg,.node-card .node-identity p img {flex-shrink:0}
+.node-card .status-pill {min-height:24px;display:inline-flex;align-items:center;line-height:1.4}
+.node-card .node-footer {align-items:center}
+.node-card .node-price,.node-card .node-remarks .detail-remark-tag {line-height:1.5;font-weight:400}
+.node-card .node-price {min-height:24px;align-content:center}
+.node-card .node-remarks .detail-remark-tag {min-height:24px;display:inline-flex;align-items:center}
+.settings-drawer .info-presets {margin-top:20px}
+.settings-drawer .preset-heading {display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;font-size:12px}
+.settings-drawer .preset-heading small {color:var(--muted-foreground);font-size:11px}
+.settings-drawer .info-presets [role=group] {display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.settings-drawer .info-presets button {min-width:0;min-height:76px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:12px;border:1px solid var(--muted-foreground);border-radius:10px;background:transparent;text-align:left;color:var(--foreground)}
+.settings-drawer .info-presets button>span {display:flex;align-items:center;gap:5px;min-height:20px;font-size:13px;font-weight:600}
+.settings-drawer .info-presets button small {font-size:11px;line-height:1.6;color:var(--muted-foreground)}
+.settings-drawer .info-presets button[aria-pressed=true] {border-color:var(--tone);background:var(--tone-soft)}
+.settings-drawer .mobile-follow-note {padding:12px;background:var(--muted);border-radius:8px;margin-top:12px}
+.settings-drawer .mobile-info-options {padding:16px}
+.settings-drawer .mobile-info-options .info-presets {margin-top:0}
+.settings-drawer .card-layout-controls {margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
+.settings-drawer select {border-color:var(--muted-foreground)}
+.settings-drawer :is(.graph-options,.density-options) button {position:relative}
+.settings-drawer :is(.graph-options,.density-options) button[aria-pressed=true]::after {content:'✓';position:absolute;top:2px;right:5px;font-size:11px}
+.next-theme :is(button,select,input,summary):focus-visible {outline:2px solid var(--tone);outline-offset:3px}
+.settings-drawer button:active:not(:disabled) {background:var(--muted)}
+.settings-drawer button:disabled {opacity:.55;cursor:not-allowed}
+.settings-drawer .preferences {padding-bottom:max(32px,env(safe-area-inset-bottom))}
+.settings-drawer {scroll-padding-block:80px 24px}
+@media(max-width:720px){
+ .overview-heading {margin-bottom:12px}
+ .node-card .node-heading {padding-block:16px}
+ .node-card .node-footer {align-items:start}
+ .node-card .node-timing {gap:8px}
+ .node-card .remark-more {min-width:44px;min-height:44px}
+}
+@media(prefers-reduced-motion:reduce){.next-theme *, .next-theme *::before,.next-theme *::after {animation:none!important;transition:none!important;scroll-behavior:auto!important}}
