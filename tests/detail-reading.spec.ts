@@ -6,6 +6,16 @@ async function setup(page:any,count=3){
  await page.route('**/api/nodes/*/metrics?*',(r:any)=>{const d=metrics();return r.fulfill({json:{...d,probes:Object.fromEntries(Array.from({length:count},(_,i)=>[i+1,`Route ${i+1}`])),ping:d.ping.flatMap(p=>Array.from({length:count},(_,i)=>({...p,task_id:i+1,latency:p.latency+i*10})))}})})
  await page.goto('/node/1');await expect(page.locator('.detail-resource-charts')).toBeVisible()
 }
+test('latency controls float at the chart top-right with a soft route border',async({page})=>{
+ await setup(page);await page.getByRole('button',{name:'网络延迟',exact:true}).click()
+ const tools=page.locator('.latency-chart-tools'),frame=page.locator('.detail-chart-frame'),summary=page.locator('.detail-probe-legend>summary')
+ await expect(tools.locator('.detail-smooth')).toBeVisible();await expect(summary).toBeVisible()
+ const toolBox=await tools.boundingBox(),frameBox=await frame.boundingBox();expect(toolBox).not.toBeNull();expect(frameBox).not.toBeNull()
+ expect(toolBox!.x+toolBox!.width).toBeLessThanOrEqual(frameBox!.x+frameBox!.width+1);expect(toolBox!.y).toBeGreaterThanOrEqual(frameBox!.y-1);expect(toolBox!.y).toBeLessThan(frameBox!.y+80)
+ const border=await summary.evaluate((element)=>getComputedStyle(element).borderColor),foreground=await summary.evaluate((element)=>getComputedStyle(element).color)
+ expect(border).not.toBe(foreground)
+ await summary.click();await expect(page.locator('.probe-options')).toBeVisible()
+})
 for(const width of [320,390,430,720,899,900,1024,1440,1920])test(`detail reading and toolbar geometry at ${width}`,async({page})=>{
  test.setTimeout(90000);await page.setViewportSize({width,height:844})
  for(const language of ['zh','en'])for(const appearance of ['light','dark']){

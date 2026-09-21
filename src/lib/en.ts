@@ -134,6 +134,7 @@ export const english: Record<string, string> = {
   "实时指标": "Live metrics",
   "历史图表": "History charts",
   "图表类型": "Chart type",
+  "延迟图表选项": "Latency chart options",
   "时间范围": "Time range",
   "平滑显示": "Smooth display",
   "平滑仅改变图线显示，不修改原始数据。": "Smoothing only changes the display, not the original data.",

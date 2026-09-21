@@ -1,4 +1,4 @@
-import {Eye,EyeOff,Focus,Home} from 'lucide-react'
+import {Eye,EyeOff,Focus,Home,Waves} from 'lucide-react'
 import {ChartTooltip,useChartTooltip} from './ChartTooltip'
 import type {Preferences} from '@/lib/appearance'
 import {DetailIdentity,DetailLiveOverview} from './DetailOverview'
@@ -260,13 +260,15 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
       <div className="detail-workspace">
       <DetailLiveOverview node={node}/>
       <section className="detail-history" aria-label={tr("历史图表")}>
-      <DetailToolbar busy={loading} updated={updated} failed={!!failed} tab={tab} hours={hours} smooth={smooth} onTab={setTab} onHours={value=>setRanges(all=>({...all,[tab]:value}))} onSmooth={setSmooth} onRefresh={refresh}/>
+       <DetailToolbar busy={loading} updated={updated} failed={!!failed} tab={tab} hours={hours} onTab={setTab} onHours={value=>setRanges(all=>({...all,[tab]:value}))} onRefresh={refresh}/>
       {eventStart>0&&<p className="event-context">{tr('告警时段：{0} — {1}',new Date(eventStart).toLocaleString(locale()),new Date(eventEnd).toLocaleString(locale()))}{age>168||hours<age?<span>{tr('当前历史范围无法覆盖完整告警时段。')}</span>:data&&!(data.metrics??[]).some(p=>p.ts*1000>=eventStart&&p.ts*1000<=eventEnd)?<span>{tr('此告警时段没有返回历史样本。')}</span>:null}</p>}
       {failed && <div className="history-notice" role="alert"><span>{data && (data.metrics?.length || data.ping?.length)?tr("更新失败，保留上次历史记录。"):tr("读取历史数据失败：")}{failed}{updated!==null && data && (data.metrics?.length || data.ping?.length)?<small className="history-retained-time">{tr("上次成功更新：{0}",new Date(updated).toLocaleString(locale()))}</small>:null}</span><button disabled={loading} onClick={refresh}>{tr("重试")}</button></div>}
       <div className="detail-history-body" data-history={tab}>
       {!data ? (<HistoryState loading message={tr("正在读取历史数据")}/>) : failed && !data.metrics?.length && !data.ping?.length ? (<HistoryState failed message={tr("暂无可用历史数据")}/>) : tab === "latency" ? (pingSeries.length === 0 ? (<HistoryState message={tr("这段时间没有延迟数据")}/>) : (
-        <div className="latency-view">
-            <details ref={legend} className="detail-probe-legend" onToggle={e=>{if(e.currentTarget.open){setRouteQuery('');setRouteOrder([...visibleIds])}}} onKeyDown={e=>{if(e.key==='Escape'){e.currentTarget.open=false;e.currentTarget.querySelector('summary')?.focus()}}}>
+         <div className="latency-view">
+            <div className="latency-chart-tools" aria-label={tr("延迟图表选项")}>
+              <label className="detail-smooth" title={tr("平滑仅改变图线显示，不修改原始数据。")}><input type="checkbox" aria-label={tr("平滑显示")} checked={smooth} onChange={e=>setSmooth(e.target.checked)}/><Waves size={16} aria-hidden="true"/>{tr("平滑")}</label>
+              <details ref={legend} className="detail-probe-legend" onToggle={e=>{if(e.currentTarget.open){setRouteQuery('');setRouteOrder([...visibleIds])}}} onKeyDown={e=>{if(e.key==='Escape'){e.currentTarget.open=false;e.currentTarget.querySelector('summary')?.focus()}}}>
               <summary>{tr("选择线路")}<span>{tr("已选 {0} / {1}",shownProbes.length,pingSeries.length)}</span><small className="selected-route-summary" title={shownProbes.map(s=>s.name).join(' · ')}>{shownProbes.length?shownProbes.slice(0,2).map(s=>s.name).join(' · '):tr("没有选中任何探测")}{shownProbes.length>2?` +${shownProbes.length-2}`:''}</small></summary>
 
               <div className="probe-options">{soloRestore&&<button className="probe-restore" onClick={()=>{setSelectedProbes(soloRestore.selection);setSoloRestore(null);setHighlightProbe(null);if(legend.current){legend.current.open=false;legend.current.querySelector('summary')?.focus()}}}>{tr("恢复之前选择")}</button>}{pingSeries.length>0&&<div className="probe-bulk-actions" role="group" aria-label={tr("批量线路操作")}><button aria-label={tr("首页线路")} title={tr("首页线路")} onClick={()=>{setSoloRestore(null);setHighlightProbe(null);setSelectedProbes(null)}}><Home size={16}/></button><button aria-label={tr("显示全部线路")} title={tr("显示全部线路")} onClick={()=>{setSoloRestore(null);setHighlightProbe(null);setSelectedProbes(pingSeries.map(s=>s.id))}}><Eye size={16}/></button><button aria-label={tr("隐藏全部线路")} title={tr("隐藏全部线路")} onClick={()=>{setSoloRestore(null);setHighlightProbe(null);setSelectedProbes([])}}><EyeOff size={16}/></button></div>}{pingSeries.length>6&&<label className="route-search"><span>{tr("搜索线路")}</span><input aria-label={tr("搜索线路")} placeholder={tr("按名称搜索")} value={routeQuery} onChange={e=>setRouteQuery(e.target.value)}/></label>}{!pingSeries.some(s=>s.name.toLocaleLowerCase().includes(routeQuery.trim().toLocaleLowerCase()))&&<p>{tr("没有匹配的线路")}</p>}{[...pingSeries].filter(s=>s.name.toLocaleLowerCase().includes(routeQuery.trim().toLocaleLowerCase())).sort((a,b)=>Number(routeOrder.includes(b.id))-Number(routeOrder.includes(a.id))).map(s=>{
@@ -278,7 +280,8 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
                   <span title={tr("丢包统计范围：{0} 小时",hours)} aria-label={tr("丢")}>{tr("丢包")} {s.loss===null || !latest ? '—' : `${s.loss.toFixed(1)}%`}</span>{latest && Date.now()/1000-latest.ts>7200 && <span className="ping-stale">{tr("较旧记录")}</span>}
                 </button><button className="probe-solo" aria-label={tr("仅看：{0}",s.name)} title={tr("仅看此线路")} onClick={()=>{if(!soloRestore)setSoloRestore({selection:selectedProbes===null?null:[...selectedProbes]});setSelectedProbes([s.id]);setHighlightProbe(null)}}><Focus size={16} aria-hidden="true"/></button></div>;
               })}</div>
-            </details>
+              </details>
+            </div>
 
             <div className="detail-chart-frame text-muted-foreground" ref={tooltipFrame} onClickCapture={tooltipClick} onPointerMove={tooltipMove} onKeyDownCapture={tooltipKey}>
               {shownProbes.length === 0 ? (<HistoryState message={(selectedProbes?.length || selectedProbes === null && choice.probe !== "auto") ? tr("无该线路记录") : tr("没有选中任何探测")}/>) : !shownProbes.some(s=>s.points.length) ? <HistoryState message={tr("这段时间没有延迟数据")}/> : (<ResponsiveContainer>

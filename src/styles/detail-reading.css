@@ -28,23 +28,26 @@
 .detail-chart-toolbar .detail-ranges {grid-column:2;grid-row:1;margin:0;justify-self:end}
 .detail-chart-toolbar .detail-refresh {grid-column:3;grid-row:1}
 .detail-chart-toolbar button {min-width:44px;min-height:44px}
-.detail-latency-tools {display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid var(--detail-line);margin-top:12px;padding-top:4px}
-.detail-latency-tools .detail-smooth {min-height:44px}
-.node-detail .detail-latency-tools .probe-actions {display:flex;gap:4px;margin-left:auto}
 .detail-history-body {padding-top:16px;min-height:0}
 .detail-history-body>.history-loading,.detail-history-body>p {height:var(--history-canvas);min-height:var(--history-canvas);padding:0;display:grid;place-content:center}
 .detail-history-body>.history-loading {display:block}
-.detail-resource-charts,.latency-view {display:grid;grid-template-rows:var(--chart-controls) var(--plot-height);gap:16px}
+.detail-resource-charts {display:grid;grid-template-rows:var(--chart-controls) var(--plot-height);gap:16px}
+.latency-view {position:relative;min-width:0}
+.latency-chart-tools {position:absolute;z-index:4;top:10px;right:10px;display:flex;align-items:center;gap:4px;max-width:calc(100% - 20px);padding:3px;background:color-mix(in srgb,var(--card) 94%,transparent);border:1px solid var(--detail-line);border-radius:9px;box-shadow:0 2px 8px #0000000a}
+.latency-chart-tools .detail-smooth {display:flex;align-items:center;gap:4px;min-height:40px;padding:0 5px;color:var(--muted-foreground);white-space:nowrap;border-radius:6px}
+.latency-chart-tools .detail-smooth:hover {background:var(--muted);color:var(--foreground)}
 .resource-chart-controls {height:var(--chart-controls);margin:0;gap:8px;align-content:start}
 .detail-chart-frame {height:var(--plot-height);min-height:var(--plot-height)}
 .node-detail .recharts-cartesian-grid {opacity:.4}
 .detail-chart-frame .recharts-default-tooltip {max-height:calc(var(--plot-height) - 32px);overflow:auto;font-size:12px;max-width:min(280px,65vw)}
-.detail-probe-legend {position:relative;min-width:0;height:var(--chart-controls)}
-.detail-probe-legend>summary {min-height:44px;display:flex;align-items:center;gap:8px;padding:4px 10px;border:1px solid var(--muted-foreground);border-radius:8px;cursor:pointer;font-size:12px;list-style:none}
+.detail-probe-legend {position:relative;min-width:0;height:44px;flex:1 1 0}
+.detail-probe-legend>summary {min-height:44px;height:44px;display:flex;align-items:center;gap:8px;padding:4px 10px;border:1px solid var(--detail-line);border-radius:7px;background:color-mix(in srgb,var(--card) 96%,transparent);cursor:pointer;font-size:12px;list-style:none}
 .detail-probe-legend>summary::-webkit-details-marker {display:none}
 .detail-probe-legend>summary::after {content:'⌄';margin-left:auto;flex-shrink:0}
 .detail-probe-legend[open]>summary::after {content:'⌃'}
 .detail-probe-legend>summary>span {color:var(--muted-foreground);white-space:nowrap}
+.detail-probe-legend>summary:hover {background:var(--muted)}
+.detail-probe-legend[open]>summary {border-color:color-mix(in srgb,var(--tone) 45%,var(--detail-line));box-shadow:0 0 0 2px color-mix(in srgb,var(--tone) 8%,transparent)}
 .selected-route-summary {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;color:var(--muted-foreground);font-size:11px}
 .node-detail .detail-probe-legend .probe-options {position:absolute;z-index:5;top:calc(100% + 4px);left:0;right:0;max-height:240px;display:grid;gap:4px;padding:8px;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 30px #0002;overscroll-behavior:contain}
 .node-detail .detail-probe-legend:not([open]) .probe-options {display:none}
@@ -84,7 +87,13 @@
  .detail-probe-legend>summary::after {grid-column:3;grid-row:1/3}
  .selected-route-summary {grid-column:1/3}
  .resource-chart-controls {align-content:space-between}
- .detail-latency-tools .detail-smooth {font-size:12px}
+ .latency-chart-tools .detail-smooth {font-size:12px}
+ .latency-chart-tools {top:8px;right:8px;left:8px;max-width:none}
+ .latency-chart-tools .detail-probe-legend {flex-basis:0}
+ .latency-chart-tools .detail-probe-legend>summary {height:44px;min-height:44px;display:flex;grid-template-columns:none;gap:6px;padding-inline:8px}
+ .latency-chart-tools .detail-probe-legend>summary>span {text-align:left}
+ .latency-chart-tools .detail-probe-legend>summary::after {grid-column:auto;grid-row:auto}
+ .latency-chart-tools .selected-route-summary {grid-column:auto;flex:1}
 }
 
 /* Full-width facts keep long machine identifiers out of the overview column. */
@@ -148,6 +157,7 @@ main:has(>.node-detail)>.detail-navigation {margin-bottom:4px}
 @media(min-width:900px){.detail-history {padding:16px}}
 
 .detail-chart-frame {container-type:inline-size}
+.latency-view .detail-chart-frame .recharts-tooltip-wrapper {z-index:5}
 
 /* v0.0.19: distinguish primary readings from supporting facts. */
 .detail-resources {grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
