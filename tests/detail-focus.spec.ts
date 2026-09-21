@@ -1,0 +1,34 @@
+import {test,expect} from '@playwright/test'
+import {nodes,metrics} from '../scripts/fixtures.mjs'
+import {toggleSettings,visualSelect} from './settings'
+async function setup(page:any,long=false){
+ await page.route('**/api/nodes',(r:any)=>r.fulfill({json:{nodes:[{...nodes()[0],name:long?'Tokyo 东京超长名称 '.repeat(18):'Tokyo',cpu_name:'AMD EPYC Processor '.repeat(long?12:1),ipv6:'2001:db8:1234:5678:abcd:1234:5678:abcd',remark:long?Array.from({length:8},(_,i)=>`备注 ${i} ${'Long text '.repeat(8)}`).join(';'):'国际线路;Production'}]}}))
+ await page.route('**/api/nodes/*/metrics?*',(r:any)=>{const d=metrics();return r.fulfill({json:{...d,probes:Object.fromEntries(Array.from({length:12},(_,i)=>[i+1,`Route ${i+1}`])),ping:d.ping.flatMap(p=>Array.from({length:12},(_,i)=>({...p,task_id:i+1,latency:p.latency+i*10})))}})})
+ await page.goto('/node/1');await expect(page.locator('.recharts-area-curve')).toBeVisible()
+}
+for(const width of [320,390,1024,1440])test(`primary metrics and long identity fit at ${width}`,async({page})=>{
+ await page.setViewportSize({width,height:900});await setup(page,true)
+ await expect(page.locator('.detail-resources>.resource')).toHaveCount(3);await expect(page.locator('.detail-load')).toContainText('负载')
+ const expand=page.getByRole('button',{name:'展开名称',exact:true}),heading=(await page.locator('.detail-title h2').boundingBox())!;expect((await expand.boundingBox())!.y).toBeGreaterThanOrEqual(heading.y+heading.height)
+ await expand.click();await expect(page.getByRole('dialog')).toHaveCount(0);await page.getByRole('button',{name:'收起名称',exact:true}).click()
+ await page.getByRole('button',{name:'展开备注',exact:true}).click();await expect(page.locator('.detail-meta-tags .detail-remark-tag')).toHaveCount(8)
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();await page.getByRole('button',{name:'收起备注',exact:true}).click()
+ if(width<900)await page.locator('.detail-facts-toggle').click()
+ const cpu=page.getByRole('button',{name:'复制：CPU',exact:true}),dd=cpu.locator('xpath=ancestor::dd'),text=dd.locator('.fact-value');const a=(await text.boundingBox())!,b=(await cpu.boundingBox())!;expect(a.x+a.width).toBeLessThanOrEqual(b.x);expect(b.x+b.width).toBeLessThanOrEqual((await dd.boundingBox())!.x+(await dd.boundingBox())!.width+1)
+ for(const graph of ['bar','ring','columns','minimal']){await toggleSettings(page);await visualSelect(page,'graph',graph);await toggleSettings(page);expect(await page.locator('.detail-live').evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy();if(graph==='bar'){const bottoms=await page.locator('.detail-resources .resource-bar').evaluateAll(elements=>elements.map(el=>el.getBoundingClientRect().bottom));expect(Math.max(...bottoms)-Math.min(...bottoms)).toBeLessThanOrEqual(1)}}
+})
+test('tooltip follows route list order including selected-first order',async({page})=>{
+ await page.setViewportSize({width:1440,height:900});await setup(page);await page.getByRole('button',{name:'网络延迟',exact:true}).click()
+ const legend=page.locator('.detail-probe-legend'),summary=legend.locator('summary');await summary.click();await legend.getByRole('button',{name:'Route 10',exact:true}).click();await page.keyboard.press('Escape');await summary.click()
+ const order=await legend.locator('.probe-options button').evaluateAll(elements=>elements.map(el=>el.getAttribute('aria-label')));expect(order.slice(0,3)).toEqual(['Route 1','Route 10','Route 2'])
+ await page.getByRole('button',{name:'显示全部线路',exact:true}).click();const frame=page.locator('.detail-chart-frame');await frame.hover({position:{x:160,y:100}});await expect(frame.locator('.recharts-tooltip-wrapper')).toBeVisible()
+ expect(await frame.locator('.recharts-tooltip-item-name').allTextContents()).toEqual(order)
+ await page.getByRole('button',{name:'24 小时',exact:true}).click();await expect(page.locator('.recharts-line-curve')).toHaveCount(12);await frame.hover({position:{x:180,y:100}});expect(await frame.locator('.recharts-tooltip-item-name').allTextContents()).toEqual(order)
+})
+test('update feedback belongs to current range and retained data',async({page})=>{
+ await page.setViewportSize({width:1440,height:900});await setup(page);const status=page.locator('.detail-update'),refresh=page.getByRole('button',{name:'刷新历史',exact:true});await expect(status).toContainText('更新于');const timestamp=await refresh.getAttribute('title')
+ await page.unroute('**/api/nodes/*/metrics?*');await page.route('**/api/nodes/*/metrics?*',r=>r.fulfill({status:503}));await refresh.click();await expect(status).toHaveText('保留上次记录');await expect(refresh).toHaveAttribute('title',timestamp!);await expect(page.locator('.recharts-area-curve')).toBeVisible()
+ await page.getByRole('button',{name:'24 小时',exact:true}).click();await expect(status).toHaveText('更新失败');await expect(refresh).toHaveAttribute('title','刷新历史');await expect(page.locator('.recharts-area-curve')).toHaveCount(0)
+ await page.unroute('**/api/nodes/*/metrics?*');await page.route('**/api/nodes/*/metrics?*',r=>r.fulfill({json:metrics()}));await page.getByRole('button',{name:'重试',exact:true}).click();await expect(status).toContainText('更新于')
+ await page.setViewportSize({width:390,height:844});await expect(status).toBeHidden()
+})

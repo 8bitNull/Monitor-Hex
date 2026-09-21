@@ -19,7 +19,7 @@ function Fact({ label, value, warning=false,copy=false }: {
         return null;
     return (<div className="min-w-0">
       <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className={`detail-fact text-sm ${warning?"detail-expiry-warning":""}`}>{value}{copy&&<span className="copy-control"><button className="copy-fact" aria-label={tr("复制：{0}",label)} title={tr("复制：{0}",label)} onClick={copyValue}>{notice===tr("已复制")?<Check size={14}/>:<Copy size={14}/>}</button>{notice&&<small role="status" className="copy-notice">{notice}</small>}</span>}</dd>
+      <dd className={`detail-fact text-sm ${warning?"detail-expiry-warning":""}`}><span className="fact-value">{value}</span>{copy&&<span className="copy-control"><button className="copy-fact" aria-label={tr("复制：{0}",label)} title={tr("复制：{0}",label)} onClick={copyValue}>{notice===tr("已复制")?<Check size={14}/>:<Copy size={14}/>}</button>{notice&&<small role="status" className="copy-notice">{notice}</small>}</span>}</dd>
     </div>);
 }
 export function DetailFacts({node,mode,compact,onMode}:{node:Node;mode:Preferences['detailInfoMode'];compact:boolean;onMode:(mode:Preferences['detailInfoMode'])=>void}){
@@ -44,7 +44,7 @@ export function DetailFacts({node,mode,compact,onMode}:{node:Node;mode:Preferenc
         <Fact copy label="IPv4" value={node.ipv4}/><Fact copy label="IPv6" value={node.ipv6}/><Fact label={tr("流量重置")} value={Number.isInteger(node.traffic_reset_day) && node.traffic_reset_day >= 1 && node.traffic_reset_day <= 31 ? tr("每月 {0} 日",node.traffic_reset_day) : tr("未知")}/>
 <Fact label={tr("累计流量")} value={`↑ ${bytes(node.total_tx)} · ↓ ${bytes(node.total_rx)}`}/>
         <Fact label={tr("今日流量")} value={`↓ ${bytes(node.day_rx)} · ↑ ${bytes(node.day_tx)}`}/>
-      </dl></section><section aria-label={tr("费用与到期")}><h3>{tr("费用与到期")}</h3><dl className="detail-facts">
+      </dl></section><section className="detail-billing" aria-label={tr("费用与到期")}><h3>{tr("费用与到期")}</h3><dl className="detail-facts">
         <Fact label={tr("到期")} value={expiryLabel} warning={days!==null && days<=7}/>
         <Fact label={tr("续费")} value={[
             node.price > 0

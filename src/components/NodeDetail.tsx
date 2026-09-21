@@ -153,6 +153,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
         const key=`${node.id}:${hours}:${tab}`;
         const previous=retained.current?.key===key?retained.current.value:null;
         setData(previous);
+        if(!previous)setUpdated(null);
         busy.current=true;setLoading(true);
         // oxlint-disable-next-line react/set-state-in-effect
         setZoom(null);
@@ -257,7 +258,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
       <div className="detail-workspace">
       <DetailLiveOverview node={node}/>
       <section className="detail-history" aria-label={tr("历史图表")}>
-      <DetailToolbar busy={loading} updated={updated} tab={tab} hours={hours} smooth={smooth} hasProbes={pingSeries.length>0} onTab={setTab} onHours={value=>setRanges(all=>({...all,[tab]:value}))} onSmooth={setSmooth} onProbes={mode=>{setHighlightProbe(null);setSelectedProbes(mode==='home'?null:mode==='all'?pingSeries.map(s=>s.id):[])}} onRefresh={refresh}/>
+      <DetailToolbar busy={loading} updated={updated} failed={!!failed} tab={tab} hours={hours} smooth={smooth} hasProbes={pingSeries.length>0} onTab={setTab} onHours={value=>setRanges(all=>({...all,[tab]:value}))} onSmooth={setSmooth} onProbes={mode=>{setHighlightProbe(null);setSelectedProbes(mode==='home'?null:mode==='all'?pingSeries.map(s=>s.id):[])}} onRefresh={refresh}/>
       {eventStart>0&&<p className="event-context">{tr('告警时段：{0} — {1}',new Date(eventStart).toLocaleString(locale()),new Date(eventEnd).toLocaleString(locale()))}{age>168||hours<age?<span>{tr('当前历史范围无法覆盖完整告警时段。')}</span>:data&&!(data.metrics??[]).some(p=>p.ts*1000>=eventStart&&p.ts*1000<=eventEnd)?<span>{tr('此告警时段没有返回历史样本。')}</span>:null}</p>}
       {failed && <div className="history-notice" role="alert"><span>{data && (data.metrics?.length || data.ping?.length)?tr("更新失败，保留上次历史记录。"):tr("读取历史数据失败：")}{failed}</span><button disabled={loading} onClick={refresh}>{tr("重试")}</button></div>}
       <div className="detail-history-body" data-history={tab}>
@@ -285,7 +286,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
                     {/* Not anchored at zero: these lines live in a narrow band
                     far from it, and zero flattens every wobble. */}
                     <YAxis unit="ms" width={52} domain={["auto", "auto"]} {...AXIS}/>
-                    <Tooltip content={props=><ChartTooltip {...props} compact={compact} dismiss={tooltipDismiss}/>} wrapperStyle={{pointerEvents:'auto'}} trigger={compact?"click":"hover"} allowEscapeViewBox={{x:false,y:false}} cursor={{stroke:"var(--border)",strokeDasharray:"3 4"}} isAnimationActive={false} labelFormatter={(ts) => new Date(Number(ts)).toLocaleString(locale())}
+                    <Tooltip itemSorter={item=>{const id=Number(String(item.dataKey).slice(1));const index=pingSeries.findIndex(s=>s.id===id);return (routeOrder.includes(id)?0:pingSeries.length)+index}} content={props=><ChartTooltip {...props} compact={compact} dismiss={tooltipDismiss}/>} wrapperStyle={{pointerEvents:'auto'}} trigger={compact?"click":"hover"} allowEscapeViewBox={{x:false,y:false}} cursor={{stroke:"var(--border)",strokeDasharray:"3 4"}} isAnimationActive={false} labelFormatter={(ts) => new Date(Number(ts)).toLocaleString(locale())}
             // The line is drawn from what answered, so without this a
             // bucket that lost most of its packets reads as normal.
             // `dataKey` is `t7`/`s7`; the loss sits at `l7`.

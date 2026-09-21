@@ -1,4 +1,8 @@
 export const english: Record<string, string> = {
+"正在更新":"Updating",
+"保留上次记录":"Previous data",
+"更新失败":"Update failed",
+"更新于 {0}":"Updated {0}",
 "关闭图表提示":"Close chart tooltip",
 "展开名称":"Expand name",
 "收起名称":"Collapse name",

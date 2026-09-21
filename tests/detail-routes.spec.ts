@@ -53,7 +53,7 @@ test('missing home route stays empty, offline live metrics are unknown, long nam
  await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[node]}}))
  await page.goto('/node/1#latency')
  await expect(page.locator('.detail-chart-frame')).toContainText('无该线路记录')
- await expect(page.locator('.detail-live .bar-number')).toHaveText(['—','—','—','—'])
+ await expect(page.locator('.detail-live .bar-number')).toHaveText(['—','—','—']);await expect(page.locator('.detail-load strong')).toHaveText('—')
  for(const width of [320,390]) {
   await page.setViewportSize({width,height:900})
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
