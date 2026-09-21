@@ -8,6 +8,7 @@
 @import "./styles/home.css";
 @import "./styles/mobile-browser.css";
 @import "./styles/card-layouts.css";
+@import "./styles/detail-reading.css";
 
 @source "../index.html";
 @source "../src";

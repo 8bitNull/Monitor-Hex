@@ -1,21 +1,24 @@
 import type {Node} from '@/lib/api'
 import {liveMetrics} from '@/lib/freshness'
-import {tr} from '@/lib/i18n'
+import {tr,locale} from '@/lib/i18n'
 import {bytes,percent,pair,osName,uptime} from '@/lib/format'
-import {Clock,Monitor,Network} from 'lucide-react'
+import {Clock,Monitor,Network,MapPin} from 'lucide-react'
+import {useState} from 'react'
 import {NodePicker} from './NodePicker'
 import {Status} from './NodeIdentity'
-import {Badge} from './ui/badge'
 import {RemarkTags} from './RemarkTags'
 import {ResourceMetric} from './ResourceMetric'
 import {SpeedIndicators} from './SpeedIndicators'
 export function DetailIdentity({node,nodes,onSwitch}:{node:Node;nodes:Node[];onSwitch:(id:number)=>void}){
  const m=liveMetrics(node)
  const remarkTags=(node.remark??'').split(/[;；]/).map(text=>text.trim()).filter(Boolean)
+ const [expanded,setExpanded]=useState(false)
+ const crowded=remarkTags.length>3 || remarkTags.some(text=>Array.from(text).length>48)
+ let country=node.country;try{country=new Intl.DisplayNames([locale()],{type:'region'}).of(node.country.toUpperCase()) || node.country}catch{/* Preserve unknown country text. */}
  return (      <div className="detail-identity">
         <div className="detail-title-row"><div className="detail-title"><NodePicker node={node} nodes={nodes} onSwitch={onSwitch}/></div><div className="node-status-group"><div className="node-ip-tags" aria-label={tr("IP 协议")}>{(node.ipv4 || node.ipv4_pin) && <span className="tag">V4</span>}{(node.ipv6 || node.ipv6_pin) && <span className="tag">V6</span>}</div><Status node={node}/></div></div>
-        <div className="detail-subtitle"><span title={tr("系统")}><Monitor size={14}/>{osName(node.os)}</span><span title={tr("在线时长")} aria-label={tr("在线时长")}><Clock size={14}/>{m ? uptime(m.uptime) : '—'}</span></div>
-        {(node.agent_version || remarkTags?.length) ? <div className="detail-meta-tags">{node.agent_version && <Badge variant="outline" className="detail-agent">agent {node.agent_version}</Badge>}{remarkTags && <RemarkTags texts={remarkTags}/>}</div> : null}
+        <div className="detail-subtitle">{country&&<span><MapPin size={14}/>{country}</span>}<span title={tr("系统")}><Monitor size={14}/>{osName(node.os)}</span><span title={tr("在线时长")} aria-label={tr("在线时长")}><Clock size={14}/>{m ? uptime(m.uptime) : '—'}</span></div>
+        {remarkTags.length>0 && <div className="detail-meta-tags"><RemarkTags texts={expanded?remarkTags:remarkTags.slice(0,3)} compact={crowded&&!expanded}/>{crowded&&<button className="detail-remarks-toggle" aria-expanded={expanded} onClick={()=>setExpanded(!expanded)}>{expanded?tr("收起备注"):tr("展开备注")}</button>}</div>}
       </div>
 )
 }

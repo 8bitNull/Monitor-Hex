@@ -6,8 +6,9 @@ export const moduleLabels = { online: '在线节点', busiest: '高负载提示'
 export const cardInfoLabels = { traffic: '本月用量', connections: 'TCP／UDP', uptime: '在线时长', expiry: '到期信息', remarks: '备注标签', price: '价格' };
 export type CardInfo = Record<keyof typeof cardInfoLabels, boolean>;
 export const defaultCardInfo: CardInfo = {traffic:true,connections:true,uptime:true,expiry:true,remarks:true,price:true};
-export type DisplayPatch = {cardInfo?: Partial<CardInfo>; mobileCardInfo?: CardInfo | null; mobileInfoMode?: 'follow' | 'custom'; desktopColumns?: 'auto' | '2' | '3' | '4'};
+export type DisplayPatch = {detailInfoMode?: 'auto' | 'expanded' | 'collapsed'; cardInfo?: Partial<CardInfo>; mobileCardInfo?: CardInfo | null; mobileInfoMode?: 'follow' | 'custom'; desktopColumns?: 'auto' | '2' | '3' | '4'};
 export type Preferences = {
+    detailInfoMode: 'auto' | 'expanded' | 'collapsed';
     cardInfo: CardInfo;
     mobileCardInfo: CardInfo | null;
     mobileInfoMode: 'follow' | 'custom';
@@ -38,6 +39,7 @@ export type Preferences = {
     modules: Record<keyof typeof moduleLabels, boolean>;
 };
 export const defaults: Preferences = {
+    detailInfoMode: 'auto',
     cardInfo: {...defaultCardInfo}, mobileCardInfo: null, mobileInfoMode: 'follow', desktopColumns: 'auto',
     probe: 'auto', homeRoutes: 1, skin: 'lumina', mobileLayout: 'inherit', designVersion: 1, schemaVersion: 2, palette: 'default', graph: 'bar', layout: 'comfortable', cardLayout: 'classic', appearance: 'system', map: false,
     showTotals: true, icons: true, backgroundUrl: '', backgroundBlur: 0, backgroundMask: 45, backgroundType: 'soft', glass: false, cardOpacity: 88, cardBlur: 12, speedStyle: 'spark',
@@ -72,6 +74,7 @@ export function normalizePreferences(input: unknown, base: Preferences = default
     }
     const info = (input: unknown, fallback: CardInfo): CardInfo => Object.fromEntries(Object.keys(defaultCardInfo).map(key=>[key,typeof object(input)[key]==='boolean'?object(input)[key]:fallback[key as keyof CardInfo]])) as CardInfo;
     return {
+        detailInfoMode: choose(v.detailInfoMode, ['auto','expanded','collapsed'],base.detailInfoMode),
         cardInfo: info(v.cardInfo, base.cardInfo),
         mobileCardInfo: v.mobileCardInfo === null ? null : v.mobileCardInfo && typeof v.mobileCardInfo === 'object' && !Array.isArray(v.mobileCardInfo) ? info(v.mobileCardInfo, base.mobileCardInfo || base.cardInfo) : base.mobileCardInfo,
         mobileInfoMode: choose(v.mobileInfoMode, ['follow','custom'],base.mobileInfoMode),
@@ -118,7 +121,7 @@ export function parsePreferences(text: string, base: Preferences = defaults): Pr
     return normalizePreferences(data, base);
 }
 export function restoreAppearance(current: Preferences, site: Preferences): Preferences {
-    return { ...site, cardInfo:current.cardInfo,mobileCardInfo:current.mobileCardInfo,mobileInfoMode:current.mobileInfoMode,desktopColumns:current.desktopColumns, probe:current.probe, homeRoutes:current.homeRoutes, map: current.map, modules: { ...current.modules } };
+    return { ...site, detailInfoMode:current.detailInfoMode, cardInfo:current.cardInfo,mobileCardInfo:current.mobileCardInfo,mobileInfoMode:current.mobileInfoMode,desktopColumns:current.desktopColumns, probe:current.probe, homeRoutes:current.homeRoutes, map: current.map, modules: { ...current.modules } };
 }
 
 /** Store only differing fields; nested module choices inherit independently. */

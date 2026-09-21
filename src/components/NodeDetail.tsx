@@ -1,3 +1,4 @@
+import type {Preferences} from '@/lib/appearance'
 import {DetailIdentity,DetailLiveOverview} from './DetailOverview'
 import {DetailFacts} from './DetailFacts'
 import {ResourceHistory,type ResourceMetricKey} from './ResourceHistory'
@@ -85,12 +86,16 @@ function despike(points: PingPoint[], window = 7, sigmas = 3): PingPoint[] {
         return outlier ? { ...p, latency: mid } : p;
     });
 }
-export function NodeDetail({ node, probe = "auto", nodes, onSwitch }: {
+export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMode, onDetailInfoMode }: {
+    detailInfoMode:Preferences['detailInfoMode'];
+    onDetailInfoMode:(mode:Preferences['detailInfoMode'])=>void;
     node: Node;
     probe?:string;
     nodes:Node[];
     onSwitch:(id:number)=>void;
 }) {
+    const [compact,setCompact]=useState(()=>matchMedia('(max-width:899px)').matches);
+    useEffect(()=>{const media=matchMedia('(max-width:899px)');const update=()=>setCompact(media.matches);media.addEventListener('change',update);return()=>media.removeEventListener('change',update)},[]);
     const [tab, setTab] = useState<HistoryTab>(()=>location.hash === "#latency" ? "latency" : "resources");
     // Each tab keeps its own range: a 7-day trend and a 1-hour trace answer
     // different questions.
@@ -254,9 +259,10 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch }: {
       <div className="detail-history-body" data-history={tab}>
       {!data ? (<div className="history-loading" aria-label={tr("正在读取历史数据")} aria-busy="true"><Skeleton className="h-40 w-full"/></div>) : failed && !data.metrics?.length && !data.ping?.length ? (<p className="history-empty">{tr("暂无可用历史数据")}</p>) : tab === "latency" ? (pingSeries.length === 0 ? (<p className="py-8 text-center text-sm text-muted-foreground">{tr("这段时间没有延迟数据")}</p>) : (
         <div className="latency-view">
-            <div className="detail-probe-legend">
+            <details className="detail-probe-legend" onKeyDown={e=>{if(e.key==='Escape'){e.currentTarget.open=false;e.currentTarget.querySelector('summary')?.focus()}}}>
+              <summary>{tr("选择线路")}<span>{tr("已选 {0} / {1}",shownProbes.length,pingSeries.length)}</span><small className="selected-route-summary" title={shownProbes.map(s=>s.name).join(' · ')}>{shownProbes.length?shownProbes.slice(0,3).map(s=>s.name).join(' · '):tr("没有选中任何探测")}{shownProbes.length>3?' …':''}</small></summary>
 
-              <div className="probe-options">{pingSeries.map(s=>{
+              <div className="probe-options">{[...pingSeries].sort((a,b)=>Number(visibleIds.includes(b.id))-Number(visibleIds.includes(a.id))).map(s=>{
                 const shown=visibleIds.includes(s.id), latest=s.points.at(-1);
                 return <button key={s.id} aria-label={s.name} title={tr("丢包统计范围：{0} 小时",hours)} aria-pressed={shown} onMouseEnter={()=>setHighlightProbe(s.id)} onMouseLeave={()=>setHighlightProbe(null)} onFocus={()=>setHighlightProbe(s.id)} onBlur={()=>setHighlightProbe(null)} onClick={()=>setSelectedProbes(shown ? visibleIds.filter(id=>id!==s.id) : [...visibleIds,s.id])}>
                   <svg width="16" height="6" aria-hidden="true"><line x1="0" y1="3" x2="16" y2="3" stroke={style(s.id).stroke} strokeWidth="2"/></svg>
@@ -265,7 +271,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch }: {
                   <span title={tr("丢包统计范围：{0} 小时",hours)} aria-label={tr("丢")}>{tr("丢包")} {s.loss===null || !latest ? '—' : `${s.loss.toFixed(1)}%`}</span>{latest && Date.now()/1000-latest.ts>7200 && <span className="ping-stale">{tr("较旧记录")}</span>}
                 </button>;
               })}</div>
-            </div>
+            </details>
 
             <div className="detail-chart-frame text-muted-foreground">
               {shownProbes.length === 0 ? (<p className="py-8 text-center text-sm">{(selectedProbes?.length || selectedProbes === null && choice.probe !== "auto") ? tr("无该线路记录") : tr("没有选中任何探测")}</p>) : !shownProbes.some(s=>s.points.length) ? <p className="py-8 text-center text-sm">{tr("这段时间没有延迟数据")}</p> : (<ResponsiveContainer>
@@ -275,7 +281,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch }: {
                     {/* Not anchored at zero: these lines live in a narrow band
                     far from it, and zero flattens every wobble. */}
                     <YAxis unit="ms" width={52} domain={["auto", "auto"]} {...AXIS}/>
-                    <Tooltip allowEscapeViewBox={{x:false,y:false}} cursor={{stroke:"var(--border)",strokeDasharray:"3 4"}} isAnimationActive={false} labelFormatter={(ts) => new Date(Number(ts)).toLocaleString(locale())}
+                    <Tooltip wrapperStyle={{pointerEvents:'auto'}} trigger={compact?"click":"hover"} allowEscapeViewBox={{x:false,y:false}} cursor={{stroke:"var(--border)",strokeDasharray:"3 4"}} isAnimationActive={false} labelFormatter={(ts) => new Date(Number(ts)).toLocaleString(locale())}
             // The line is drawn from what answered, so without this a
             // bucket that lost most of its packets reads as normal.
             // `dataKey` is `t7`/`s7`; the loss sits at `l7`.
@@ -301,10 +307,10 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch }: {
                 </ResponsiveContainer>)}
             </div>
 
-          </div>)) : (data.metrics ?? []).length === 0 ? (<p className="py-8 text-center text-sm text-muted-foreground">{tr("这段时间没有历史数据")}</p>) : (<ResourceHistory rows={metricRows} node={node} hours={hours} metric={resourceMetric} onMetric={setResourceMetric}/>)}
+          </div>)) : (data.metrics ?? []).length === 0 ? (<p className="py-8 text-center text-sm text-muted-foreground">{tr("这段时间没有历史数据")}</p>) : (<ResourceHistory compact={compact} rows={metricRows} node={node} hours={hours} metric={resourceMetric} onMetric={setResourceMetric}/>)}
       </div></section>
 
-      <DetailFacts node={node}/>
+      <DetailFacts node={node} compact={compact} mode={detailInfoMode} onMode={onDetailInfoMode}/>
       </div>
     </div>);
 }

@@ -55,3 +55,11 @@ assert.deepEqual(restoreAppearance(display,defaults).cardInfo,display.cardInfo)
 assert.deepEqual(restoreAppearance(display,defaults).mobileCardInfo,display.mobileCardInfo)
 assert.equal(restoreAppearance(display,defaults).mobileInfoMode,'custom')
 assert.equal(restoreAppearance(display,defaults).desktopColumns,'4')
+
+assert.equal(normalizePreferences({}).detailInfoMode,'auto')
+for(const mode of ['auto','expanded','collapsed'] as const){
+ const prefs=normalizePreferences({detailInfoMode:mode})
+ assert.equal(parsePreferences(JSON.stringify(prefs)).detailInfoMode,mode)
+ assert.equal(restoreAppearance(prefs,defaults).detailInfoMode,mode)
+}
+assert.equal(normalizePreferences({detailInfoMode:'invalid'}).detailInfoMode,'auto')

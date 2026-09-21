@@ -22,7 +22,7 @@ export function usePreferences(siteDefaults: Preferences) {
       const overrides = preferenceOverrides(next,siteDefaults)
       // A recorded graph choice stays explicit even when it equals the site default.
       if (Object.hasOwn(saved || {}, 'graph') && ['bar','ring','columns','minimal'].includes(saved.graph)) overrides.graph = next.graph
-      for(const key of ['mobileInfoMode','desktopColumns','mobileCardInfo'] as const) if(Object.hasOwn(saved || {},key)) overrides[key]=next[key]
+      for(const key of ['mobileInfoMode','desktopColumns','mobileCardInfo','detailInfoMode'] as const) if(Object.hasOwn(saved || {},key)) overrides[key]=next[key]
       if(saved?.cardInfo && typeof saved.cardInfo==='object') overrides.cardInfo=Object.fromEntries(Object.keys(defaultCardInfo).filter(key=>typeof saved.cardInfo[key]==='boolean').map(key=>[key,saved.cardInfo[key]]))
       return overrides
     } catch { return {} }
@@ -33,7 +33,7 @@ export function usePreferences(siteDefaults: Preferences) {
     const overrides=preferenceOverrides(resolved,siteDefaults)
     if(!resetGraph && Object.hasOwn(current,'graph')) overrides.graph=resolved.graph
     if(!resetDisplay){
-      for(const key of ['mobileInfoMode','desktopColumns','mobileCardInfo'] as const) if(Object.hasOwn(current,key)) overrides[key]=resolved[key]
+      for(const key of ['mobileInfoMode','desktopColumns','mobileCardInfo','detailInfoMode'] as const) if(Object.hasOwn(current,key)) overrides[key]=resolved[key]
       if(current.cardInfo && typeof current.cardInfo==='object') overrides.cardInfo={...(overrides.cardInfo as object || {}),...Object.fromEntries(Object.keys(current.cardInfo).filter(key=>key in defaultCardInfo).map(key=>[key,resolved.cardInfo[key as keyof typeof defaultCardInfo]]))}
     }
     return overrides

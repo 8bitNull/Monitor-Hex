@@ -1,9 +1,10 @@
+import type {Preferences} from '@/lib/appearance'
 import type {Node} from '@/lib/api'
 import {liveMetrics} from '@/lib/freshness'
 import {tr} from '@/lib/i18n'
 import {bytes,osName,money,CYCLES,FOREVER,daysUntil} from '@/lib/format'
 import {useState} from 'react'
-import {Database,Copy} from 'lucide-react'
+import {Database,Copy,Check,ChevronDown} from 'lucide-react'
 function Fact({ label, value, warning=false,copy=false }: {
     label: string;
     warning?:boolean;
@@ -15,20 +16,22 @@ function Fact({ label, value, warning=false,copy=false }: {
         return null;
     return (<div className="min-w-0">
       <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className={`detail-fact text-sm ${warning?"detail-expiry-warning":""}`}>{value}{copy&&<button className="copy-fact" aria-label={tr("复制：{0}",label)} title={tr("复制：{0}",label)} onClick={async()=>{try{await navigator.clipboard.writeText(String(value));setNotice(tr("已复制"))}catch{setNotice(tr("复制失败，请手动选择文本"))}}}><Copy size={12}/></button>}{notice&&<small role="status">{notice}</small>}</dd>
+      <dd className={`detail-fact text-sm ${warning?"detail-expiry-warning":""}`}>{value}{copy&&<span className="copy-control"><button className="copy-fact" aria-label={tr("复制：{0}",label)} title={tr("复制：{0}",label)} onClick={async()=>{try{await navigator.clipboard.writeText(String(value));setNotice(tr("已复制"))}catch{setNotice(tr("复制失败，请手动选择文本"))}}}>{notice===tr("已复制")?<Check size={14}/>:<Copy size={14}/>}</button>{notice&&<small role="status" className="copy-notice">{notice}</small>}</span>}</dd>
     </div>);
 }
-export function DetailFacts({node}:{node:Node}){
+export function DetailFacts({node,mode,compact,onMode}:{node:Node;mode:Preferences['detailInfoMode'];compact:boolean;onMode:(mode:Preferences['detailInfoMode'])=>void}){
+ const expanded=mode==='expanded' || mode==='auto'&&!compact;
  const m=liveMetrics(node)
  const monthly=node.traffic_mode==='up'?node.month_tx:node.traffic_mode==='down'?node.month_rx:node.traffic_mode==='max'?Math.max(node.month_rx,node.month_tx):node.month_rx+node.month_tx
  const days=daysUntil(node.expires_at)
  const expiryLabel=days===null?tr('未设到期'):days<0?tr('已过期 {0} 天',-days):tr('{0} 天后到期',days)
- return (      <div className="detail-information"><section aria-label={tr("流量与到期")}><h3>{tr("流量与到期")}</h3>
+ return (      <div className="detail-information"><button className="detail-facts-toggle" aria-expanded={expanded} aria-controls="detail-fact-groups" onClick={()=>onMode(expanded?'collapsed':'expanded')}><span>{tr("设备资料")}</span><ChevronDown size={16}/></button><div id="detail-fact-groups" className="detail-fact-groups" hidden={!expanded}><section aria-label={tr("网络与流量")}><h3>{tr("网络与流量")}</h3>
       <div className="detail-quota" title={tr("本月用量")}><div><Database size={15}/><span>{bytes(monthly)} / {node.traffic_limit > 0 ? bytes(node.traffic_limit) : FOREVER}</span></div>{node.traffic_limit > 0 && <progress aria-label={tr("本月用量")} max={node.traffic_limit} value={Math.min(Math.max(0,monthly),node.traffic_limit)}/>}</div>
       <dl className="detail-facts">
-        <Fact label={tr("流量重置")} value={Number.isInteger(node.traffic_reset_day) && node.traffic_reset_day >= 1 && node.traffic_reset_day <= 31 ? tr("每月 {0} 日",node.traffic_reset_day) : tr("未知")}/>
+        <Fact copy label="IPv4" value={node.ipv4}/><Fact copy label="IPv6" value={node.ipv6}/><Fact label={tr("流量重置")} value={Number.isInteger(node.traffic_reset_day) && node.traffic_reset_day >= 1 && node.traffic_reset_day <= 31 ? tr("每月 {0} 日",node.traffic_reset_day) : tr("未知")}/>
 <Fact label={tr("累计流量")} value={`↑ ${bytes(node.total_tx)} · ↓ ${bytes(node.total_rx)}`}/>
         <Fact label={tr("今日流量")} value={`↓ ${bytes(node.day_rx)} · ↑ ${bytes(node.day_tx)}`}/>
+      </dl></section><section aria-label={tr("费用与到期")}><h3>{tr("费用与到期")}</h3><dl className="detail-facts">
         <Fact label={tr("到期")} value={expiryLabel} warning={days!==null && days<=7}/>
         <Fact label={tr("续费")} value={[
             node.price > 0
@@ -37,9 +40,9 @@ export function DetailFacts({node}:{node:Node}){
 
         ].filter(Boolean).join(" · ")}/>
       </dl>
-        </section>        <section aria-label={tr("设备资料")}><h3>{tr("设备资料")}</h3>
+        </section>        <section aria-label={tr("硬件与系统")}><h3>{tr("硬件与系统")}</h3>
       <dl className="detail-facts">
-        <Fact label={tr("系统")} value={[osName(node.os), node.kernel].filter(Boolean).join(" · ")}/>
+        <Fact label="Agent" value={node.agent_version}/><Fact label={tr("系统")} value={[osName(node.os), node.kernel].filter(Boolean).join(" · ")}/>
         <Fact copy label="CPU" value={node.cpu_name ? `${node.cpu_name} × ${node.cpu_cores}` : tr("{0} 核", node.cpu_cores)}/>
         <Fact label={tr("内存 / 硬盘")} value={`${bytes(node.mem_total)} / ${bytes(node.disk_total)}`}/>
         <Fact label={tr("架构")} value={[node.arch, node.virt !== "none" ? node.virt : "", m ? tr("{0} 进程", m.procs) : ""]
@@ -47,5 +50,5 @@ export function DetailFacts({node}:{node:Node}){
             .join(" · ")}/>
         <Fact label={tr("负载 1 / 5 / 15")} value={m?m.load.map(v=>v.toFixed(2)).join(" / "):"—"}/><Fact label={tr("交换空间")} value={m?`${bytes(m.swap_used)} / ${bytes(m.swap_total)}`:"—"}/>
       </dl>
-        </section></div>)
+        </section></div></div>)
 }
