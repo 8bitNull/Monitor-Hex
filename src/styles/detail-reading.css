@@ -319,22 +319,19 @@ main:has(>.node-detail)>.detail-navigation {margin-bottom:4px}
  .detail-chart-toolbar .detail-tabs {grid-column:1;grid-row:1;justify-self:start;min-width:0}
  .detail-chart-toolbar .detail-ranges {grid-column:2;grid-row:1;display:flex;flex-wrap:nowrap;justify-content:flex-end;gap:4px;min-width:0;max-width:100%;margin:0;overflow:visible}
  .detail-chart-toolbar .detail-refresh {grid-column:3;grid-row:1;justify-self:end}
- .detail-chart-toolbar[data-range-count="4"] {grid-template-rows:44px 44px;min-height:96px}
- .detail-chart-toolbar[data-range-count="4"] .detail-ranges {grid-column:2/4;grid-row:1/3;flex-wrap:wrap;align-content:start;overflow:visible}
- .detail-chart-toolbar[data-range-count="4"] .detail-refresh {grid-column:3;grid-row:2}
- .detail-chart-toolbar[data-range-count="4"] .detail-ranges button:last-child {margin-right:96px}
- .detail-chart-toolbar .detail-ranges button {flex:0 0 44px}
- .detail-chart-toolbar .detail-tabs button {min-width:44px}
-}
-@media(max-width:600px){
- :lang(en) .detail-chart-toolbar .detail-tabs button {width:44px;padding-inline:0;justify-content:center}
- :lang(en) .detail-chart-toolbar .detail-tabs button>span {display:none}
+ .detail-chart-toolbar[data-range-count="4"] {grid-template-rows:44px;min-height:44px}
+ .detail-chart-toolbar[data-range-count="4"] .detail-ranges {grid-column:2;grid-row:1;display:flex;flex-wrap:nowrap;gap:4px;justify-self:end;overflow:visible}
+ .detail-chart-toolbar[data-range-count="4"] .detail-ranges button:last-child {margin-right:0}
+ .detail-chart-toolbar .detail-ranges button {width:44px;min-width:44px;padding-inline:0}
+ .detail-chart-toolbar .detail-tabs button {width:44px;min-width:44px;padding-inline:0;justify-content:center}
+ .detail-chart-toolbar .detail-tabs button>span {display:none}
 }
 @media(max-width:360px){
- .detail-chart-toolbar {grid-template-rows:44px 44px;min-height:96px}
- .detail-chart-toolbar .detail-tabs button {width:44px;padding-inline:0;justify-content:center}
- .detail-chart-toolbar .detail-tabs button>span {display:none}
- .detail-chart-toolbar .detail-ranges {grid-column:2/4;grid-row:1/3;align-content:start;overflow:visible}
- .detail-chart-toolbar .detail-refresh {grid-column:3;grid-row:2}
+ .detail-chart-toolbar {grid-template-columns:minmax(0,1fr) 44px;grid-template-rows:44px 44px;min-height:96px}
+ .detail-chart-toolbar .detail-tabs {grid-column:1;grid-row:1}
+ .detail-chart-toolbar .detail-refresh {grid-column:2;grid-row:1}
+ .detail-chart-toolbar .detail-ranges {grid-column:1;grid-row:2;justify-self:end}
+ .detail-chart-toolbar[data-range-count="4"] .detail-ranges {grid-column:1/3;grid-row:2;display:grid;grid-template-columns:repeat(4,44px);grid-auto-rows:44px;width:188px;justify-self:end;gap:4px}
+ .detail-chart-toolbar[data-range-count="4"] .detail-ranges button:last-child {grid-column:auto}
 }
 @media(prefers-reduced-motion:reduce){.detail-fact-disclosure>summary>svg {transition:none}}

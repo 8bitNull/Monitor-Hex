@@ -14,7 +14,7 @@ for(const width of [320,390,1024,1440])test(`primary metrics and long identity f
  await page.getByRole('button',{name:'展开备注',exact:true}).click();await expect(page.locator('.detail-meta-tags .detail-remark-tag')).toHaveCount(8)
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();await page.getByRole('button',{name:'收起备注',exact:true}).click()
  if(width<900)await page.locator('.detail-facts-toggle').click()
- const cpu=page.getByRole('button',{name:'复制：CPU',exact:true}),dd=cpu.locator('xpath=ancestor::dd'),text=dd.locator('.fact-value');const a=(await text.boundingBox())!,b=(await cpu.boundingBox())!;expect(a.x+a.width).toBeLessThanOrEqual(b.x);expect(b.x+b.width).toBeLessThanOrEqual((await dd.boundingBox())!.x+(await dd.boundingBox())!.width+1)
+ const cpuRow=page.locator('section[aria-label="硬件与系统"] .detail-facts>div').filter({hasText:'CPU'}).first();await expect(cpuRow.getByRole('button',{name:'复制：CPU',exact:true})).toHaveCount(0);await expect(cpuRow.locator('.fact-value')).toBeVisible()
  for(const graph of ['bar','ring','columns','minimal']){await toggleSettings(page);await visualSelect(page,'graph',graph);await toggleSettings(page);expect(await page.locator('.detail-live').evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy();if(graph==='bar'){const bottoms=await page.locator('.detail-resources .resource-bar').evaluateAll(elements=>elements.map(el=>el.getBoundingClientRect().bottom));expect(Math.max(...bottoms)-Math.min(...bottoms)).toBeLessThanOrEqual(1)}}
 })
 test('tooltip follows route list order including selected-first order',async({page})=>{

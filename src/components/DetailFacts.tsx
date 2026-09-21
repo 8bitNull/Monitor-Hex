@@ -44,7 +44,7 @@ export function DetailFacts({node,mode,compact,onMode}:{node:Node;mode:Preferenc
    <FactSection label={tr("硬件与系统")} Icon={Cpu} compact={compact} defaultOpen>
      <dl className="detail-facts">
        <Fact label="Agent" value={node.agent_version}/><Fact label={tr("系统")} value={[osName(node.os), node.kernel].filter(Boolean).join(" · ")}/>
-       <Fact copy label="CPU" value={node.cpu_name ? `${node.cpu_name} × ${node.cpu_cores}` : tr("{0} 核", node.cpu_cores)}/>
+       <Fact label="CPU" value={node.cpu_name ? `${node.cpu_name} × ${node.cpu_cores}` : tr("{0} 核", node.cpu_cores)}/>
        <Fact label={tr("内存 / 硬盘")} value={`${bytes(node.mem_total)} / ${bytes(node.disk_total)}`}/>
        <Fact label={tr("架构 / 虚拟化")} value={[node.arch, node.virt !== "none" ? node.virt : ""].filter(Boolean).join(" · ")}/>
        <Fact label={tr("交换空间")} value={m?`${bytes(m.swap_used)} / ${bytes(m.swap_total)}`:"—"}/>

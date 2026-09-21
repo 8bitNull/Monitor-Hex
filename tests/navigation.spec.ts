@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
 async function setup(page:any,count=10){
- await page.route('**/api/nodes',(r:any)=>r.fulfill({json:{nodes:Array.from({length:count},(_,i)=>({...nodes()[0],id:i+1,name:`Node ${i+1}`}))}}))
+ await page.route('**/api/nodes',(r:any)=>r.fulfill({json:{nodes:Array.from({length:count},(_,i)=>({...nodes()[0],id:i+1,name:`Node ${i+1}`,ipv4:'192.0.2.1'}))}}))
  await page.route('**/api/nodes/*/metrics?*',(r:any)=>{const d=metrics();return r.fulfill({json:{...d,probes:{1:'A',2:'B'},ping:d.ping.flatMap(p=>[p,{...p,task_id:2,latency:80}])}})})
 }
 test('title picker searches, preserves range/route and returns focus without overflow',async({page})=>{
@@ -44,7 +44,7 @@ test('failed refresh keeps successful timestamp, copy is complete and map reset 
  await context.grantPermissions(['clipboard-read','clipboard-write']);await setup(page,2);await page.goto('/node/1')
  const refresh=page.getByRole('button',{name:'刷新历史',exact:true});await expect(refresh).toHaveAttribute('title',/最后成功获取/);const timestamp=await refresh.getAttribute('title')
  await page.unroute('**/api/nodes/*/metrics?*');await page.route('**/api/nodes/*/metrics?*',r=>r.fulfill({status:503}));await refresh.click();await expect(page.locator('.detail-history [role=alert]')).toBeVisible();await expect(refresh).toHaveAttribute('title',timestamp!)
- await page.getByRole('button',{name:'复制：CPU',exact:true}).click();await expect(page.getByRole('status')).toContainText('已复制');expect(await page.evaluate(()=>navigator.clipboard.readText())).toContain('AMD EPYC')
+ await page.getByRole('button',{name:'复制：IPv4',exact:true}).click();await expect(page.getByRole('status')).toContainText('已复制');expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe('192.0.2.1')
  await page.goto('/');const map=page.locator('.explorer-map');await map.getByRole('button',{name:'放大地图',exact:true}).click();await map.getByRole('button',{name:'恢复默认位置',exact:true}).click();await expect(map.locator('.map-land')).toHaveAttribute('transform','translate(-363 -34.6) scale(1.69)')
  await map.getByRole('button',{name:'适配全部',exact:true}).click();await expect(map.locator('.map-scale')).toHaveText('100%')
 })

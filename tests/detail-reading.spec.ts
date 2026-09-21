@@ -29,7 +29,7 @@ for(const width of [320,390,430,720,899,900,1024,1440,1920])test(`detail reading
   for(const tab of ['resources','latency']){
    await page.getByRole('button',{name:language==='zh'?(tab==='resources'?'资源':'网络延迟'):(tab==='resources'?'Resources':'Network latency'),exact:true}).click()
    const tabs=(await page.locator('.detail-tabs').boundingBox())!,ranges=(await page.locator('.detail-ranges').boundingBox())!,refresh=(await page.locator('.detail-refresh').boundingBox())!
-   if(width<=600){expect(Math.abs(tabs.y-ranges.y)).toBeLessThanOrEqual(2);const primary=await page.locator('.detail-ranges button').evaluateAll(buttons=>buttons.slice(0,3).map(button=>button.getBoundingClientRect().top));expect(new Set(primary.map(top=>Math.round(top))).size).toBe(1);if(tab==='resources'){const all=await page.locator('.detail-ranges button').evaluateAll(buttons=>buttons.map(button=>button.getBoundingClientRect().top));expect(all[3]).toBeGreaterThan(all[2])}}
+   if(width<=600){if(width<=360)expect(ranges.y).toBeGreaterThan(tabs.y);else expect(Math.abs(tabs.y-ranges.y)).toBeLessThanOrEqual(2);const all=await page.locator('.detail-ranges button').evaluateAll(buttons=>buttons.map(button=>button.getBoundingClientRect().top));expect(new Set(all.map(top=>Math.round(top))).size).toBe(1);if(tab==='resources')expect(Math.abs(all[3]-all[2])).toBeLessThanOrEqual(1)}
    else if(width<1200){expect(ranges.y).toBeGreaterThan(tabs.y);expect(Math.abs(refresh.y+refresh.height/2-ranges.y-ranges.height/2)).toBeLessThan(2)}
    else expect(Math.abs(tabs.y-ranges.y)).toBeLessThan(2)
    for(const b of await page.locator('.detail-chart-toolbar button').all()){const box=(await b.boundingBox())!;expect(box.height).toBeGreaterThanOrEqual(44);expect(box.width).toBeGreaterThanOrEqual(44)}
@@ -71,11 +71,11 @@ for(const count of [1,3,20])test(`route selector handles ${count} routes without
 })
 test('long identity notes expand and copy feedback does not move facts',async({page,context})=>{
  await context.grantPermissions(['clipboard-read','clipboard-write']);await setup(page)
- await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[{...nodes()[0],name:'超长名称'.repeat(20),remark:Array.from({length:8},(_,i)=>`备注${i} ${'长文本'.repeat(30)}`).join(';')}]}}));await page.reload()
+ await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[{...nodes()[0],name:'超长名称'.repeat(20),ipv4:'192.0.2.1',remark:Array.from({length:8},(_,i)=>`备注${i} ${'长文本'.repeat(30)}`).join(';')}]}}));await page.reload()
  await page.setViewportSize({width:320,height:568});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
  await page.getByRole('button',{name:'展开备注',exact:true}).click();await expect(page.locator('.detail-meta-tags .detail-remark-tag')).toHaveCount(8)
  await page.getByRole('button',{name:'收起备注',exact:true}).click();await page.locator('.detail-facts-toggle').click()
- const button=page.getByRole('button',{name:'复制：CPU',exact:true}),row=button.locator('xpath=ancestor::dd');const before=(await row.boundingBox())!.height
+ await expect(page.getByRole('button',{name:'复制：CPU',exact:true})).toHaveCount(0);await page.locator('section[aria-label="网络与流量"] summary').click();const button=page.getByRole('button',{name:'复制：IPv4',exact:true}),row=button.locator('xpath=ancestor::dd');const before=(await row.boundingBox())!.height
  await button.click();await expect(page.getByRole('status')).toHaveText('已复制');expect((await row.boundingBox())!.height).toBe(before)
  await page.evaluate(()=>Object.defineProperty(navigator.clipboard,'writeText',{value:()=>Promise.reject(new Error('denied')),configurable:true}));await button.click()
  await expect(page.getByRole('status')).toHaveText('复制失败，请手动选择文本');expect((await row.boundingBox())!.height).toBe(before)

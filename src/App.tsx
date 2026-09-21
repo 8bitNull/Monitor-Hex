@@ -200,7 +200,7 @@ export default function App({ siteDefaults = defaults }: {
           </button>
           <div className="flex-1"/>
           {!compactViewport && searchField("desktop-header-search")}
-          {compactViewport && <div className="mobile-header-search-shell"><button type="button" className="mobile-header-search-toggle" aria-label={tr("搜索节点")} title={tr("搜索节点")} aria-expanded={mobileSearchOpen} onClick={()=>setMobileSearchOpen(value=>!value)}><Search size={17}/></button>{mobileSearchOpen && <div className="mobile-header-search-popover">{searchField()}</div>}</div>}
+          {compactViewport && <div className="mobile-header-search-shell"><button type="button" className="mobile-header-search-toggle" aria-label={tr("搜索节点")} title={tr("搜索节点")} aria-expanded={mobileSearchOpen} onClick={()=>setMobileSearchOpen(value=>!value)}><Search size={17}/></button></div>}
           <Button variant="ghost" size="icon" onClick={() => setSettings(!settings)} aria-label={tr("外观设置")} aria-expanded={settings}><SlidersHorizontal /></Button>
           {/* The panel is a separate app built into the hub, not part of this
             theme, so this is a navigation rather than a route. */}
@@ -214,6 +214,7 @@ export default function App({ siteDefaults = defaults }: {
           </Button>
         </div>
       </header>
+      {compactViewport && mobileSearchOpen && <div className="mobile-header-search-popover" role="dialog" aria-label={tr("搜索节点")}>{searchField()}</div>}
 
         {settings && <Preferences onClose={()=>setSettings(false)} probes={probes} value={prefs} onChange={setPrefs} onGraphChange={selectGraph} onDisplayChange={selectDisplay} siteDefaults={siteDefaults} backgroundError={background.error} onReset={scope => {
                 setPrefs(scope === 'all' ? { ...siteDefaults, modules: { ...siteDefaults.modules } } : restoreAppearance(prefs, siteDefaults), true, scope === 'all');
