@@ -6,62 +6,20 @@ HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.0.15**，主�
 
 ## 主题预览
 
-以下图片使用本地演示数据：首页展示 0.0.15，历史版本对比图按标题标注，详情保留 0.0.11 预览。移动端首页图片展示上半部分。点击图片可查看原图。
+以下图片均为 **v0.0.15**，使用本地演示数据。移动端首页展示上半部分，点击图片可查看原图。
 
 | 浅色首页 | 深色首页 |
 | --- | --- |
-| ![浅色首页：总览、世界地图与节点卡片](screenshots/home-light.png) | ![深色首页：总览、世界地图与节点卡片](screenshots/home-dark.png) |
-
-| 节点资源详情 | 多线路延迟历史 |
-| --- | --- |
-| ![节点详情：实时资源与历史图表](screenshots/detail-light.png) | ![深色模式下的多线路延迟历史](screenshots/latency-dark.png) |
+| ![v0.0.15 浅色首页](screenshots/home-light.png) | ![v0.0.15 深色首页](screenshots/home-dark.png) |
 
 <p align="center">
-  <img src="screenshots/mobile-light.png" width="280" alt="手机浅色首页" />
-  <img src="screenshots/mobile-dark.png" width="280" alt="手机深色首页" />
+  <img src="screenshots/mobile-light.png" width="280" alt="v0.0.15 手机浅色首页" />
+  <img src="screenshots/mobile-dark.png" width="280" alt="v0.0.15 手机深色首页" />
 </p>
 
-<details>
-<summary>地区选择面板（浅色 / 深色）</summary>
-<p>
-  <img src="screenshots/region-sheet-light.png" width="280" alt="浅色地区选择面板" />
-  <img src="screenshots/region-sheet-dark.png" width="280" alt="深色地区选择面板" />
-</p>
-</details>
-
-<details>
-<summary>v0.0.10 手机首页精修前后对比（左旧版，右新版）</summary>
-
-![浅色对比](screenshots/compare-mobile-light.png)
-![深色对比](screenshots/compare-mobile-dark.png)
-
-</details>
-
-<details>
-<summary>v0.0.11 详情页与设置面板精修（左旧版，右新版）</summary>
-
-![手机详情前后对比](screenshots/v0.0.11/mobile-detail-comparison.png)
-![手机设置前后对比](screenshots/v0.0.11/mobile-settings-comparison.png)
-
-</details>
-
-<details>
-<summary>v0.0.14 卡片对齐与异常状态（对比图左旧版，右新版）</summary>
-
-![桌面卡片浅色对比](screenshots/v0.0.14/compare-1440-light.png)
-![手机深色对比](screenshots/v0.0.14/compare-390-dark.png)
-![离线、过期、等待、请求失败与超时](screenshots/v0.0.14/states.png)
-![刷新失败保留历史图表](screenshots/v0.0.14/history-retained.png)
-
-</details>
-
-## 显示预设预览
-
-新版设置与显示预设：
-
-| 设置精修前后 | 精简显示设置 |
+| 浅色显示设置 | 深色显示设置 |
 | --- | --- |
-| ![左 v0.0.14，右 v0.0.15](screenshots/v0.0.15/compare-390-light-settings.png) | ![显示预设与手机继承说明](screenshots/v0.0.15/presets-390-light.png) |
+| ![v0.0.15 浅色显示预设](screenshots/v0.0.15/presets-390-light.png) | ![v0.0.15 深色显示预设](screenshots/v0.0.15/presets-390-dark.png) |
 
 ## 安装
 
@@ -91,21 +49,14 @@ HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.0.15**，主�
 **完整**显示全部六项；**精简**隐藏 TCP／UDP 和在线时长，保留用量、到期、备注和价格。应用预设后仍可逐项修改，其他组合标记为**自定义**。手机独立方案也有自己的预设。预设不更改颜色、语言、指标样式、列数或地图；升级不会自动套用预设。
 
 - **手机显示**默认跟随通用设置。选择“单独设置”后，仅对宽度不超过 720px 的卡片生效；第一次复制通用选项，再次开启会恢复已保存的手机方案。
-- **桌面列数**位于外观分组，可选自动、2、3、4 列。自动保持原布局；手动列数受卡片最小宽度 300px 限制，窗口较窄时自动降列。手机保持单列。
+- **桌面列数**位于卡片信息分组下方，可选自动、2、3、4 列。自动保持原布局；手动列数受卡片最小宽度 300px 限制，窗口较窄时自动降列。手机保持单列。
 - **高级外观**默认折叠，包含背景、模糊、遮罩与玻璃效果。
 - “恢复默认外观”保留卡片显示与列数选择；“重置全部偏好”重新跟随站点默认。导入导出包含新选项，旧配置仍可使用。
 - 偏好保存在当前浏览器，不跨设备同步。站点默认可在 public/theme-config.json 中设置 cardInfo、mobileInfoMode、mobileCardInfo、desktopColumns；列数值使用字符串 "auto"、"2"、"3"、"4"。
 
-| 默认手机卡片 | 手机精简示例 |
+| 完整卡片 | 精简卡片 |
 | --- | --- |
-| ![默认卡片](screenshots/v0.0.13/card-default-light.png) | ![关闭连接数与在线时长](screenshots/v0.0.13/card-mobile-slim-light.png) |
-
-<details><summary>设置面板与桌面四列预览</summary>
-
-![手机显示设置](screenshots/v0.0.13/settings-mobile-light.png)
-![桌面四列](screenshots/v0.0.13/desktop-four-columns-light.png)
-
-</details>
+| ![v0.0.15 完整卡片](screenshots/v0.0.15/card-full-light.png) | ![v0.0.15 精简卡片](screenshots/v0.0.15/slim-390-light-card.png) |
 
 ## 高负载记录
 
@@ -117,7 +68,7 @@ HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.0.15**，主�
 
 ## 开发与验收
 
-`npm install`、`npm run build`、`npm run lint`、`npm test`。`npm run demo` 启动演示数据页面；`npm run package` 生成 theme.tar.gz。浏览器测试按功能组织，运行 `npm run test:e2e` 检查当前版本的 58 项交互用例（需已安装 Chrome）；设置 `TEST_BROWSER=msedge` 可改用 Edge。测试前先执行 `npm run build`。
+`npm install`、`npm run build`、`npm run lint`、`npm test`。`npm run demo` 启动演示数据页面；`npm run package` 生成 theme.tar.gz。浏览器测试按功能组织，运行 `npm run test:e2e` 检查当前版本的 81 项交互用例（需已安装 Chrome）；设置 `TEST_BROWSER=msedge` 可改用 Edge。测试前先执行 `npm run build`。
 
 截图由当前生产构建配合本地演示数据生成，不代表已部署至用户线上站点。许可和参考来源见 NOTICE.md、LICENSE、LICENSE.komari-next。
 
