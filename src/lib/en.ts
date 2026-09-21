@@ -18,7 +18,7 @@ export const english: Record<string, string> = {
 "自动：手机折叠，桌面展开": "Auto: collapse on mobile",
 "展开": "Expanded",
 "折叠": "Collapsed",
-"宽度小于 900px 时自动折叠；手动展开或折叠会记住选择。": "Auto collapses below 900px and expands on desktop. Manual choices are remembered.",
+"自动模式仅在手机端折叠；PC端始终展开，手动选择会在手机端记住。": "Auto collapses on mobile only; desktop is always expanded. Manual choices are remembered on mobile.",
 "恢复外观保留显示内容与详情展开方式；全部重置将恢复站点默认并清空线路偏好和筛选。": "Reset appearance keeps display content and device information preferences. Reset all restores site defaults and clears route preferences and filters.",
 "收起备注": "Collapse notes",
 "展开备注": "Expand notes",

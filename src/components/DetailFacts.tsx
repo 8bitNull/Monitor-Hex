@@ -23,12 +23,12 @@ function Fact({ label, value, warning=false,copy=false }: {
     </div>);
 }
 export function DetailFacts({node,mode,compact,onMode}:{node:Node;mode:Preferences['detailInfoMode'];compact:boolean;onMode:(mode:Preferences['detailInfoMode'])=>void}){
- const expanded=mode==='expanded' || mode==='auto'&&!compact;
+ const expanded=!compact || mode==='expanded';
  const m=liveMetrics(node)
  const monthly=node.traffic_mode==='up'?node.month_tx:node.traffic_mode==='down'?node.month_rx:node.traffic_mode==='max'?Math.max(node.month_rx,node.month_tx):node.month_rx+node.month_tx
  const days=daysUntil(node.expires_at)
  const expiryLabel=days===null?tr('未设到期'):days<0?tr('已过期 {0} 天',-days):tr('{0} 天后到期',days)
- return (      <div className="detail-information"><button className="detail-facts-toggle" aria-expanded={expanded} aria-controls="detail-fact-groups" onClick={()=>onMode(expanded?'collapsed':'expanded')}><span className="detail-facts-title"><Database size={15}/>{tr("设备资料")}</span><ChevronDown size={16}/></button><div id="detail-fact-groups" className="detail-fact-groups" hidden={!expanded}><section aria-label={tr("硬件与系统")}><h3><Cpu size={15}/>{tr("硬件与系统")}</h3>
+ return (      <div className="detail-information">{compact&&<button className="detail-facts-toggle" aria-expanded={expanded} aria-controls="detail-fact-groups" onClick={()=>onMode(expanded?'collapsed':'expanded')}><span className="detail-facts-title"><Database size={15}/>{tr("设备资料")}</span><ChevronDown size={16}/></button>}<div id="detail-fact-groups" className="detail-fact-groups" hidden={!expanded}><section aria-label={tr("硬件与系统")}><h3><Cpu size={15}/>{tr("硬件与系统")}</h3>
       <dl className="detail-facts">
         <Fact label="Agent" value={node.agent_version}/><Fact label={tr("系统")} value={[osName(node.os), node.kernel].filter(Boolean).join(" · ")}/>
         <Fact copy label="CPU" value={node.cpu_name ? `${node.cpu_name} × ${node.cpu_cores}` : tr("{0} 核", node.cpu_cores)}/>
