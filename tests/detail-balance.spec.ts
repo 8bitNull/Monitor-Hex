@@ -17,9 +17,9 @@ for(const count of [6,7,20])test(`route search threshold, selection and dismissa
  await page.setViewportSize({width:390,height:844});await setup(page,count);await page.getByRole('button',{name:'网络延迟',exact:true}).click()
  const legend=page.locator('.detail-probe-legend'),summary=legend.locator('summary');await summary.click()
  const search=page.getByRole('textbox',{name:'搜索线路',exact:true});if(count===6){await expect(search).toHaveCount(0);return}
- await search.fill('tOKYo 7');await expect(legend.locator('.probe-options button')).toHaveCount(1);await expect(summary).toContainText('已选 1 /')
+ await search.fill('tOKYo 7');await expect(legend.locator('.probe-options button[aria-pressed]')).toHaveCount(1);await expect(summary).toContainText('已选 1 /')
  await legend.getByRole('button',{name:'线路 Tokyo 7',exact:true}).click();await expect(legend).toHaveAttribute('open','');await expect(legend.getByRole('button',{name:'线路 Tokyo 7',exact:true})).toBeFocused()
- await search.fill('线路');await expect(search).toBeFocused();await expect(legend.locator('.probe-options button')).toHaveCount(count)
+ await search.fill('线路');await expect(search).toBeFocused();await expect(legend.locator('.probe-options button[aria-pressed]')).toHaveCount(count)
  await search.fill('not-found');await expect(legend).toContainText('没有匹配的线路');await expect(summary).toContainText('已选 2 /')
  await page.keyboard.press('Escape');await expect(summary).toBeFocused();await summary.click();await expect(search).toHaveValue('')
  await search.fill('Tokyo 7');await page.getByRole('button',{name:'显示全部线路',exact:true}).click();await expect(summary).toContainText(`已选 ${count} / ${count}`);await expect(summary).toContainText(`+${count-2}`);await expect(legend).not.toHaveAttribute('open','')

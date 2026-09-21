@@ -34,7 +34,7 @@ test('responsive composition and stable hover with many routes in light and dark
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
   }
   await page.getByRole('button',{name:'网络延迟',exact:true}).click();await page.getByRole('button',{name:'显示全部线路',exact:true}).click()
-  await expect(page.locator('.probe-options button')).toHaveCount(18)
+  await expect(page.locator('.probe-options button[aria-pressed]')).toHaveCount(18)
   const frame=page.locator('.detail-chart-frame'),before=(await frame.boundingBox())!
   await frame.hover({position:{x:100,y:100}});expect((await frame.boundingBox())!.height).toBe(before.height)
   await page.getByLabel('平滑显示').check();expect((await frame.boundingBox())!.height).toBe(before.height)

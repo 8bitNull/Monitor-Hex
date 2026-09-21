@@ -1,4 +1,8 @@
 export const english: Record<string, string> = {
+"恢复之前选择":"Restore previous selection",
+"仅看：{0}":"Only show: {0}",
+"仅看此线路":"Only show this route",
+"上次成功更新：{0}":"Last successful update: {0}",
 "正在更新":"Updating",
 "保留上次记录":"Previous data",
 "更新失败":"Update failed",

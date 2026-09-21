@@ -51,8 +51,8 @@ test('loading empty failure and success share the same history canvas',async({pa
 for(const count of [1,3,20])test(`route selector handles ${count} routes without moving the plot`,async({page})=>{
  await page.setViewportSize({width:390,height:844});await setup(page,count);await page.getByRole('button',{name:'网络延迟',exact:true}).click()
  const selector=page.locator('.detail-probe-legend'),plot=page.locator('.detail-chart-frame');await expect(selector).not.toHaveAttribute('open','')
- const height=(await plot.boundingBox())!.height;await selector.locator('summary').click();await expect(page.locator('.probe-options button')).toHaveCount(count)
- await page.locator('.probe-options button').last().click();expect((await plot.boundingBox())!.height).toBe(height)
+ const height=(await plot.boundingBox())!.height;await selector.locator('summary').click();await expect(page.locator('.probe-options button[aria-pressed]')).toHaveCount(count)
+ await page.locator('.probe-options button[aria-pressed]').last().click();expect((await plot.boundingBox())!.height).toBe(height)
  await page.keyboard.press('Escape');await expect(selector).not.toHaveAttribute('open','');await expect(selector.locator('summary')).toBeFocused()
  await page.getByRole('button',{name:'显示全部线路',exact:true}).click();await expect(selector.locator('summary')).toContainText(`已选 ${count} / ${count}`)
  await page.getByRole('button',{name:'隐藏全部线路',exact:true}).click();await expect(plot).toContainText('没有选中任何探测')

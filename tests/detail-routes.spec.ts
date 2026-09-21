@@ -7,7 +7,7 @@ async function setup(page:any) {
  })
  await page.route('**/api/nodes/*/metrics?*',(r:any)=>{const d=metrics();return r.fulfill({json:{...d,ping:[{task_id:1,ts:Date.now()/1000-60,latency:20},{task_id:1,ts:Date.now()/1000,latency:25},{task_id:2,ts:Date.now()/1000-60,latency:80},{task_id:2,ts:Date.now()/1000,latency:90}],probes:{1:'Route A',2:'Route B',3:'Empty route'},loss:{2:2.5}}})})
  await page.goto('/node/1#latency')
- await expect(page.locator('.probe-options button')).toHaveCount(3);await page.locator('.detail-probe-legend>summary').click()
+ await expect(page.locator('.probe-options button[aria-pressed]')).toHaveCount(3);await page.locator('.detail-probe-legend>summary').click()
 }
 test('detail defaults to home route, supports comparison without changing home selection and keeps height stable',async({page})=>{
  await setup(page)

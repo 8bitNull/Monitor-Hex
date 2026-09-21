@@ -11,7 +11,7 @@ const SERIES={dot:false as const,strokeWidth:1.7,isAnimationActive:false,connect
 const options=[{key:'cpu',label:'CPU',Icon:Cpu},{key:'mem_used',label:'内存',Icon:MemoryStick},{key:'disk_used',label:'硬盘',Icon:HardDrive},{key:'network',label:'网速',Icon:ArrowDownUp}] as const
 export type ResourceMetricKey=(typeof options)[number]['key']
 export function ResourceHistory({rows,node,hours,metric,onMetric:setMetric,compact}:{compact:boolean;rows:Row[];node:Node;hours:number;metric:ResourceMetricKey;onMetric:(key:ResourceMetricKey)=>void}){
- const {frame:tooltipFrame,dismiss:tooltipDismiss,onChartClick:tooltipClick}=useChartTooltip(`${node.id}:${hours}:${metric}`,compact)
+ const {frame:tooltipFrame,dismiss:tooltipDismiss,onChartClick:tooltipClick,onChartPointerMove:tooltipMove,onChartKeyDown:tooltipKey}=useChartTooltip(`${node.id}:${hours}:${metric}`,compact)
  const network=metric==='network'
  const top=useMemo(()=>metric==='mem_used'?node.mem_total:metric==='disk_used'?node.disk_total:metric==='cpu'?axisTop(Math.max(0,...rows.map(r=>r.cpu??0)),4,10,100):axisTop(Math.max(0,...rows.flatMap(r=>[r.net_rx??0,r.net_tx??0])),1024,1024),[metric,node.mem_total,node.disk_total,rows])
  const color=metric==='mem_used'?'var(--color-chart-3)':metric==='disk_used'?'var(--color-chart-4)':'var(--color-chart-1)'
@@ -21,7 +21,7 @@ export function ResourceHistory({rows,node,hours,metric,onMetric:setMetric,compa
   <div className="resource-chart-controls"><div className="resource-chart-tabs" role="group" aria-label={tr('资源指标')}>{options.map(({key,label,Icon})=><button key={key} aria-pressed={metric===key} onClick={()=>setMetric(key)}><Icon size={14}/>{tr(label)}</button>)}</div>
    <span className="resource-chart-unit">{network?<><span className="upload">↑ {tr('上行')}</span><span className="download">↓ {tr('下行')}</span></>:metric==='cpu'?'%':bytes(top)}</span>
   </div>
-  <div className="resource-chart-panel" aria-label={tr(label)}><div className="detail-chart-frame" ref={tooltipFrame} onClickCapture={tooltipClick}>
+  <div className="resource-chart-panel" aria-label={tr(label)}><div className="detail-chart-frame" ref={tooltipFrame} onClickCapture={tooltipClick} onPointerMove={tooltipMove} onKeyDownCapture={tooltipKey}>
    <ResponsiveContainer><ComposedChart data={data} margin={{top:16,right:12,bottom:0,left:0}}>
     <CartesianGrid strokeDasharray="3 5" stroke="var(--border)" vertical={false}/>
     <XAxis dataKey="ts" type="number" domain={['dataMin','dataMax']} ticks={rows.length?timeTicks(rows[0].ts,rows.at(-1)!.ts):undefined} tickFormatter={clockFor(hours)} minTickGap={hours>24?72:40} {...AXIS}/>

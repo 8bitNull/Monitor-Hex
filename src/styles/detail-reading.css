@@ -179,3 +179,21 @@ main:has(>.node-detail)>.detail-navigation {margin-bottom:4px}
 @media(max-width:360px){.detail-resources {gap:8px}.detail-live .resource-label>span {gap:3px;font-size:11px}.detail-live .resource-label>span svg {width:12px}.detail-live .bar-number {font-size:14px}}
 .detail-resources .resource small {flex:1}
 .detail-facts dd:has(.copy-control) .fact-value {justify-self:end;max-width:100%}
+
+/* v0.0.20: readable tooltips and reversible single-route inspection. */
+.detail-chart-frame[data-tooltip-open="false"] .recharts-tooltip-wrapper {visibility:hidden!important;pointer-events:none!important}
+.chart-tooltip .recharts-tooltip-item {position:relative;padding-left:12px!important}
+.chart-tooltip .recharts-tooltip-item::before {content:"";position:absolute;left:0;top:13px;width:5px;height:5px;border-radius:50%;background:currentColor}
+.chart-tooltip .recharts-tooltip-item-name,.chart-tooltip .recharts-tooltip-item-value {color:var(--foreground)}
+.chart-tooltip .tooltip-loss {display:block;color:var(--muted-foreground);font-size:10px;font-weight:400}
+.chart-tooltip .recharts-tooltip-item-value {font-weight:500}
+.probe-option-row {display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:4px;align-items:stretch}
+.node-detail .probe-options .probe-solo {display:grid;place-items:center;padding:0;min-width:44px;width:44px;color:var(--muted-foreground);font-size:22px}
+.probe-options .probe-solo:hover {color:var(--tone);background:var(--muted)}
+.node-detail .probe-options .probe-restore {color:var(--tone);justify-content:center;border-bottom:1px solid var(--detail-line);border-radius:0}
+.history-retained-time {display:block;margin-top:4px;color:var(--muted-foreground);font-size:11px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+@media(max-width:899px){
+ .detail-facts>div.fact-long {grid-template-columns:minmax(0,1fr);gap:0}
+ .detail-facts .fact-long dd {text-align:left;justify-content:start}
+ .detail-facts .fact-long dd .fact-value {justify-self:start;padding-top:8px}
+}
