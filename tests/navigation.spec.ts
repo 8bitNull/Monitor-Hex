@@ -48,3 +48,8 @@ test('failed refresh keeps successful timestamp, copy is complete and map reset 
  await page.goto('/');const map=page.locator('.explorer-map');await map.getByRole('button',{name:'放大地图',exact:true}).click();await map.getByRole('button',{name:'恢复默认位置',exact:true}).click();await expect(map.locator('.map-land')).toHaveAttribute('transform','translate(-363 -34.6) scale(1.69)')
  await map.getByRole('button',{name:'适配全部',exact:true}).click();await expect(map.locator('.map-scale')).toHaveText('100%')
 })
+
+test('mobile detail removes the top overview return control while desktop keeps it',async({page})=>{
+ await setup(page,2);await page.goto('/node/1');await expect(page.locator('.detail-navigation')).toBeVisible()
+ await page.setViewportSize({width:390,height:844});await expect(page.locator('.detail-navigation')).toHaveCount(0)
+})

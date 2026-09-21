@@ -40,3 +40,6 @@ dist-ssr
 *.tar.gz
 *.tar.gz.sha256
 playwright-report/
+
+# Review notes stay local and are never synchronized or published.
+REVIEW-v0.0.*.md

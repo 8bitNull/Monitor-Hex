@@ -16,7 +16,7 @@ for(const width of [390,1440])test(`return restores node within 24px and rotatio
  await page.goBack();await expect(target).toBeFocused()
  await expect.poll(async()=>Math.abs((await target.boundingBox())!.y-before)).toBeLessThanOrEqual(24)
  await target.click();await expect(page.locator('.detail-resource-charts')).toBeVisible()
- await page.setViewportSize({width:width===390?1440:390,height:900});await page.getByRole('button',{name:'返回总览',exact:true}).click()
+ await page.setViewportSize({width:width===390?1440:390,height:900});if(width===390)await page.getByRole('button',{name:'返回总览',exact:true}).click();else await page.locator('header .brand').click()
  await expect(target).toBeFocused();await expect.poll(async()=>(await target.boundingBox())!.y).toBeGreaterThanOrEqual(60)
  expect((await target.boundingBox())!.y).toBeLessThan(200)
 })

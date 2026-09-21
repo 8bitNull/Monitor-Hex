@@ -218,7 +218,7 @@ export default function App({ siteDefaults = defaults }: {
       <main key={language} className="mx-auto max-w-[1400px] space-y-5 px-4 py-4 sm:px-6">
         {(error || meError) && <p role="alert" className="error-banner">{tr("连接异常，正在重试。")}{error || meError}</p>}
 
-        {open !== null && selected && <div className="detail-navigation">
+        {open !== null && selected && !compactViewport && <div className="detail-navigation">
           <Button className="detail-back" variant="ghost" aria-label={tr("返回总览")} title={tr("返回总览")} onClick={()=>go(null)}><ArrowLeft/><span>{tr("返回总览")}</span></Button>
         </div>}
         {open !== null ? (!nodes ? (<Skeleton className="h-96"/>) : selected ? (<Suspense fallback={<Skeleton className="h-96"/>}>
