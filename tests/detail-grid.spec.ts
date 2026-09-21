@@ -1,0 +1,35 @@
+import {test,expect} from '@playwright/test'
+import {nodes,metrics} from '../scripts/fixtures.mjs'
+
+async function setup(page:any){
+ await page.route('**/api/nodes',(r:any)=>r.fulfill({json:{nodes:[{...nodes()[0],name:'Tokyo · 东京主节点'}]}}))
+ await page.route('**/api/nodes/*/metrics?*',(r:any)=>r.fulfill({json:metrics()}))
+ await page.goto('/node/1')
+ await expect(page.locator('.recharts-area-curve')).toBeVisible()
+}
+
+test('detail page uses a light modular reading order',async({page})=>{
+ await page.setViewportSize({width:1440,height:1000});await setup(page)
+ const facts=(await page.locator('.detail-information').boundingBox())!
+ const live=(await page.locator('.detail-live').boundingBox())!
+ const history=(await page.locator('.detail-history').boundingBox())!
+ expect(facts.y).toBeLessThan(live.y)
+ expect(history.y).toBeGreaterThan(live.y+live.height)
+ expect(await page.locator('.detail-fact-groups>section')).toHaveCount(3)
+ expect(await page.locator('.detail-fact-groups').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(3)
+ expect(await page.locator('.detail-fact-groups h3 svg')).toHaveCount(3)
+ const backgrounds=await page.locator('.detail-live,.detail-history,.detail-fact-groups>section').evaluateAll(elements=>elements.map(el=>getComputedStyle(el).backgroundColor))
+ expect(new Set(backgrounds)).toEqual(new Set(['rgb(255, 255, 255)']))
+ await expect(page.locator('.detail-live')).toContainText('实时使用率')
+ await expect(page.locator('.detail-live')).not.toContainText('负载 1 / 5 / 15')
+})
+
+for(const width of [320,390])test(`detail modules stay readable at ${width}px`,async({page})=>{
+ await page.setViewportSize({width,height:844});await setup(page)
+ const facts=(await page.locator('.detail-information').boundingBox())!
+ const live=(await page.locator('.detail-live').boundingBox())!
+ const history=(await page.locator('.detail-history').boundingBox())!
+ expect(facts.y).toBeLessThan(live.y)
+ expect(history.y).toBeGreaterThan(live.y+live.height)
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+})

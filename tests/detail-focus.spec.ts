@@ -21,7 +21,7 @@ test('tooltip follows route list order including selected-first order',async({pa
  await page.setViewportSize({width:1440,height:900});await setup(page);await page.getByRole('button',{name:'网络延迟',exact:true}).click()
  const legend=page.locator('.detail-probe-legend'),summary=legend.locator('summary');await summary.click();await legend.getByRole('button',{name:'Route 10',exact:true}).click();await page.keyboard.press('Escape');await summary.click()
  const order=await legend.locator('.probe-options button[aria-pressed]').evaluateAll(elements=>elements.map(el=>el.getAttribute('aria-label')));expect(order.slice(0,3)).toEqual(['Route 1','Route 10','Route 2'])
- await page.getByRole('button',{name:'显示全部线路',exact:true}).click();const frame=page.locator('.detail-chart-frame');await frame.hover({position:{x:160,y:100}});await expect(frame.locator('.recharts-tooltip-wrapper')).toBeVisible()
+ await page.getByRole('button',{name:'显示全部线路',exact:true}).click();await page.keyboard.press('Escape');const frame=page.locator('.detail-chart-frame');await frame.hover({position:{x:160,y:100}});await expect(frame.locator('.recharts-tooltip-wrapper')).toBeVisible()
  expect(await frame.locator('.recharts-tooltip-item-name').allTextContents()).toEqual(order)
  await page.getByRole('button',{name:'24 小时',exact:true}).click();await expect(page.locator('.recharts-line-curve')).toHaveCount(12);await frame.hover({position:{x:180,y:100}});expect(await frame.locator('.recharts-tooltip-item-name').allTextContents()).toEqual(order)
 })

@@ -10,12 +10,12 @@ for(const width of [899,900,1024,1199,1200,1440,1920])test(`detail proportions a
  if(width<900)await page.locator('.detail-facts-toggle').click()
  const groups=page.locator('.detail-fact-groups'),sections=groups.locator('section'),hardware=(await sections.nth(0).boundingBox())!,network=(await sections.nth(1).boundingBox())!,billing=(await sections.nth(2).boundingBox())!
  if(width>=1200){expect(hardware.width).toBeGreaterThan(network.width);expect(network.width).toBeGreaterThan(billing.width);expect(billing.height).toBeLessThan(hardware.height*.7);expect(Math.abs(hardware.y-billing.y)).toBeLessThanOrEqual(1)}
- if(width>=900&&width<1200){expect(billing.y).toBeGreaterThanOrEqual(Math.max(hardware.y+hardware.height,network.y+network.height));expect(Math.abs(billing.width-(await groups.boundingBox())!.width)).toBeLessThanOrEqual(1)}
+ if(width>=900&&width<1200){expect(Math.abs(billing.y-hardware.y)).toBeLessThanOrEqual(1);expect(billing.width).toBeLessThan(hardware.width);expect(billing.width).toBeLessThan(network.width)}
  if(width===1440){const first=(await sections.first().locator("dl>div").first().boundingBox())!;expect(first.y+first.height).toBeLessThanOrEqual(900);expect((await page.locator('.detail-chart-frame').boundingBox())!.height).toBeGreaterThanOrEqual(360)}
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
 })
 for(const width of [320,390])test(`tooltip header, precision and scroll at ${width}`,async({page})=>{
- await page.setViewportSize({width,height:844});await setup(page,20);await page.getByRole('button',{name:'网络延迟',exact:true}).click();await page.getByRole('button',{name:'显示全部线路',exact:true}).click()
+ await page.setViewportSize({width,height:844});await setup(page,20);await page.getByRole('button',{name:'网络延迟',exact:true}).click();await page.locator('.detail-probe-legend>summary').click();await page.getByRole('button',{name:'显示全部线路',exact:true}).click();await page.keyboard.press('Escape')
  const frame=page.locator('.detail-chart-frame');await frame.scrollIntoViewIfNeeded();await frame.click({position:{x:150,y:110}})
  const tip=frame.locator('.chart-tooltip'),body=tip.locator('.recharts-default-tooltip'),close=tip.getByRole('button',{name:'关闭图表提示',exact:true});await expect(tip).toBeVisible()
  const first=body.locator('.recharts-tooltip-item').filter({has:page.locator('.recharts-tooltip-item-name',{hasText:/Tokyo 线路 1$/})});await expect(first).toContainText('0 ms')
@@ -26,14 +26,14 @@ for(const width of [320,390])test(`tooltip header, precision and scroll at ${wid
  await close.click();await expect(frame.locator('.recharts-tooltip-wrapper')).toBeHidden()
 })
 test('route line and legend styles remain stable through range and selection changes',async({page})=>{
- await page.setViewportSize({width:1440,height:900});await setup(page,20);await page.getByRole('button',{name:'网络延迟',exact:true}).click();await page.getByRole('button',{name:'显示全部线路',exact:true}).click()
+ await page.setViewportSize({width:1440,height:900});await setup(page,20);await page.getByRole('button',{name:'网络延迟',exact:true}).click();await page.locator('.detail-probe-legend>summary').click();await page.getByRole('button',{name:'显示全部线路',exact:true}).click();await page.keyboard.press('Escape')
  const lines=page.locator('.recharts-line-curve');await expect(lines).toHaveCount(20)
  const styles=()=>lines.evaluateAll(elements=>elements.map(el=>[el.getAttribute('name'),el.getAttribute('stroke'),el.getAttribute('stroke-dasharray')]))
  const before=await styles();expect(new Set(before.map(v=>v.slice(1).join('|'))).size).toBe(20)
  await page.locator('.detail-probe-legend>summary').click()
  for(const [name,color,dash] of before){const line=page.locator('.probe-options').getByRole('button',{name:name!,exact:true}).locator('svg line');expect(await line.getAttribute('stroke')).toBe(color);expect(await line.getAttribute('stroke-dasharray')).toBe(dash)}
  await page.keyboard.press('Escape');await page.getByRole('button',{name:'24 小时',exact:true}).click();await expect(lines).toHaveCount(20);expect(await styles()).toEqual(before)
- await page.getByRole('button',{name:'隐藏全部线路',exact:true}).click();await page.getByRole('button',{name:'显示全部线路',exact:true}).click();await expect(lines).toHaveCount(20);expect(await styles()).toEqual(before)
+ await page.locator('.detail-probe-legend>summary').click();await page.getByRole('button',{name:'隐藏全部线路',exact:true}).click();await page.getByRole('button',{name:'显示全部线路',exact:true}).click();await expect(lines).toHaveCount(20);expect(await styles()).toEqual(before)
 })
 for(const width of [390,1440])test(`loading empty and failure share the chart canvas at ${width}`,async({page})=>{
  await page.setViewportSize({width,height:900});await setup(page)

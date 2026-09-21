@@ -1,8 +1,8 @@
 import type {Node} from '@/lib/api'
 import {liveMetrics} from '@/lib/freshness'
 import {tr,locale} from '@/lib/i18n'
-import {bytes,percent,pair,osName,uptime} from '@/lib/format'
-import {Clock,Monitor,Network,MapPin,Gauge} from 'lucide-react'
+import {percent,osName,uptime} from '@/lib/format'
+import {Activity,Clock,Monitor,Network,MapPin,Gauge} from 'lucide-react'
 import {useState} from 'react'
 import {NodePicker} from './NodePicker'
 import {Status} from './NodeIdentity'
@@ -25,10 +25,11 @@ export function DetailIdentity({node,nodes,onSwitch}:{node:Node;nodes:Node[];onS
 export function DetailLiveOverview({node}:{node:Node}){
  const m=liveMetrics(node)
  return (      <section className="detail-live" aria-label={tr("实时指标")}>
+        <div className="detail-module-heading"><h2><Activity size={15}/>{tr("实时状态")}</h2><small>{tr("当前数据")}</small></div>
         <div className="detail-resources">
-          <ResourceMetric label="CPU" value={m?.cpu ?? null} foot={tr("{0} 核",node.cpu_cores)}/>
-          <ResourceMetric label={tr("内存")} value={m ? percent(m.mem_used,m.mem_total) : null} foot={m ? pair(m.mem_used,m.mem_total) : bytes(node.mem_total)}/>
-          <ResourceMetric label={tr("硬盘")} value={m ? percent(m.disk_used,m.disk_total) : null} foot={m ? pair(m.disk_used,m.disk_total) : bytes(node.disk_total)}/>
+          <ResourceMetric label="CPU" value={m?.cpu ?? null} foot={tr("实时使用率")}/>
+          <ResourceMetric label={tr("内存")} value={m ? percent(m.mem_used,m.mem_total) : null} foot={tr("实时使用率")}/>
+          <ResourceMetric label={tr("硬盘")} value={m ? percent(m.disk_used,m.disk_total) : null} foot={tr("实时使用率")}/>
         </div>
         <SpeedIndicators key={node.id} node={node} detail/>
         <div className="detail-auxiliary"><div className="detail-load" title={tr("1 分钟 · {0} 核",node.cpu_cores)} data-severity={m&&node.cpu_cores>0&&m.load[0]/node.cpu_cores>=.9?"danger":m&&node.cpu_cores>0&&m.load[0]/node.cpu_cores>=.75?"warning":undefined}><span><Gauge size={13}/>{tr("负载")}<small>1m</small></span><strong>{m?m.load[0].toFixed(2):"—"}</strong></div><div className="detail-connections">{([['TCP',m?.tcp],['UDP',m?.udp]] as const).map(([label,value])=><div key={label}><span><Network size={13}/>{label}</span><strong>{value===undefined?'—':value.toLocaleString()}</strong></div>)}</div></div>

@@ -30,15 +30,15 @@ test('responsive composition and stable hover with many routes in light and dark
   for(const width of [320,390,768,1024,1440]){
    await page.setViewportSize({width,height:1000});await page.evaluate(()=>scrollTo(0,0))
    const live=(await page.locator('.detail-live').boundingBox())!,history=(await page.locator('.detail-history').boundingBox())!,facts=(await page.locator('.detail-information').boundingBox())!
-   if(width>=900){expect(history.x).toBeGreaterThan(live.x+live.width);expect(Math.abs(history.y-live.y)).toBeLessThan(2)}else{expect(history.y).toBeGreaterThan(live.y+live.height);expect(facts.y).toBeGreaterThan(history.y)}
+   if(width>=900){expect(facts.y).toBeLessThan(live.y);expect(history.y).toBeGreaterThan(live.y+live.height)}else{expect(facts.y).toBeLessThan(live.y);expect(history.y).toBeGreaterThan(live.y+live.height)}
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
   }
-  await page.getByRole('button',{name:'网络延迟',exact:true}).click();await page.getByRole('button',{name:'显示全部线路',exact:true}).click()
+  await page.getByRole('button',{name:'网络延迟',exact:true}).click();await page.locator('.detail-probe-legend>summary').click();await page.getByRole('button',{name:'显示全部线路',exact:true}).click();await page.keyboard.press('Escape')
   await expect(page.locator('.probe-options button[aria-pressed]')).toHaveCount(18)
   const frame=page.locator('.detail-chart-frame'),before=(await frame.boundingBox())!
   await frame.hover({position:{x:100,y:100}});expect((await frame.boundingBox())!.height).toBe(before.height)
   await page.getByLabel('平滑显示').check();expect((await frame.boundingBox())!.height).toBe(before.height)
-  await page.getByRole('button',{name:'隐藏全部线路'}).click();await expect(frame).toContainText('没有选中任何探测');expect((await frame.boundingBox())!.height).toBe(before.height)
+  await page.locator('.detail-probe-legend>summary').click();await page.getByRole('button',{name:'隐藏全部线路'}).click();await expect(frame).toContainText('没有选中任何探测');expect((await frame.boundingBox())!.height).toBe(before.height)
   await page.getByRole('button',{name:'资源',exact:true}).click()
  }
 })

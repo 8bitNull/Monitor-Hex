@@ -8,8 +8,8 @@ async function setup(page:any,count=7,long=false){
 for(const width of [900,1024,1440,1920])test(`facts span the desktop workspace at ${width}`,async({page})=>{
  await page.setViewportSize({width,height:1000});await setup(page)
  const facts=(await page.locator('.detail-information').boundingBox())!,workspace=(await page.locator('.detail-workspace').boundingBox())!,history=(await page.locator('.detail-history').boundingBox())!
- expect(Math.abs(facts.width-workspace.width)).toBeLessThanOrEqual(1);expect(facts.y).toBeGreaterThanOrEqual(history.y+history.height)
- expect(await page.locator('.detail-fact-groups').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(width>=1200?3:2)
+ expect(Math.abs(facts.width-workspace.width)).toBeLessThanOrEqual(1);expect(facts.y).toBeLessThanOrEqual(history.y)
+ expect(await page.locator('.detail-fact-groups').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(width>=900?3:1)
  expect(await page.locator('.detail-fact-groups>section').first().getAttribute('aria-label')).toBe('硬件与系统')
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
 })
@@ -22,8 +22,8 @@ for(const count of [6,7,20])test(`route search threshold, selection and dismissa
  await search.fill('线路');await expect(search).toBeFocused();await expect(legend.locator('.probe-options button[aria-pressed]')).toHaveCount(count)
  await search.fill('not-found');await expect(legend).toContainText('没有匹配的线路');await expect(summary).toContainText('已选 2 /')
  await page.keyboard.press('Escape');await expect(summary).toBeFocused();await summary.click();await expect(search).toHaveValue('')
- await search.fill('Tokyo 7');await page.getByRole('button',{name:'显示全部线路',exact:true}).click();await expect(summary).toContainText(`已选 ${count} / ${count}`);await expect(summary).toContainText(`+${count-2}`);await expect(legend).not.toHaveAttribute('open','')
- await summary.click();await expect(search).toHaveValue('');await page.getByRole('button',{name:'隐藏全部线路',exact:true}).click();await expect(summary).toContainText(`已选 0 / ${count}`)
+ await search.fill('Tokyo 7');await page.getByRole('button',{name:'显示全部线路',exact:true}).click();await expect(summary).toContainText(`已选 ${count} / ${count}`);await expect(summary).toContainText(`+${count-2}`);await expect(legend).toHaveAttribute('open','')
+ await page.keyboard.press('Escape');await expect(summary).toBeFocused();await summary.click();await expect(search).toHaveValue('');await page.getByRole('button',{name:'隐藏全部线路',exact:true}).click();await expect(summary).toContainText(`已选 0 / ${count}`)
 })
 test('long title expands separately and copy expires without moving rows',async({page,context})=>{
  await context.grantPermissions(['clipboard-read','clipboard-write']);await page.setViewportSize({width:320,height:844});await setup(page,7,true)
@@ -35,7 +35,7 @@ test('long title expands separately and copy expires without moving rows',async(
 })
 for(const width of [320,390])for(const tab of ['resources','latency'])test(`mobile ${width} ${tab} tooltip closes, reopens and stays bounded`,async({page})=>{
  await page.setViewportSize({width,height:844});await setup(page,20)
- if(tab==='latency'){await page.getByRole('button',{name:'网络延迟',exact:true}).click();await page.getByRole('button',{name:'显示全部线路',exact:true}).click();await expect(page.locator('.recharts-line-curve')).toHaveCount(20)}
+ if(tab==='latency'){await page.getByRole('button',{name:'网络延迟',exact:true}).click();await page.locator('.detail-probe-legend>summary').click();await page.getByRole('button',{name:'显示全部线路',exact:true}).click();await page.keyboard.press('Escape');await expect(page.locator('.recharts-line-curve')).toHaveCount(20)}
  const frame=page.locator('.detail-chart-frame');await frame.scrollIntoViewIfNeeded();const height=(await frame.boundingBox())!.height,tip=frame.locator('.recharts-tooltip-wrapper')
  for(const x of [75,150,((await frame.boundingBox())!.width-30)]){await frame.click({position:{x,y:110}});await expect(tip).toBeVisible();const b=(await tip.boundingBox())!;expect(b.x).toBeGreaterThanOrEqual(0);expect(b.x+b.width).toBeLessThanOrEqual(width);const close=page.getByRole('button',{name:'关闭图表提示',exact:true});expect((await close.boundingBox())!.height).toBeGreaterThanOrEqual(44);await close.click();await expect(tip).toBeHidden()}
  await frame.click({position:{x:180,y:110}});await expect(tip).toBeVisible();if(tab==='latency')expect(await tip.locator('.recharts-default-tooltip').evaluate(el=>el.scrollHeight>el.clientHeight)).toBeTruthy()

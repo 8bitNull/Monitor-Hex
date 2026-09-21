@@ -14,7 +14,7 @@ for(const appearance of ['light','dark']){
  for(const width of [1440,1024,768,390,320]){
   await page.setViewportSize({width,height:1000});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`tests/artifacts/monitor-hex-v${version}-detail-${width}-${appearance}.png`,fullPage:true})
  }
- await page.getByRole('button',{name:'网络延迟',exact:true}).click();await page.getByRole('button',{name:'显示全部线路'}).click();await page.locator('.detail-chart-frame .recharts-wrapper').waitFor()
+ await page.getByRole('button',{name:'网络延迟',exact:true}).click();await page.locator('.detail-probe-legend>summary').click();await page.getByRole('button',{name:'显示全部线路'}).click();await page.locator('.detail-chart-frame .recharts-wrapper').waitFor()
  for(const width of [1440,390]){
   await page.setViewportSize({width,height:1000});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`tests/artifacts/monitor-hex-v${version}-latency-${width}-${appearance}.png`,fullPage:true})
  }

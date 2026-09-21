@@ -54,7 +54,7 @@ for(const count of [1,3,20])test(`route selector handles ${count} routes without
  const height=(await plot.boundingBox())!.height;await selector.locator('summary').click();await expect(page.locator('.probe-options button[aria-pressed]')).toHaveCount(count)
  await page.locator('.probe-options button[aria-pressed]').last().click();expect((await plot.boundingBox())!.height).toBe(height)
  await page.keyboard.press('Escape');await expect(selector).not.toHaveAttribute('open','');await expect(selector.locator('summary')).toBeFocused()
- await page.getByRole('button',{name:'显示全部线路',exact:true}).click();await expect(selector.locator('summary')).toContainText(`已选 ${count} / ${count}`)
+ await selector.locator('summary').click();await page.getByRole('button',{name:'显示全部线路',exact:true}).click();await expect(selector.locator('summary')).toContainText(`已选 ${count} / ${count}`)
  await page.getByRole('button',{name:'隐藏全部线路',exact:true}).click();await expect(plot).toContainText('没有选中任何探测')
 })
 test('long identity notes expand and copy feedback does not move facts',async({page,context})=>{

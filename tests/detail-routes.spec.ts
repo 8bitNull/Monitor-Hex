@@ -20,7 +20,7 @@ test('detail defaults to home route, supports comparison without changing home s
  expect((await frame.boundingBox())!.height).toBe(height)
  await page.getByLabel('平滑显示').check()
  expect((await frame.boundingBox())!.height).toBe(height)
- await page.getByRole('button',{name:'隐藏全部线路'}).click()
+ await page.locator('.detail-probe-legend>summary').click();await page.getByRole('button',{name:'隐藏全部线路'}).click()
  await expect(frame).toContainText('没有选中任何探测')
  expect((await frame.boundingBox())!.height).toBe(height)
  await page.getByRole('button',{name:'首页线路',exact:true}).click()
@@ -35,7 +35,7 @@ test('detail prioritizes charts, renders complete facts and compact controls at 
  for(const width of [320,390,768,1440]) {
   await page.setViewportSize({width,height:1000})
   const live=await page.locator('.detail-live').boundingBox(),history=await page.locator('.detail-history').boundingBox(),facts=await page.locator('.detail-information').boundingBox()
-  if(width<900){expect(live!.y).toBeLessThan(history!.y);expect(history!.y).toBeLessThan(facts!.y)}else{expect(history!.x).toBeGreaterThan(live!.x+live!.width);expect(Math.abs(history!.y-live!.y)).toBeLessThan(2)}
+  if(width<900){expect(facts!.y).toBeLessThan(live!.y);expect(live!.y).toBeLessThan(history!.y)}else{expect(facts!.y).toBeLessThan(live!.y);expect(history!.y).toBeGreaterThan(live!.y+live!.height)}
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
   await expect(page.getByRole('button',{name:'刷新历史',exact:true})).toBeVisible()
  }
@@ -58,6 +58,6 @@ test('missing home route stays empty, offline live metrics are unknown, long nam
   await page.setViewportSize({width,height:900})
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
  }
- await page.getByRole('button',{name:'显示全部线路'}).click()
+ await page.locator('.detail-probe-legend>summary').click();await page.getByRole('button',{name:'显示全部线路'}).click()
  await expect(page.locator('.detail-chart-frame .recharts-wrapper')).toBeVisible()
 })
