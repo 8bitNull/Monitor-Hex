@@ -11,7 +11,7 @@ import { tr, locale } from '../lib/i18n.ts'
 import { useEffect, useMemo, useState, useRef } from "react";
 import { median } from "d3-array";
 import { Area, Brush, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, } from "recharts";
-import { Skeleton } from "@/components/ui/skeleton";
+import {HistoryState} from "./HistoryState";
 import { api, type Node } from "@/lib/api";
 import { clockFor, timeTicks, } from "@/lib/format";
 type Point = {
@@ -201,7 +201,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
     const visibleIds = selectedProbes ?? (defaultProbe === undefined ? [] : [defaultProbe]);
     const shownProbes = pingSeries.filter(s=>visibleIds.includes(s.id));
     // The same probe ID retains its colour when the time window/catalog changes.
-    const style = (id:number) => PALETTE[(id-1) % PALETTE.length];
+    const style = (id:number) => ({...PALETTE[(id-1) % PALETTE.length],dash:[undefined,"6 3","2 3","8 3 2 3"][Math.floor((id-1)/PALETTE.length)%4]});
     // The hub stamps every sample with its bucket rather than the second the probe
     // finished, so probes reporting at the bucket's rate share rows instead of each
     // contributing its own: a day of four probes is 717 rows rather than 2,868. A
@@ -261,7 +261,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
       {eventStart>0&&<p className="event-context">{tr('告警时段：{0} — {1}',new Date(eventStart).toLocaleString(locale()),new Date(eventEnd).toLocaleString(locale()))}{age>168||hours<age?<span>{tr('当前历史范围无法覆盖完整告警时段。')}</span>:data&&!(data.metrics??[]).some(p=>p.ts*1000>=eventStart&&p.ts*1000<=eventEnd)?<span>{tr('此告警时段没有返回历史样本。')}</span>:null}</p>}
       {failed && <div className="history-notice" role="alert"><span>{data && (data.metrics?.length || data.ping?.length)?tr("更新失败，保留上次历史记录。"):tr("读取历史数据失败：")}{failed}</span><button disabled={loading} onClick={refresh}>{tr("重试")}</button></div>}
       <div className="detail-history-body" data-history={tab}>
-      {!data ? (<div className="history-loading" aria-label={tr("正在读取历史数据")} aria-busy="true"><Skeleton className="h-40 w-full"/></div>) : failed && !data.metrics?.length && !data.ping?.length ? (<p className="history-empty">{tr("暂无可用历史数据")}</p>) : tab === "latency" ? (pingSeries.length === 0 ? (<p className="py-8 text-center text-sm text-muted-foreground">{tr("这段时间没有延迟数据")}</p>) : (
+      {!data ? (<HistoryState loading message={tr("正在读取历史数据")}/>) : failed && !data.metrics?.length && !data.ping?.length ? (<HistoryState failed message={tr("暂无可用历史数据")}/>) : tab === "latency" ? (pingSeries.length === 0 ? (<HistoryState message={tr("这段时间没有延迟数据")}/>) : (
         <div className="latency-view">
             <details ref={legend} className="detail-probe-legend" onToggle={e=>{if(e.currentTarget.open){setRouteQuery('');setRouteOrder([...visibleIds])}}} onKeyDown={e=>{if(e.key==='Escape'){e.currentTarget.open=false;e.currentTarget.querySelector('summary')?.focus()}}}>
               <summary>{tr("选择线路")}<span>{tr("已选 {0} / {1}",shownProbes.length,pingSeries.length)}</span><small className="selected-route-summary" title={shownProbes.map(s=>s.name).join(' · ')}>{shownProbes.length?shownProbes.slice(0,2).map(s=>s.name).join(' · '):tr("没有选中任何探测")}{shownProbes.length>2?` +${shownProbes.length-2}`:''}</small></summary>
@@ -269,7 +269,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
               <div className="probe-options">{pingSeries.length>6&&<label className="route-search"><span>{tr("搜索线路")}</span><input aria-label={tr("搜索线路")} placeholder={tr("按名称搜索")} value={routeQuery} onChange={e=>setRouteQuery(e.target.value)}/></label>}{!pingSeries.some(s=>s.name.toLocaleLowerCase().includes(routeQuery.trim().toLocaleLowerCase()))&&<p>{tr("没有匹配的线路")}</p>}{[...pingSeries].filter(s=>s.name.toLocaleLowerCase().includes(routeQuery.trim().toLocaleLowerCase())).sort((a,b)=>Number(routeOrder.includes(b.id))-Number(routeOrder.includes(a.id))).map(s=>{
                 const shown=visibleIds.includes(s.id), latest=s.points.at(-1);
                 return <button key={s.id} aria-label={s.name} title={tr("丢包统计范围：{0} 小时",hours)} aria-pressed={shown} onMouseEnter={()=>setHighlightProbe(s.id)} onMouseLeave={()=>setHighlightProbe(null)} onFocus={()=>setHighlightProbe(s.id)} onBlur={()=>setHighlightProbe(null)} onClick={()=>setSelectedProbes(shown ? visibleIds.filter(id=>id!==s.id) : [...visibleIds,s.id])}>
-                  <svg width="16" height="6" aria-hidden="true"><line x1="0" y1="3" x2="16" y2="3" stroke={style(s.id).stroke} strokeWidth="2"/></svg>
+                  <svg width="16" height="6" aria-hidden="true"><line x1="0" y1="3" x2="16" y2="3" stroke={style(s.id).stroke} strokeDasharray={style(s.id).dash} strokeWidth="2"/></svg>
                   <span className="probe-label">{s.name}</span>
                   <b style={{color:style(s.id).stroke}}>{!latest ? tr("暂无探测记录") : latest.latency === null ? tr("超时") : `${Math.round(latest.latency)} ms`}</b>
                   <span title={tr("丢包统计范围：{0} 小时",hours)} aria-label={tr("丢")}>{tr("丢包")} {s.loss===null || !latest ? '—' : `${s.loss.toFixed(1)}%`}</span>{latest && Date.now()/1000-latest.ts>7200 && <span className="ping-stale">{tr("较旧记录")}</span>}
@@ -278,7 +278,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
             </details>
 
             <div className="detail-chart-frame text-muted-foreground" ref={tooltipFrame} onClickCapture={tooltipClick}>
-              {shownProbes.length === 0 ? (<p className="py-8 text-center text-sm">{(selectedProbes?.length || selectedProbes === null && choice.probe !== "auto") ? tr("无该线路记录") : tr("没有选中任何探测")}</p>) : !shownProbes.some(s=>s.points.length) ? <p className="py-8 text-center text-sm">{tr("这段时间没有延迟数据")}</p> : (<ResponsiveContainer>
+              {shownProbes.length === 0 ? (<HistoryState message={(selectedProbes?.length || selectedProbes === null && choice.probe !== "auto") ? tr("无该线路记录") : tr("没有选中任何探测")}/>) : !shownProbes.some(s=>s.points.length) ? <HistoryState message={tr("这段时间没有延迟数据")}/> : (<ResponsiveContainer>
                   <ComposedChart data={pingRows}>
                     <CartesianGrid strokeDasharray="3 5" stroke="var(--border)" vertical={false}/>
                     <XAxis {...timeAxis(pingRows, Math.min(zoom?.[0] ?? 0, pingRows.length - 1), Math.min(zoom?.[1] ?? pingRows.length - 1, pingRows.length - 1))}/>
@@ -291,7 +291,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
             // `dataKey` is `t7`/`s7`; the loss sits at `l7`.
             formatter={(v, name, item) => {
                     const loss = item?.payload?.[`l${String(item.dataKey).slice(1)}`];
-                    return [`${Number(v)} ms${loss == null ? ` · ${tr("丢")} —` : loss > 0 ? tr(" \u00B7 丢 {0}%", loss) : ""}`, name];
+                    return [`${Number.isFinite(Number(v))?Number(Number(v).toFixed(1)):"—"} ms${loss == null ? ` · ${tr("丢")} —` : loss > 0 ? tr(" \u00B7 丢 {0}%", loss) : ""}`, name];
                 }} contentStyle={{ fontSize: 12 }}/>
                     {/* Behind the line, the range that bucket's answers
                     spanned -- Smokeping's "smoke". At the day window a
@@ -304,14 +304,14 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
                     axis from 165-385 out to 140-420. */}
                     {shownProbes.length === 1 &&
                     shownProbes.map((s) => (<Area key={`band${s.id}`} dataKey={`b${s.id}`} stroke="none" fill={style(s.id).stroke} fillOpacity={0.10} isAnimationActive={false} tooltipType="none" legendType="none" connectNulls={false}/>))}
-                    {shownProbes.map((s) => (<Line key={s.id} dataKey={`${smooth ? "s" : "t"}${s.id}`} name={s.name} stroke={style(s.id).stroke} {...SERIES} strokeOpacity={highlightProbe!==null && visibleIds.includes(highlightProbe) && highlightProbe!==s.id ? 0.2 : 1} onMouseEnter={()=>{if(!compact)setHighlightProbe(s.id)}} onMouseLeave={()=>{if(!compact)setHighlightProbe(null)}} connectNulls={false}/>))}
+                    {shownProbes.map((s) => (<Line key={s.id} dataKey={`${smooth ? "s" : "t"}${s.id}`} name={s.name} stroke={style(s.id).stroke} strokeDasharray={style(s.id).dash} {...SERIES} strokeOpacity={highlightProbe!==null && visibleIds.includes(highlightProbe) && highlightProbe!==s.id ? 0.2 : 1} onMouseEnter={()=>{if(!compact)setHighlightProbe(s.id)}} onMouseLeave={()=>{if(!compact)setHighlightProbe(null)}} connectNulls={false}/>))}
                     {/* Drag either handle to zoom into a stretch of the trend. */}
                     <Brush dataKey="ts" height={22} travellerWidth={8} tickFormatter={clockFor(hours)} fill="var(--muted)" className="fill-muted" stroke="var(--color-muted-foreground)" onChange={(r) => setZoom([r.startIndex ?? 0, r.endIndex ?? pingRows.length - 1])}/>
                   </ComposedChart>
                 </ResponsiveContainer>)}
             </div>
 
-          </div>)) : (data.metrics ?? []).length === 0 ? (<p className="py-8 text-center text-sm text-muted-foreground">{tr("这段时间没有历史数据")}</p>) : (<ResourceHistory compact={compact} rows={metricRows} node={node} hours={hours} metric={resourceMetric} onMetric={setResourceMetric}/>)}
+          </div>)) : (data.metrics ?? []).length === 0 ? (<HistoryState message={tr("这段时间没有历史数据")}/>) : (<ResourceHistory compact={compact} rows={metricRows} node={node} hours={hours} metric={resourceMetric} onMetric={setResourceMetric}/>)}
       </div></section>
 
       <DetailFacts node={node} compact={compact} mode={detailInfoMode} onMode={onDetailInfoMode}/>

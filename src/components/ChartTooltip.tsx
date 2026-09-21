@@ -12,5 +12,6 @@ export function useChartTooltip(resetKey:string,compact:boolean){
  return {frame,dismiss,onChartClick:(e:React.MouseEvent)=>{if(!(e.target as Element).closest('.chart-tooltip'))frame.current?.setAttribute('data-tooltip-open','true')}};
 }
 export function ChartTooltip(props:TooltipContentProps<TooltipValueType,string|number>&{dismiss:()=>void;compact:boolean}){
- return <div className="chart-tooltip">{props.compact&&<button className="chart-tooltip-close" aria-label={tr('关闭图表提示')} onClick={props.dismiss}><X size={16}/></button>}<DefaultTooltipContent {...props}/></div>
+ const time=props.labelFormatter?props.labelFormatter(props.label,props.payload):props.label;
+ return <div className="chart-tooltip"><div className="chart-tooltip-heading"><span>{time}</span>{props.compact&&<button className="chart-tooltip-close" aria-label={tr('关闭图表提示')} onClick={props.dismiss}><X size={16}/></button>}</div><DefaultTooltipContent {...props} labelStyle={{display:"none"}}/></div>
 }
