@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback, type SetStateAction } from 'react'
-import { normalizePreferences, preferenceOverrides, type Preferences } from './appearance'
+import { normalizePreferences, preferenceOverrides, type Preferences, type DisplayPatch, defaultCardInfo } from './appearance'
 export { palettes } from './appearance'
 export type { Preferences } from './appearance'
 export function usePreferences(siteDefaults: Preferences) {
@@ -22,19 +22,26 @@ export function usePreferences(siteDefaults: Preferences) {
       const overrides = preferenceOverrides(next,siteDefaults)
       // A recorded graph choice stays explicit even when it equals the site default.
       if (Object.hasOwn(saved || {}, 'graph') && ['bar','ring','columns','minimal'].includes(saved.graph)) overrides.graph = next.graph
+      for(const key of ['mobileInfoMode','desktopColumns','mobileCardInfo'] as const) if(Object.hasOwn(saved || {},key)) overrides[key]=next[key]
+      if(saved?.cardInfo && typeof saved.cardInfo==='object') overrides.cardInfo=Object.fromEntries(Object.keys(defaultCardInfo).filter(key=>typeof saved.cardInfo[key]==='boolean').map(key=>[key,saved.cardInfo[key]]))
       return overrides
     } catch { return {} }
   })
   const prefs=useMemo(()=>normalizePreferences(overrides,siteDefaults),[overrides,siteDefaults])
-  const setPrefs=useCallback((next:SetStateAction<Preferences>, resetGraph=false)=>setOverrides(current=>{
+  const setPrefs=useCallback((next:SetStateAction<Preferences>, resetGraph=false, resetDisplay=false)=>setOverrides(current=>{
     const resolved=typeof next==='function'?next(normalizePreferences(current,siteDefaults)):next
     const overrides=preferenceOverrides(resolved,siteDefaults)
     if(!resetGraph && Object.hasOwn(current,'graph')) overrides.graph=resolved.graph
+    if(!resetDisplay){
+      for(const key of ['mobileInfoMode','desktopColumns','mobileCardInfo'] as const) if(Object.hasOwn(current,key)) overrides[key]=resolved[key]
+      if(current.cardInfo && typeof current.cardInfo==='object') overrides.cardInfo={...(overrides.cardInfo as object || {}),...Object.fromEntries(Object.keys(current.cardInfo).filter(key=>key in defaultCardInfo).map(key=>[key,resolved.cardInfo[key as keyof typeof defaultCardInfo]]))}
+    }
     return overrides
   }),[siteDefaults])
   const selectGraph=useCallback((graph:Preferences['graph'])=>setOverrides(current=>({...current,graph})),[])
   useEffect(() => { try { localStorage.setItem('monitor-next', JSON.stringify({_storageVersion:1,schemaVersion:2,designVersion:1,...overrides})) } catch { /* Storage may be disabled. */ } }, [overrides])
-  return [prefs, setPrefs, selectGraph] as const
+  const selectDisplay=useCallback((patch:DisplayPatch)=>setOverrides(current=>({...current,...patch,...(patch.cardInfo?{cardInfo:{...(current.cardInfo as object || {}),...patch.cardInfo}}:{})})),[])
+  return [prefs, setPrefs, selectGraph, selectDisplay] as const
 }
 export function useAppearance(mode: Preferences['appearance']) {
   const [systemDark, setSystemDark] = useState(() => matchMedia('(prefers-color-scheme: dark)').matches)

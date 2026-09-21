@@ -25,5 +25,16 @@
     "map": true
   },
   "designVersion": 1,
-  "probe": "auto"
+  "probe": "auto",
+  "cardInfo": {
+    "traffic": true,
+    "connections": true,
+    "uptime": true,
+    "expiry": true,
+    "remarks": true,
+    "price": true
+  },
+  "mobileInfoMode": "follow",
+  "mobileCardInfo": null,
+  "desktopColumns": "auto"
 }

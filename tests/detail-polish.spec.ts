@@ -26,7 +26,7 @@ for(const width of [320,390,430,768,1024,1440])test('detail and settings polish 
   if(await tip.isVisible()){const box=await tip.boundingBox();expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.x+box!.width).toBeLessThanOrEqual(width)}
   await toggleSettings(page)
   const drawer=page.locator('.settings-drawer')
-  const checks=await drawer.locator('input[type=checkbox]').count();expect(checks).toBe(10)
+  await expect(drawer.locator('[data-settings=alerts] input[type=checkbox]')).toHaveCount(1)
   expect(await drawer.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy()
   await drawer.locator('.settings-nav button').last().click()
   const alert=drawer.locator('[data-settings=alerts] input')

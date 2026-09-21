@@ -2,7 +2,7 @@ import {Select} from '@/components/ui/select'
 import { tr, getLanguage, subscribeLanguage, setLanguage } from '../lib/i18n.ts'
 import {X, Circle, Minus, BarChart3, Hash, Rows2, Rows3} from 'lucide-react';
 import { useState, useRef, useEffect, useSyncExternalStore } from 'react';
-import { palettes, graphStyles, moduleLabels, parsePreferences, safeBackground, type Preferences as Prefs } from '@/lib/appearance';
+import { palettes, graphStyles, moduleLabels, cardInfoLabels, type DisplayPatch, parsePreferences, safeBackground, type Preferences as Prefs } from '@/lib/appearance';
 function BackgroundInput({ value, onChange }: {
     value: string;
     onChange: (url: string) => void;
@@ -16,12 +16,13 @@ function BackgroundInput({ value, onChange }: {
         onChange(url);
     } }}>{tr("应用背景")}</button>{error && <p role="alert">{error}</p>}</div>;
 }
-export function Preferences({ onClose, value, onChange, onGraphChange, onReset, siteDefaults, backgroundError, probes }: {
+export function Preferences({ onClose, value, onChange, onGraphChange, onDisplayChange, onReset, siteDefaults, backgroundError, probes }: {
     onClose:()=>void;
     probes: Map<number,string>;
     value: Prefs;
     onChange: (next: Prefs) => void;
     onGraphChange: (graph: Prefs['graph']) => void;
+    onDisplayChange: (patch: DisplayPatch) => void;
     onReset: (scope: 'appearance' | 'all') => void;
     siteDefaults: Prefs;
     backgroundError: boolean;
@@ -48,11 +49,21 @@ export function Preferences({ onClose, value, onChange, onGraphChange, onReset, 
       <label>{tr("明暗模式")}<Select aria-label={tr("明暗模式")} value={value.appearance} onChange={e => patch({ appearance: e.target.value as Prefs['appearance'] })}><option value="system">{tr("跟随系统")}</option><option value="light">{tr("浅色")}</option><option value="dark">{tr("深色")}</option></Select></label>
       <div className="visual-preference"><span>{tr("指标样式")}</span><div className="graph-options" role="group" aria-label={tr("指标样式")}>{Object.entries(graphStyles).map(([k,v])=>{const Icon=k==='ring'?Circle:k==='bar'?Minus:k==='columns'?BarChart3:Hash;return <button key={k} aria-label={tr(v)} aria-pressed={value.graph===k} onClick={()=>onGraphChange(k as Prefs['graph'])}><Icon size={22}/><small>{tr(v)}</small></button>})}</div></div>
       <div className="visual-preference"><span>{tr("卡片密度")}</span><div className="density-options" role="group" aria-label={tr("卡片密度")}>{(['comfortable','compact'] as const).map(k=><button key={k} aria-pressed={value.layout===k} onClick={()=>patch({layout:k})}>{k==='compact'?<Rows3 size={22}/>:<Rows2 size={22}/>}<small>{tr(k==='compact'?"紧凑":"舒适")}</small></button>)}</div></div>
+      <label>{tr("桌面列数")}<Select aria-label={tr("桌面列数")} value={value.desktopColumns} onChange={e=>onDisplayChange({desktopColumns:e.target.value as Prefs['desktopColumns']})}><option value="auto">{tr("自动")}</option>{(['2','3','4'] as const).map(n=><option key={n} value={n}>{tr("{0} 列",n)}</option>)}</Select></label>
       <label className="check-control"><input type="checkbox" checked={value.showTotals} onChange={e => patch({ showTotals: e.target.checked })}/>{tr("显示已用 / 总容量")}</label>
       <label className="check-control"><input type="checkbox" checked={value.icons} onChange={e => patch({ icons: e.target.checked })}/>{tr("国旗与系统图标")}</label>
     </div></fieldset>
 
-    <fieldset><legend>{tr("背景与质感")}</legend>
+
+
+    <fieldset data-settings="home"><legend>{tr("首页模块")}</legend><div className="module-switches">{Object.entries(moduleLabels).filter(([key])=>key!=="busiest").map(([key, label]) => <label className="check-control" key={key}><input type="checkbox" checked={value.modules[key as keyof typeof moduleLabels]} onChange={e => patch({ modules: { ...value.modules, [key]: e.target.checked } })}/>{tr(label)}</label>)}</div></fieldset>
+    <fieldset data-settings="card-info"><legend>{tr("卡片信息")}</legend><p className="preferences-note">{tr("仅影响首页卡片，详情页保留完整资料。")}</p><div className="card-info-switches" role="group" aria-label={tr("通用卡片信息")}>{Object.entries(cardInfoLabels).map(([key,label])=><label className="check-control" key={key}><input type="checkbox" checked={value.cardInfo[key as keyof Prefs['cardInfo']]} onChange={e=>onDisplayChange({cardInfo:{[key]:e.target.checked}})}/>{tr(label)}</label>)}</div>
+    <div className="mobile-info-control"><label>{tr("手机显示")}<Select aria-label={tr("手机显示")} value={value.mobileInfoMode} onChange={e=>onDisplayChange({mobileInfoMode:e.target.value as Prefs['mobileInfoMode'],...(e.target.value==='custom' && value.mobileCardInfo===null?{mobileCardInfo:{...value.cardInfo}}:{})})}><option value="follow">{tr("跟随通用设置")}</option><option value="custom">{tr("单独设置")}</option></Select></label></div>
+    {value.mobileInfoMode==='custom' && <div className="mobile-info-options"><p className="preferences-note">{tr("仅影响宽度不超过 720px 的首页卡片。")}</p><div className="card-info-switches" role="group" aria-label={tr("手机卡片信息")}>{Object.entries(cardInfoLabels).map(([key,label])=><label className="check-control" key={key}><input type="checkbox" checked={(value.mobileCardInfo || value.cardInfo)[key as keyof Prefs['cardInfo']]} onChange={e=>onDisplayChange({mobileCardInfo:{...(value.mobileCardInfo || value.cardInfo),[key]:e.target.checked}})}/>{tr(label)}</label>)}</div></div>}
+    </fieldset>
+    <fieldset data-settings="routes"><legend>{tr("线路")}</legend><div className="preference-grid"><label>{tr("首页线路数量")}<Select aria-label={tr("首页线路数量")} value={value.homeRoutes} onChange={e=>patch({homeRoutes:Number(e.target.value)})}>{[1,2,3].map(n=><option key={n} value={n}>{n}</option>)}</Select></label><label>{tr("主要探测线路")}<Select aria-label={tr("主要探测线路")} value={value.probe} onChange={e=>patch({probe:e.target.value})}><option value="auto">{tr("各节点首条线路")}</option>{[...probes].map(([id,name])=><option key={id} value={id}>{name}</option>)}{value.probe!=="auto"&&!probes.has(Number(value.probe))&&<option value={value.probe}>{tr("线路")}{value.probe}{tr("（等待数据）")}</option>}</Select></label></div><p className="preferences-note">{tr("节点独立选择优先于全局线路；其余线路可在详情查看。")}</p></fieldset>
+    <fieldset data-settings="alerts"><legend>{tr("提醒")}</legend><label className="check-control"><input type="checkbox" checked={value.modules.busiest} onChange={e=>patch({modules:{...value.modules,busiest:e.target.checked}})}/>{tr("高负载提示")}</label><p className="preferences-note">{tr("CPU 达到 85% 时记录，低于 80% 时标记恢复。记录仅保存在当前浏览器。")}</p></fieldset>
+    <details className="advanced-appearance"><summary>{tr("高级外观")}</summary>    <fieldset><legend>{tr("背景与质感")}</legend>
       <BackgroundInput key={value.backgroundUrl} value={value.backgroundUrl} onChange={backgroundUrl => patch({ backgroundUrl })}/>
       <div className="background-presets"><button onClick={() => patch({ backgroundUrl: '/background.svg' })}>{tr("使用内置山峦")}</button><button onClick={() => patch({ backgroundUrl: '' })}>{tr("清除背景")}</button></div>
       {backgroundError && <p className="preferences-note" role="alert">{tr("背景加载失败，已使用默认底色。请检查图片地址。")}</p>}
@@ -62,11 +73,7 @@ export function Preferences({ onClose, value, onChange, onGraphChange, onReset, 
         <label className="check-control"><input type="checkbox" checked={value.glass} onChange={e => patch({ glass: e.target.checked })}/>{tr("开启卡片毛玻璃")}</label>
         {range(tr("卡片不透明度"), 'cardOpacity', 55, 100, '%')}{range(tr("卡片模糊"), 'cardBlur', 0, 24, 'px')}
       </div><p className="preferences-note">{tr("手机端会降低模糊强度。外部背景图片仅在设置后加载。")}</p>
-    </fieldset>
-
-    <fieldset data-settings="home"><legend>{tr("首页模块")}</legend><div className="module-switches">{Object.entries(moduleLabels).filter(([key])=>key!=="busiest").map(([key, label]) => <label className="check-control" key={key}><input type="checkbox" checked={value.modules[key as keyof typeof moduleLabels]} onChange={e => patch({ modules: { ...value.modules, [key]: e.target.checked } })}/>{tr(label)}</label>)}</div></fieldset>
-    <fieldset data-settings="routes"><legend>{tr("线路")}</legend><div className="preference-grid"><label>{tr("首页线路数量")}<Select aria-label={tr("首页线路数量")} value={value.homeRoutes} onChange={e=>patch({homeRoutes:Number(e.target.value)})}>{[1,2,3].map(n=><option key={n} value={n}>{n}</option>)}</Select></label><label>{tr("主要探测线路")}<Select aria-label={tr("主要探测线路")} value={value.probe} onChange={e=>patch({probe:e.target.value})}><option value="auto">{tr("各节点首条线路")}</option>{[...probes].map(([id,name])=><option key={id} value={id}>{name}</option>)}{value.probe!=="auto"&&!probes.has(Number(value.probe))&&<option value={value.probe}>{tr("线路")}{value.probe}{tr("（等待数据）")}</option>}</Select></label></div><p className="preferences-note">{tr("节点独立选择优先于全局线路；其余线路可在详情查看。")}</p></fieldset>
-    <fieldset data-settings="alerts"><legend>{tr("提醒")}</legend><label className="check-control"><input type="checkbox" checked={value.modules.busiest} onChange={e=>patch({modules:{...value.modules,busiest:e.target.checked}})}/>{tr("高负载提示")}</label><p className="preferences-note">{tr("CPU 达到 85% 时记录，低于 80% 时标记恢复。记录仅保存在当前浏览器。")}</p></fieldset>
+    </fieldset></details>
     <div className="settings-reset"><h3>{tr("偏好管理")}</h3><p className="preferences-note">{tr("恢复外观仅重置配色、背景与样式；全部重置还会清空线路偏好和筛选。")}</p>
     <div className="preference-actions">
       <button onClick={() => { const url = URL.createObjectURL(new Blob([JSON.stringify(Object.fromEntries(Object.entries(value).filter(([key])=>!["skin","cardLayout","mobileLayout"].includes(key))), null, 2)], { type: 'application/json' })); const a = document.createElement('a'); a.href = url; a.download = 'monitor-hex-preferences.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); setMessage(tr("外观偏好已导出，不包含节点或账号信息")); }}>{tr("导出外观偏好")}</button>
@@ -78,7 +85,9 @@ export function Preferences({ onClose, value, onChange, onGraphChange, onReset, 
             try {
                 if (file.size > 65536)
                     throw new Error(tr("配置文件不能超过 64 KB"));
-                onChange(parsePreferences(await file.text(), siteDefaults));
+                const imported=parsePreferences(await file.text(), siteDefaults);
+                onChange(imported);
+                onDisplayChange({cardInfo:imported.cardInfo,mobileCardInfo:imported.mobileCardInfo,mobileInfoMode:imported.mobileInfoMode,desktopColumns:imported.desktopColumns});
                 setMessage(tr("外观偏好已导入"));
             }
             catch (error) {

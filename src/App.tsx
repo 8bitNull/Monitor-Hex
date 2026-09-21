@@ -77,7 +77,9 @@ export default function App({ siteDefaults = defaults }: {
     const [meError, setMeError] = useState("");
     const { nodes, error, closed, connection, lastUpdated } = useNodes();
     const [open, go] = useNodeRoute();
-    const [prefs, setPrefs, selectGraph] = usePreferences(siteDefaults);
+    const [mobileCards,setMobileCards]=useState(()=>matchMedia('(max-width:720px)').matches);
+    useEffect(()=>{const media=matchMedia('(max-width:720px)');const update=()=>setMobileCards(media.matches);media.addEventListener('change',update);return()=>media.removeEventListener('change',update)},[]);
+    const [prefs, setPrefs, selectGraph, selectDisplay] = usePreferences(siteDefaults);
     const loadAlerts=useLoadAlerts(nodes,prefs.modules.busiest);
     useSyncExternalStore(subscribeProbes,probeRevision);
     const dark = useAppearance(prefs.appearance);
@@ -192,8 +194,8 @@ export default function App({ siteDefaults = defaults }: {
         </div>
       </header>
 
-        {settings && <Preferences onClose={()=>setSettings(false)} probes={probes} value={prefs} onChange={setPrefs} onGraphChange={selectGraph} siteDefaults={siteDefaults} backgroundError={background.error} onReset={scope => {
-                setPrefs(scope === 'all' ? { ...siteDefaults, modules: { ...siteDefaults.modules } } : restoreAppearance(prefs, siteDefaults), true);
+        {settings && <Preferences onClose={()=>setSettings(false)} probes={probes} value={prefs} onChange={setPrefs} onGraphChange={selectGraph} onDisplayChange={selectDisplay} siteDefaults={siteDefaults} backgroundError={background.error} onReset={scope => {
+                setPrefs(scope === 'all' ? { ...siteDefaults, modules: { ...siteDefaults.modules } } : restoreAppearance(prefs, siteDefaults), true, scope === 'all');
                 if (scope === 'all') {
                     clearNodeProbes(); setLanguage('zh');
                     setSystem('all');
@@ -235,7 +237,7 @@ export default function App({ siteDefaults = defaults }: {
 
             {browse.view === 'table' && browse.sort === 'latency' && <p className="sort-note">{tr("延迟采用所选线路的最新采样桶；超时、旧记录和无数据排在末尾。已读取")}{sorted.filter(n => getPing(n.id)?.data).length}/{sorted.length}{tr("个节点。")}{tr("各节点所选线路可能不同，延迟比较请注意探测目标。")}</p>}
             {mapVisible && <Suspense fallback={<div className="map-placeholder"/>}><WorldMap viewSwitch={viewSwitch} nodes={sorted.filter(n=>(status==='all'||(status==='online'?n.online:!n.online))&&(system==='all'||systemKey(n.os)===system))} region={region} onRegion={setRegion}/></Suspense>}
-            {sorted.length === 0 ? (<p className="py-16 text-center text-sm text-muted-foreground">{tr("还没有节点")}</p>) : filtered.length === 0 ? (<div className="empty-state"><p>{tr("没有符合条件的节点")}</p><Button variant="outline" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); }}>{tr("清除筛选")}</Button></div>) : browse.view === "table" ? (<NodeTable nodes={filtered} browse={browse} onSort={sortBy} onOpen={id => go(id)}/>) : (<div className="node-grid">{filtered.map(n=><NodeCard key={n.id} node={n} prefs={prefs} probe={prefs.probe} onOpen={()=>go(n.id)} onOpenRoutes={route=>go(n.id,"latency",route?`?routes=${route}`:"")}/>)}</div>)}
+            {sorted.length === 0 ? (<p className="py-16 text-center text-sm text-muted-foreground">{tr("还没有节点")}</p>) : filtered.length === 0 ? (<div className="empty-state"><p>{tr("没有符合条件的节点")}</p><Button variant="outline" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); }}>{tr("清除筛选")}</Button></div>) : browse.view === "table" ? (<NodeTable nodes={filtered} browse={browse} onSort={sortBy} onOpen={id => go(id)}/>) : (<div className="node-grid" data-columns={prefs.desktopColumns}>{filtered.map(n=><NodeCard key={n.id} node={n} prefs={prefs} info={mobileCards && prefs.mobileInfoMode==='custom' ? prefs.mobileCardInfo || prefs.cardInfo : prefs.cardInfo} probe={prefs.probe} onOpen={()=>go(n.id)} onOpenRoutes={route=>go(n.id,"latency",route?`?routes=${route}`:"")}/>)}</div>)}
           </>)}
       </main>
       <footer className="site-footer"><span>{themeManifest.name} · {themeManifest.version}</span><span>Powered by monitor-probe</span></footer>

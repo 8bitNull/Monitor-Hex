@@ -6,18 +6,19 @@ import {Status} from './NodeIdentity'
 import { tr } from '../lib/i18n.ts'
 import { Clock3, Server, CalendarDays, ArrowUpRight, Network } from 'lucide-react';
 import type { Node } from '@/lib/api';
-import type { Preferences } from '@/lib/appearance';
+import type { Preferences, CardInfo } from '@/lib/appearance';
 import { Flag, OsIcon } from './NodeIcons';
 import { PingStats } from '@/components/PingStats';
 import { bytes, daysUntil, FOREVER, osName, pair, percent, uptime, money, CYCLES } from '@/lib/format';
-export function NodeCard({ node, onOpen, onOpenRoutes, probe = 'auto', prefs }: {
+export function NodeCard({ node, onOpen, onOpenRoutes, probe = 'auto', prefs, info = prefs.cardInfo }: {
     node: Node;
     onOpen: () => void;
     onOpenRoutes: (route?:number) => void;
     probe?: string;
     prefs: Preferences;
+    info?: CardInfo;
 }) {
-    const notes = (node.remark ?? "").split(/[;；]/).map(text=>text.trim()).filter(Boolean);
+    const notes = (info.remarks ? node.remark ?? "" : "").split(/[;；]/).map(text=>text.trim()).filter(Boolean);
     const m = liveMetrics(node);
     const used = node.traffic_mode === 'up' ? node.month_tx : node.traffic_mode === 'down' ? node.month_rx : node.traffic_mode === 'max' ? Math.max(node.month_rx, node.month_tx) : node.month_rx + node.month_tx;
     const days = daysUntil(node.expires_at);
@@ -31,14 +32,14 @@ export function NodeCard({ node, onOpen, onOpenRoutes, probe = 'auto', prefs }: 
       <SpeedIndicators key={node.id} node={node}/>
     </button>
       <PingStats count={prefs.homeRoutes} online={node.online} id={node.id} probe={probe} onOpenRoutes={onOpenRoutes}/>
-      <div className="node-secondary">
-      <div className="network-box traffic-summary"><div><span><CalendarDays size={14}/><small>{tr("本月用量")}</small></span><b>{bytes(used)} / {node.traffic_limit > 0 ? bytes(node.traffic_limit) : FOREVER}</b></div>{node.traffic_limit > 0 && <div className="quota"><i style={{ width: `${Math.min(100, percent(used, node.traffic_limit))}%` }}/></div>}</div>
-      <div className="node-connections">{([ ["TCP",m?.tcp], ["UDP",m?.udp] ] as const).map(([label,value])=><div key={label}><span><Network size={14}/>{label}</span><b>{value === undefined ? "—" : value.toLocaleString()}</b></div>)}</div>
-      <section className="node-more" aria-label={tr("更多信息")}>
-      <div className="node-timing"><span title={tr("在线时长")}><Clock3 size={14}/><b>{m ? uptime(m.uptime) : '—'}</b></span>{days !== null && <span className={days <= 7 ? 'expiring' : ''}><CalendarDays size={14}/><b>{expiry}</b></span>}</div>
-      {(node.price > 0 || notes.length > 0) && <div className="node-footer">{node.price > 0 && <span className="tag node-price">{money(node.price, node.currency)} / {tr(Object.hasOwn(CYCLES, node.billing_cycle) ? CYCLES[node.billing_cycle] : node.billing_cycle)}</span>}{notes.length > 0 && <div className="node-remarks" aria-label={tr("备注")}><RemarkTags texts={notes.slice(0,3)} compact/>{(notes.length>3 || notes.some(text=>Array.from(text).length>24)) && <button className="remark-more" onClick={onOpen} aria-label={tr("查看完整备注")} title={tr("查看完整备注")}>{notes.length>3?`+${notes.length-3}`:<ArrowUpRight size={14}/>}</button>}</div>}</div>}
-      </section>
-      </div>
+      {(info.traffic || info.connections || info.uptime || (info.expiry && days!==null) || (info.price && node.price>0) || notes.length>0) && <div className="node-secondary">
+      {info.traffic && <div className="network-box traffic-summary"><div><span><CalendarDays size={14}/><small>{tr("本月用量")}</small></span><b>{bytes(used)} / {node.traffic_limit > 0 ? bytes(node.traffic_limit) : FOREVER}</b></div>{node.traffic_limit > 0 && <div className="quota"><i style={{ width: `${Math.min(100, percent(used, node.traffic_limit))}%` }}/></div>}</div>}
+      {info.connections && <div className="node-connections">{([ ["TCP",m?.tcp], ["UDP",m?.udp] ] as const).map(([label,value])=><div key={label}><span><Network size={14}/>{label}</span><b>{value === undefined ? "—" : value.toLocaleString()}</b></div>)}</div>}
+      {(info.uptime || (info.expiry && days!==null) || (info.price && node.price>0) || notes.length>0) && <section className="node-more" aria-label={tr("更多信息")}>
+      {(info.uptime || (info.expiry && days!==null)) && <div className="node-timing">{info.uptime && <span title={tr("在线时长")}><Clock3 size={14}/><b>{m ? uptime(m.uptime) : '—'}</b></span>}{info.expiry && days !== null && <span className={days <= 7 ? 'expiring' : ''}><CalendarDays size={14}/><b>{expiry}</b></span>}</div>}
+      {((info.price && node.price > 0) || notes.length > 0) && <div className="node-footer">{info.price && node.price > 0 && <span className="tag node-price">{money(node.price, node.currency)} / {tr(Object.hasOwn(CYCLES, node.billing_cycle) ? CYCLES[node.billing_cycle] : node.billing_cycle)}</span>}{notes.length > 0 && <div className="node-remarks" aria-label={tr("备注")}><RemarkTags texts={notes.slice(0,3)} compact/>{(notes.length>3 || notes.some(text=>Array.from(text).length>24)) && <button className="remark-more" onClick={onOpen} aria-label={tr("查看完整备注")} title={tr("查看完整备注")}>{notes.length>3?`+${notes.length-3}`:<ArrowUpRight size={14}/>}</button>}</div>}</div>}
+      </section>}
+      </div>}
 
   </article>;
 }

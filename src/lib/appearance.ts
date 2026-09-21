@@ -3,7 +3,15 @@ export const palettes = { default: '经典蓝', ocean: '海洋', sunset: '落日
 export const cardLayouts = { classic: '经典', modern: '现代', minimal: '极简', detailed: '详细', compact: '紧凑行' };
 export const graphStyles = { ring: '圆环', bar: '进度条', columns: '分段柱条', minimal: '极简数字' };
 export const moduleLabels = { online: '在线节点', busiest: '高负载提示', traffic: '流量统计', speed: '实时网速', regions: '地区统计', clock: '当前时间', map: '首页地图' };
+export const cardInfoLabels = { traffic: '本月用量', connections: 'TCP／UDP', uptime: '在线时长', expiry: '到期信息', remarks: '备注标签', price: '价格' };
+export type CardInfo = Record<keyof typeof cardInfoLabels, boolean>;
+export const defaultCardInfo: CardInfo = {traffic:true,connections:true,uptime:true,expiry:true,remarks:true,price:true};
+export type DisplayPatch = {cardInfo?: Partial<CardInfo>; mobileCardInfo?: CardInfo | null; mobileInfoMode?: 'follow' | 'custom'; desktopColumns?: 'auto' | '2' | '3' | '4'};
 export type Preferences = {
+    cardInfo: CardInfo;
+    mobileCardInfo: CardInfo | null;
+    mobileInfoMode: 'follow' | 'custom';
+    desktopColumns: 'auto' | '2' | '3' | '4';
     // Legacy import metadata only; v2 uses one shared visual system.
     probe: string;
     homeRoutes: number;
@@ -30,6 +38,7 @@ export type Preferences = {
     modules: Record<keyof typeof moduleLabels, boolean>;
 };
 export const defaults: Preferences = {
+    cardInfo: {...defaultCardInfo}, mobileCardInfo: null, mobileInfoMode: 'follow', desktopColumns: 'auto',
     probe: 'auto', homeRoutes: 1, skin: 'lumina', mobileLayout: 'inherit', designVersion: 1, schemaVersion: 2, palette: 'default', graph: 'bar', layout: 'comfortable', cardLayout: 'classic', appearance: 'system', map: false,
     showTotals: true, icons: true, backgroundUrl: '', backgroundBlur: 0, backgroundMask: 45, backgroundType: 'soft', glass: false, cardOpacity: 88, cardBlur: 12, speedStyle: 'spark',
     modules: { online: true, busiest: true, traffic: true, speed: true, regions: false, clock: false, map: true },
@@ -61,7 +70,12 @@ export function normalizePreferences(input: unknown, base: Preferences = default
         if (typeof object(v.modules)[key] === 'boolean')
             modules[key] = object(v.modules)[key] as boolean;
     }
+    const info = (input: unknown, fallback: CardInfo): CardInfo => Object.fromEntries(Object.keys(defaultCardInfo).map(key=>[key,typeof object(input)[key]==='boolean'?object(input)[key]:fallback[key as keyof CardInfo]])) as CardInfo;
     return {
+        cardInfo: info(v.cardInfo, base.cardInfo),
+        mobileCardInfo: v.mobileCardInfo === null ? null : v.mobileCardInfo && typeof v.mobileCardInfo === 'object' && !Array.isArray(v.mobileCardInfo) ? info(v.mobileCardInfo, base.mobileCardInfo || base.cardInfo) : base.mobileCardInfo,
+        mobileInfoMode: choose(v.mobileInfoMode, ['follow','custom'],base.mobileInfoMode),
+        desktopColumns: choose(v.desktopColumns, ['auto','2','3','4'],base.desktopColumns),
         probe: v.probe === 'auto' || (typeof v.probe === 'string' && /^[1-9]\d*$/.test(v.probe) && Number.isSafeInteger(Number(v.probe))) ? v.probe : base.probe,
         homeRoutes: Math.round(number('homeRoutes', 1, 3)),
         skin: choose(v.skin, ['lumina', 'original'], base.skin),
@@ -104,18 +118,22 @@ export function parsePreferences(text: string, base: Preferences = defaults): Pr
     return normalizePreferences(data, base);
 }
 export function restoreAppearance(current: Preferences, site: Preferences): Preferences {
-    return { ...site, probe:current.probe, homeRoutes:current.homeRoutes, map: current.map, modules: { ...current.modules } };
+    return { ...site, cardInfo:current.cardInfo,mobileCardInfo:current.mobileCardInfo,mobileInfoMode:current.mobileInfoMode,desktopColumns:current.desktopColumns, probe:current.probe, homeRoutes:current.homeRoutes, map: current.map, modules: { ...current.modules } };
 }
 
 /** Store only differing fields; nested module choices inherit independently. */
 export function preferenceOverrides(value: Preferences, base: Preferences): Record<string, unknown> {
  const out: Record<string,unknown>={}
  for(const key of Object.keys(defaults) as (keyof Preferences)[]) {
-  if(['schemaVersion','designVersion','modules'].includes(key)) continue
+  if(['schemaVersion','designVersion','modules','cardInfo','mobileCardInfo'].includes(key)) continue
   if(value[key]!==base[key]) out[key]=value[key]
  }
  const modules:Record<string,boolean>={}
  for(const key of Object.keys(moduleLabels) as (keyof typeof moduleLabels)[]) if(value.modules[key]!==base.modules[key]) modules[key]=value.modules[key]
+ const cardInfo:Record<string,boolean>={}
+ for(const key of Object.keys(defaultCardInfo) as (keyof CardInfo)[]) if(value.cardInfo[key]!==base.cardInfo[key]) cardInfo[key]=value.cardInfo[key]
+ if(Object.keys(cardInfo).length) out.cardInfo=cardInfo
+ if(JSON.stringify(value.mobileCardInfo)!==JSON.stringify(base.mobileCardInfo)) out.mobileCardInfo=value.mobileCardInfo
  if(Object.keys(modules).length) out.modules=modules
  return out
 }
