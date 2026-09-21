@@ -29,7 +29,8 @@ for(const width of [320,390,430,720,899,900,1024,1440,1920])test(`detail reading
   for(const tab of ['resources','latency']){
    await page.getByRole('button',{name:language==='zh'?(tab==='resources'?'资源':'网络延迟'):(tab==='resources'?'Resources':'Network latency'),exact:true}).click()
    const tabs=(await page.locator('.detail-tabs').boundingBox())!,ranges=(await page.locator('.detail-ranges').boundingBox())!,refresh=(await page.locator('.detail-refresh').boundingBox())!
-   if(width<1200){expect(ranges.y).toBeGreaterThan(tabs.y);expect(Math.abs(refresh.y+refresh.height/2-ranges.y-ranges.height/2)).toBeLessThan(2)}
+   if(width<=600){expect(Math.abs(tabs.y-ranges.y)).toBeLessThanOrEqual(2);const primary=await page.locator('.detail-ranges button').evaluateAll(buttons=>buttons.slice(0,3).map(button=>button.getBoundingClientRect().top));expect(new Set(primary.map(top=>Math.round(top))).size).toBe(1);if(tab==='resources'){const all=await page.locator('.detail-ranges button').evaluateAll(buttons=>buttons.map(button=>button.getBoundingClientRect().top));expect(all[3]).toBeGreaterThan(all[2])}}
+   else if(width<1200){expect(ranges.y).toBeGreaterThan(tabs.y);expect(Math.abs(refresh.y+refresh.height/2-ranges.y-ranges.height/2)).toBeLessThan(2)}
    else expect(Math.abs(tabs.y-ranges.y)).toBeLessThan(2)
    for(const b of await page.locator('.detail-chart-toolbar button').all()){const box=(await b.boundingBox())!;expect(box.height).toBeGreaterThanOrEqual(44);expect(box.width).toBeGreaterThanOrEqual(44)}
    expect(await page.locator('.detail-history').evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy()

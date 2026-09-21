@@ -235,3 +235,14 @@
  .node-card .remark-more {min-width:44px;min-height:44px}
 }
 @media(prefers-reduced-motion:reduce){.next-theme *, .next-theme *::before,.next-theme *::after {animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* v0.0.23: mobile cards lead with live readings; supporting metadata is one
+   quiet disclosure so long lists remain scannable without losing information. */
+.node-secondary-disclosure {border-top:1px solid var(--home-line);margin:0}
+.node-secondary-disclosure>summary {display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:0 var(--card-pad);color:var(--muted-foreground);font-size:12px;cursor:pointer;list-style:none}
+.node-secondary-disclosure>summary::-webkit-details-marker {display:none}
+.node-secondary-disclosure>summary svg {flex-shrink:0;transition:transform .16s ease}
+.node-secondary-disclosure[open]>summary {color:var(--foreground)}
+.node-secondary-disclosure[open]>summary svg {transform:rotate(180deg)}
+.node-secondary-disclosure>.node-secondary {padding-top:0}
+@media(prefers-reduced-motion:reduce){.node-secondary-disclosure>summary svg {transition:none}}

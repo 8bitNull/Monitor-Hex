@@ -286,3 +286,55 @@ main:has(>.node-detail)>.detail-navigation {margin-bottom:4px}
  .detail-history .detail-tabs button[aria-pressed=true]::after {position:absolute;right:0;bottom:-1px;left:0;height:2px;background:var(--tone);content:""}
  .detail-history .detail-history-body {padding:16px 20px 20px}
 }
+
+/* v0.0.23: fact groups remain one desktop frame, while mobile opens each
+   group independently so the first screen is useful without being crowded. */
+.detail-fact-disclosure>summary {display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none;cursor:pointer}
+.detail-fact-disclosure>summary::-webkit-details-marker {display:none}
+.detail-fact-disclosure>summary h3 {margin:0!important}
+.detail-fact-disclosure>summary>svg {flex-shrink:0;color:var(--muted-foreground);transition:transform .16s ease}
+.detail-fact-disclosure[open]>summary>svg {transform:rotate(180deg)}
+.billing-status {display:flex;align-items:center;gap:8px;min-height:36px;margin:0 0 14px;padding:7px 10px;border:1px solid color-mix(in srgb,var(--muted-foreground) 24%,var(--detail-line));border-radius:8px;background:var(--muted);font-size:12px}
+.billing-status-dot {width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:var(--muted-foreground)}
+.billing-status strong {font-weight:600}
+.billing-status-normal {border-color:color-mix(in srgb,var(--ok) 30%,var(--detail-line));background:color-mix(in srgb,var(--ok) 7%,var(--card));color:var(--ok)}
+.billing-status-normal .billing-status-dot {background:var(--ok)}
+.billing-status-soon {border-color:color-mix(in srgb,var(--warn) 35%,var(--detail-line));background:color-mix(in srgb,var(--warn) 9%,var(--card));color:var(--warn)}
+.billing-status-soon .billing-status-dot {background:var(--warn)}
+.billing-status-expired {border-color:color-mix(in srgb,var(--destructive) 32%,var(--detail-line));background:color-mix(in srgb,var(--destructive) 8%,var(--card));color:var(--destructive)}
+.billing-status-expired .billing-status-dot {background:var(--destructive)}
+@media(min-width:900px){
+ .detail-fact-disclosure>summary {cursor:default}
+ .detail-fact-disclosure>summary>svg {display:none}
+}
+@media(max-width:899px){
+ .detail-fact-disclosure>summary {min-height:44px}
+ .detail-fact-groups>section:has(.detail-fact-disclosure:not([open])) {padding-bottom:8px}
+ .detail-facts dd {text-align:right;justify-content:flex-end}
+ .detail-facts .fact-long dd {text-align:right;justify-content:flex-end}
+ .detail-facts dd:has(.copy-control) .fact-value,.detail-facts .fact-long dd .fact-value {text-align:right;justify-self:end}
+}
+@media(max-width:600px){
+ .detail-chart-toolbar {grid-template-columns:auto minmax(0,1fr) 44px;grid-template-rows:44px;gap:4px;min-height:44px;align-items:start}
+ .detail-chart-toolbar .detail-tabs {grid-column:1;grid-row:1;justify-self:start;min-width:0}
+ .detail-chart-toolbar .detail-ranges {grid-column:2;grid-row:1;display:flex;flex-wrap:nowrap;justify-content:flex-end;gap:4px;min-width:0;max-width:100%;margin:0;overflow:visible}
+ .detail-chart-toolbar .detail-refresh {grid-column:3;grid-row:1;justify-self:end}
+ .detail-chart-toolbar[data-range-count="4"] {grid-template-rows:44px 44px;min-height:96px}
+ .detail-chart-toolbar[data-range-count="4"] .detail-ranges {grid-column:2/4;grid-row:1/3;flex-wrap:wrap;align-content:start;overflow:visible}
+ .detail-chart-toolbar[data-range-count="4"] .detail-refresh {grid-column:3;grid-row:2}
+ .detail-chart-toolbar[data-range-count="4"] .detail-ranges button:last-child {margin-right:96px}
+ .detail-chart-toolbar .detail-ranges button {flex:0 0 44px}
+ .detail-chart-toolbar .detail-tabs button {min-width:44px}
+}
+@media(max-width:600px){
+ :lang(en) .detail-chart-toolbar .detail-tabs button {width:44px;padding-inline:0;justify-content:center}
+ :lang(en) .detail-chart-toolbar .detail-tabs button>span {display:none}
+}
+@media(max-width:360px){
+ .detail-chart-toolbar {grid-template-rows:44px 44px;min-height:96px}
+ .detail-chart-toolbar .detail-tabs button {width:44px;padding-inline:0;justify-content:center}
+ .detail-chart-toolbar .detail-tabs button>span {display:none}
+ .detail-chart-toolbar .detail-ranges {grid-column:2/4;grid-row:1/3;align-content:start;overflow:visible}
+ .detail-chart-toolbar .detail-refresh {grid-column:3;grid-row:2}
+}
+@media(prefers-reduced-motion:reduce){.detail-fact-disclosure>summary>svg {transition:none}}

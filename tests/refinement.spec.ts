@@ -76,6 +76,7 @@ test('zero, unavailable, warning, long facts and failed latency retain honest st
  for(const i of [1,2,3])await expect(cards.nth(i).locator('.bar-number').first()).toHaveText('—')
  await expect(cards.nth(4).locator('.resource').first()).toHaveClass(/danger/)
  await expect(cards.nth(4).locator('.expiring')).toContainText('已过期')
+ await cards.nth(5).locator('.node-secondary-disclosure summary').click()
  await expect(cards.nth(5).locator('.expiring')).toBeVisible()
  for(const card of await cards.all()){
   await card.scrollIntoViewIfNeeded();expect(await card.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy()

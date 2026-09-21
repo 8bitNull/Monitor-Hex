@@ -27,12 +27,13 @@ test('all 64 auxiliary combinations remove empty rows and preserve detail inform
 test('mobile follows, copies once, remembers independent choices and respects 720 boundary and resets',async({page})=>{
  await page.setViewportSize({width:390,height:1000});await setup(page);await toggleSettings(page)
  const general=page.getByRole('group',{name:'通用卡片信息',exact:true}),mobile=page.getByRole('group',{name:'手机卡片信息',exact:true})
+ const openMore=async()=>{const disclosure=page.locator('.node-secondary-disclosure').first();if(await disclosure.count()&&!(await disclosure.getAttribute('open')))await disclosure.locator('summary').click()}
  await general.getByLabel('TCP／UDP',{exact:true}).uncheck()
  await page.getByLabel('手机显示',{exact:true}).selectOption('custom');await expect(mobile.getByLabel('TCP／UDP',{exact:true})).not.toBeChecked()
  await mobile.getByLabel('价格',{exact:true}).uncheck();await toggleSettings(page);await expect(page.locator('.node-price')).toHaveCount(0)
  await page.setViewportSize({width:721,height:1000});await expect(page.locator('.node-price')).toBeVisible()
  await page.setViewportSize({width:720,height:1000});await expect(page.locator('.node-price')).toHaveCount(0)
- await toggleSettings(page);await page.getByLabel('手机显示',{exact:true}).selectOption('follow');await toggleSettings(page);await expect(page.locator('.node-price')).toBeVisible()
+ await toggleSettings(page);await page.getByLabel('手机显示',{exact:true}).selectOption('follow');await toggleSettings(page);await openMore();await expect(page.locator('.node-price')).toBeVisible()
  await page.reload();await toggleSettings(page);await page.getByLabel('手机显示',{exact:true}).selectOption('custom');await expect(mobile.getByLabel('价格',{exact:true})).not.toBeChecked()
  await page.getByRole('button',{name:'恢复默认外观',exact:true}).click();await expect(page.getByLabel('手机显示',{exact:true})).toHaveValue('custom');await expect(mobile.getByLabel('价格',{exact:true})).not.toBeChecked()
  await page.getByRole('button',{name:'重置全部偏好',exact:true}).click();await expect(page.getByLabel('手机显示',{exact:true})).toHaveValue('follow');await expect(general.getByLabel('TCP／UDP',{exact:true})).toBeChecked()

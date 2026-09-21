@@ -4,6 +4,7 @@ import {liveMetrics} from '@/lib/freshness'
 import {tr} from '@/lib/i18n'
 import {bytes,osName,money,CYCLES,FOREVER,daysUntil} from '@/lib/format'
 import {useEffect,useRef,useState} from 'react'
+import type {ComponentType,ReactNode} from 'react'
 import {Database,Copy,Check,ChevronDown, Cpu, Network, WalletCards} from 'lucide-react'
 function Fact({ label, value, warning=false,copy=false }: {
     label: string;
@@ -22,36 +23,47 @@ function Fact({ label, value, warning=false,copy=false }: {
       <dd className={`detail-fact text-sm ${warning?"detail-expiry-warning":""}`}><span className="fact-value">{value}</span>{copy&&<span className="copy-control"><button className="copy-fact" aria-label={tr("复制：{0}",label)} title={tr("复制：{0}",label)} onClick={copyValue}>{notice===tr("已复制")?<Check size={14}/>:<Copy size={14}/>}</button>{notice&&<small role="status" className="copy-notice">{notice}</small>}</span>}</dd>
     </div>);
 }
+function FactSection({label,Icon,compact,defaultOpen=true,children}:{label:string;Icon:ComponentType<{size?:number}>;compact:boolean;defaultOpen?:boolean;children:ReactNode}){
+    const [open,setOpen]=useState(defaultOpen);
+    return <section aria-label={label}>
+      <details className="detail-fact-disclosure" open={!compact || open} onToggle={event=>{if(compact)setOpen((event.currentTarget as HTMLDetailsElement).open)}}>
+        <summary><h3><Icon size={15}/>{label}</h3><ChevronDown size={16}/></summary>
+        <div className="detail-fact-section-body">{children}</div>
+      </details>
+    </section>;
+}
 export function DetailFacts({node,mode,compact,onMode}:{node:Node;mode:Preferences['detailInfoMode'];compact:boolean;onMode:(mode:Preferences['detailInfoMode'])=>void}){
  const expanded=!compact || mode==='expanded';
  const m=liveMetrics(node)
  const monthly=node.traffic_mode==='up'?node.month_tx:node.traffic_mode==='down'?node.month_rx:node.traffic_mode==='max'?Math.max(node.month_rx,node.month_tx):node.month_rx+node.month_tx
  const days=daysUntil(node.expires_at)
  const expiryLabel=days===null?tr('未设到期'):days<0?tr('已过期 {0} 天',-days):tr('{0} 天后到期',days)
- return (      <div className="detail-information">{compact&&<button className="detail-facts-toggle" aria-expanded={expanded} aria-controls="detail-fact-groups" onClick={()=>onMode(expanded?'collapsed':'expanded')}><span className="detail-facts-title"><Database size={15}/>{tr("设备资料")}</span><ChevronDown size={16}/></button>}<div id="detail-fact-groups" className="detail-fact-groups" hidden={!expanded}><section aria-label={tr("硬件与系统")}><h3><Cpu size={15}/>{tr("硬件与系统")}</h3>
-      <dl className="detail-facts">
-        <Fact label="Agent" value={node.agent_version}/><Fact label={tr("系统")} value={[osName(node.os), node.kernel].filter(Boolean).join(" · ")}/>
-        <Fact copy label="CPU" value={node.cpu_name ? `${node.cpu_name} × ${node.cpu_cores}` : tr("{0} 核", node.cpu_cores)}/>
-        <Fact label={tr("内存 / 硬盘")} value={`${bytes(node.mem_total)} / ${bytes(node.disk_total)}`}/>
-        <Fact label={tr("架构 / 虚拟化")} value={[node.arch, node.virt !== "none" ? node.virt : ""]
-            .filter(Boolean)
-            .join(" · ")}/>
-        <Fact label={tr("交换空间")} value={m?`${bytes(m.swap_used)} / ${bytes(m.swap_total)}`:"—"}/>
-      </dl>
-        </section><section aria-label={tr("网络与流量")}><h3><Network size={15}/>{tr("网络与流量")}</h3>
-      <div className="detail-quota" title={tr("本月用量")}><div><Database size={15}/><span>{bytes(monthly)} / {node.traffic_limit > 0 ? bytes(node.traffic_limit) : FOREVER}</span></div>{node.traffic_limit > 0 && <progress aria-label={tr("本月用量")} max={node.traffic_limit} value={Math.min(Math.max(0,monthly),node.traffic_limit)}/>}</div>
-      <dl className="detail-facts">
-        <Fact copy label="IPv4" value={node.ipv4}/><Fact copy label="IPv6" value={node.ipv6}/><Fact label={tr("流量重置")} value={Number.isInteger(node.traffic_reset_day) && node.traffic_reset_day >= 1 && node.traffic_reset_day <= 31 ? tr("每月 {0} 日",node.traffic_reset_day) : tr("未知")}/>
-<Fact label={tr("累计流量")} value={`↑ ${bytes(node.total_tx)} · ↓ ${bytes(node.total_rx)}`}/>
-        <Fact label={tr("今日流量")} value={`↓ ${bytes(node.day_rx)} · ↑ ${bytes(node.day_tx)}`}/>
-      </dl></section><section className="detail-billing" aria-label={tr("费用与到期")}><h3><WalletCards size={15}/>{tr("费用与到期")}</h3><dl className="detail-facts">
-        <Fact label={tr("到期")} value={expiryLabel} warning={days!==null && days<=7}/>
-        <Fact label={tr("续费")} value={[
-            node.price > 0
-                ? `${money(node.price, node.currency)} / ${tr(Object.hasOwn(CYCLES, node.billing_cycle) ? CYCLES[node.billing_cycle] : node.billing_cycle)}`
-                : node.price === 0 ? tr("零价：免费或未填写") : tr("价格未知"),
-
-        ].filter(Boolean).join(" · ")}/>
-      </dl>
-        </section>        </div></div>)
+ const billingState=days===null?'unknown':days<0?'expired':days<=7?'soon':'normal';
+ const billingLabel=billingState==='unknown'?tr('未设到期'):billingState==='expired'?tr('已过期'):billingState==='soon'?tr('即将到期'):tr('正常');
+ return <div className="detail-information">{compact&&<button className="detail-facts-toggle" aria-expanded={expanded} aria-controls="detail-fact-groups" onClick={()=>onMode(expanded?'collapsed':'expanded')}><span className="detail-facts-title"><Database size={15}/>{tr("设备资料")}</span><ChevronDown size={16}/></button>}<div id="detail-fact-groups" className="detail-fact-groups" hidden={!expanded}>
+   <FactSection label={tr("硬件与系统")} Icon={Cpu} compact={compact} defaultOpen>
+     <dl className="detail-facts">
+       <Fact label="Agent" value={node.agent_version}/><Fact label={tr("系统")} value={[osName(node.os), node.kernel].filter(Boolean).join(" · ")}/>
+       <Fact copy label="CPU" value={node.cpu_name ? `${node.cpu_name} × ${node.cpu_cores}` : tr("{0} 核", node.cpu_cores)}/>
+       <Fact label={tr("内存 / 硬盘")} value={`${bytes(node.mem_total)} / ${bytes(node.disk_total)}`}/>
+       <Fact label={tr("架构 / 虚拟化")} value={[node.arch, node.virt !== "none" ? node.virt : ""].filter(Boolean).join(" · ")}/>
+       <Fact label={tr("交换空间")} value={m?`${bytes(m.swap_used)} / ${bytes(m.swap_total)}`:"—"}/>
+     </dl>
+   </FactSection>
+   <FactSection label={tr("网络与流量")} Icon={Network} compact={compact} defaultOpen={false}>
+     <div className="detail-quota" title={tr("本月用量")}><div><Database size={15}/><span>{bytes(monthly)} / {node.traffic_limit > 0 ? bytes(node.traffic_limit) : FOREVER}</span></div>{node.traffic_limit > 0 && <progress aria-label={tr("本月用量")} max={node.traffic_limit} value={Math.min(Math.max(0,monthly),node.traffic_limit)}/>}</div>
+     <dl className="detail-facts">
+       <Fact copy label="IPv4" value={node.ipv4}/><Fact copy label="IPv6" value={node.ipv6}/><Fact label={tr("流量重置")} value={Number.isInteger(node.traffic_reset_day) && node.traffic_reset_day >= 1 && node.traffic_reset_day <= 31 ? tr("每月 {0} 日",node.traffic_reset_day) : tr("未知")}/>
+       <Fact label={tr("累计流量")} value={`↑ ${bytes(node.total_tx)} · ↓ ${bytes(node.total_rx)}`}/>
+       <Fact label={tr("今日流量")} value={`↓ ${bytes(node.day_rx)} · ↑ ${bytes(node.day_tx)}`}/>
+     </dl>
+   </FactSection>
+   <FactSection label={tr("费用与到期")} Icon={WalletCards} compact={compact} defaultOpen={false}>
+     <div className={`billing-status billing-status-${billingState}`} data-state={billingState}><span className="billing-status-dot"/><strong>{billingLabel}</strong></div>
+     <dl className="detail-facts">
+       <Fact label={tr("到期")} value={expiryLabel} warning={days!==null && days<=7}/>
+       <Fact label={tr("续费")} value={node.price > 0 ? `${money(node.price, node.currency)} / ${tr(Object.hasOwn(CYCLES, node.billing_cycle) ? CYCLES[node.billing_cycle] : node.billing_cycle)}` : node.price === 0 ? tr("零价：免费或未填写") : tr("价格未知")}/>
+     </dl>
+   </FactSection>
+ </div></div>;
 }

@@ -27,3 +27,32 @@
 .region-sheet-check {color:var(--tone);visibility:hidden;flex-shrink:0}
 [aria-pressed=true]>.region-sheet-check {visibility:visible}
 .region-picker-trigger:focus-visible,.region-sheet button:focus-visible {outline:2px solid var(--tone);outline-offset:2px}
+
+/* v0.0.23: search lives beside the global controls on desktop and becomes an
+   anchored popover on compact screens. */
+.desktop-header-search {width:min(300px,30vw);flex:0 1 300px}
+.desktop-node-search {display:none}
+.node-search-control {display:flex;align-items:center;gap:8px;min-width:0;min-height:44px;padding:0 8px 0 10px;border:1px solid var(--border);border-radius:var(--radius-control);background:var(--background);color:var(--muted-foreground)}
+.node-search-control:focus-within {border-color:color-mix(in srgb,var(--tone) 55%,var(--border));box-shadow:0 0 0 2px color-mix(in srgb,var(--tone) 10%,transparent)}
+.node-search-control input {width:100%;min-width:0;min-height:42px;border:0;outline:0;background:transparent;color:var(--foreground);font-size:12px}
+.node-search-control input::-webkit-search-cancel-button {display:none}
+.node-search-clear,.mobile-search-toggle {display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;border-radius:7px;color:var(--muted-foreground)}
+.node-search-clear:hover,.mobile-search-toggle:hover {background:var(--muted);color:var(--foreground)}
+.active-filters .clear-all-filters {color:var(--muted-foreground);background:transparent;text-decoration:underline;text-underline-offset:3px}
+.mobile-header-search-shell {position:relative;flex-shrink:0}
+.mobile-header-search-toggle {display:grid;place-items:center;width:44px;height:44px;min-width:44px;border-radius:8px;color:var(--muted-foreground)}
+.mobile-header-search-toggle:hover {background:var(--muted);color:var(--foreground)}
+.mobile-header-search-popover {position:absolute;z-index:12;top:calc(100% + 8px);right:0;width:min(360px,calc(100vw - 24px));padding:8px;border:1px solid var(--border);border-radius:10px;background:var(--card);box-shadow:0 10px 30px #0002}
+.mobile-header-search-popover .node-search-control {width:100%}
+.mobile-node-toolbar {display:block;min-height:0}
+.mobile-toolbar-main {display:flex;align-items:center;gap:12px;min-width:0}
+.mobile-toolbar-actions {display:flex;align-items:center;gap:4px;flex-shrink:0}
+.mobile-search-toggle {width:44px;height:44px;flex-basis:44px}
+.mobile-search-control {margin-top:8px;width:100%}
+.back-to-top {position:fixed;right:24px;bottom:max(24px,env(safe-area-inset-bottom));z-index:8;display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--border);border-radius:50%;background:color-mix(in srgb,var(--card) 94%,transparent);color:var(--muted-foreground);box-shadow:0 6px 20px #0002;backdrop-filter:blur(8px)}
+.back-to-top:hover {color:var(--foreground);border-color:var(--tone);background:var(--card)}
+.back-to-top:focus-visible {outline:2px solid var(--tone);outline-offset:3px}
+@media(max-width:720px){
+ .desktop-header-search {display:none}
+ .back-to-top {right:16px;bottom:max(16px,env(safe-area-inset-bottom))}
+}
