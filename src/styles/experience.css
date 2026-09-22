@@ -58,7 +58,8 @@
 .settings-top h2 {font-size:18px}
 .settings-top button {display:grid;place-items:center;width:40px;height:40px}
 .settings-nav {display:flex;gap:8px;margin-top:14px;background:var(--muted);padding:4px;border-radius:var(--radius-control)}
-.settings-nav button {flex:1;padding:6px}
+.settings-nav button {flex:1;padding:6px;min-height:44px;border-radius:6px}
+.settings-nav button[aria-pressed=true] {background:var(--card);color:var(--foreground);box-shadow:0 1px 4px #0001}
 .settings-drawer [data-settings] {scroll-margin-top:65px}
 .settings-drawer .preference-grid {grid-template-columns:1fr;gap:16px}
 .settings-drawer .preference-grid>label {display:flex;justify-content:space-between;flex-wrap:wrap}
@@ -347,3 +348,17 @@
  .settings-drawer .graph-options {grid-template-columns:repeat(2,minmax(0,1fr))}
  .settings-drawer .graph-options small {overflow-wrap:normal}
 }
+
+/* Hidden settings remain mounted to preserve unapplied drafts. */
+.preferences [hidden] {display:none!important}
+.preferences .settings-nav {position:sticky;top:52px;z-index:2;margin-bottom:16px}
+.recommended-display {padding:12px;border:1px solid var(--border);border-radius:10px;margin-top:12px}
+.recommended-display>button {color:var(--tone);font-weight:600;min-height:44px}
+.information-density {display:grid;gap:8px;margin-bottom:16px;font-size:12px}
+.latency-presets {display:flex;flex-wrap:wrap;gap:8px}
+.latency-presets button {min-height:44px;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:12px}
+.region-atlas:not(:fullscreen) {height:310px}
+.region-atlas.is-collapsed {height:126px}
+.region-atlas .explorer-stage[hidden] {display:none}
+.region-atlas .map-collapse {min-height:32px;padding:4px 8px;border-radius:6px;color:var(--tone);font-size:12px;pointer-events:auto}
+.region-atlas .section-heading {flex-wrap:wrap;max-width:calc(100% - 230px)}

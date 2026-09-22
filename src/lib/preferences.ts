@@ -9,6 +9,7 @@ export function usePreferences(siteDefaults: Preferences) {
       const saved = JSON.parse(stored || '{}')
       const modern = saved?._storageVersion === 1
       const next = normalizePreferences(saved, siteDefaults)
+      if(stored && !Object.hasOwn(saved || {},"infoDensity") && saved?.schemaVersion!==3)next.infoDensity="full"
       if (!modern && stored && saved && typeof saved === 'object' && !Array.isArray(saved) && Object.keys(saved).length > 0 && saved.designVersion !== 1) { next.skin = "lumina" }
       if (!modern && !saved?.appearance) {
         const mode = localStorage.getItem('monitor-next-mode')
@@ -22,7 +23,7 @@ export function usePreferences(siteDefaults: Preferences) {
       const overrides = preferenceOverrides(next,siteDefaults)
       // A recorded graph choice stays explicit even when it equals the site default.
       if (Object.hasOwn(saved || {}, 'graph') && ['bar','ring','columns','minimal'].includes(saved.graph)) overrides.graph = next.graph
-      for(const key of ['mobileInfoMode','desktopColumns','mobileCardInfo','detailInfoMode'] as const) if(Object.hasOwn(saved || {},key)) overrides[key]=next[key]
+      for(const key of ['infoDensity','mobileInfoMode','desktopColumns','mobileCardInfo','detailInfoMode'] as const) if(Object.hasOwn(saved || {},key)) overrides[key]=next[key]
       if(saved?.cardInfo && typeof saved.cardInfo==='object') overrides.cardInfo=Object.fromEntries(Object.keys(defaultCardInfo).filter(key=>typeof saved.cardInfo[key]==='boolean').map(key=>[key,saved.cardInfo[key]]))
       return overrides
     } catch { return {} }
@@ -33,13 +34,13 @@ export function usePreferences(siteDefaults: Preferences) {
     const overrides=preferenceOverrides(resolved,siteDefaults)
     if(!resetGraph && Object.hasOwn(current,'graph')) overrides.graph=resolved.graph
     if(!resetDisplay){
-      for(const key of ['mobileInfoMode','desktopColumns','mobileCardInfo','detailInfoMode'] as const) if(Object.hasOwn(current,key)) overrides[key]=resolved[key]
+      for(const key of ['infoDensity','mobileInfoMode','desktopColumns','mobileCardInfo','detailInfoMode'] as const) if(Object.hasOwn(current,key)) overrides[key]=resolved[key]
       if(current.cardInfo && typeof current.cardInfo==='object') overrides.cardInfo={...(overrides.cardInfo as object || {}),...Object.fromEntries(Object.keys(current.cardInfo).filter(key=>key in defaultCardInfo).map(key=>[key,resolved.cardInfo[key as keyof typeof defaultCardInfo]]))}
     }
     return overrides
   }),[siteDefaults])
   const selectGraph=useCallback((graph:Preferences['graph'])=>setOverrides(current=>({...current,graph})),[])
-  useEffect(() => { try { localStorage.setItem('monitor-next', JSON.stringify({_storageVersion:1,schemaVersion:2,designVersion:1,...overrides})) } catch { /* Storage may be disabled. */ } }, [overrides])
+  useEffect(() => { try { localStorage.setItem('monitor-next', JSON.stringify({_storageVersion:1,schemaVersion:3,designVersion:1,...overrides})) } catch { /* Storage may be disabled. */ } }, [overrides])
   const selectDisplay=useCallback((patch:DisplayPatch)=>setOverrides(current=>({...current,...patch,...(patch.cardInfo?{cardInfo:{...(current.cardInfo as object || {}),...patch.cardInfo}}:{})})),[])
   return [prefs, setPrefs, selectGraph, selectDisplay] as const
 }

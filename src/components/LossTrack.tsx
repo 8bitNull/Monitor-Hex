@@ -17,6 +17,7 @@ export function LossTrack({series,preferred,start,end}:{series:{id:number;name:s
    {active&&<line x1={x(active.ts)} x2={x(active.ts)} y1="0" y2="36" stroke="var(--muted-foreground)" strokeDasharray="2 3" vectorEffect="non-scaling-stroke"/>}
   </svg></div>
   {points.length>0&&<input className="loss-track-scrubber" type="range" aria-label={tr('查看丢包采样')} min="0" max={Math.max(0,points.length-1)} value={Math.min(sample??points.length-1,points.length-1)} onChange={e=>setSample(Number(e.target.value))}/>}
+  {points.some(p=>bucketLoss(p.loss)===null)&&<p className="loss-track-note">{tr("部分时段缺少逐点丢包数据")}</p>}
   <div className="loss-track-reading" aria-live="polite">{active?<><time>{new Date(active.ts*1000).toLocaleTimeString(locale())}</time><span>{active.latency===null?tr('超时'):`${Number(active.latency.toFixed(1))} ms`}</span><span>{tr('丢包')} {bucketLoss(active.loss)===null?'—':`${active.loss}%`}</span></>:tr('暂无探测记录')}</div>
  </section>
 }

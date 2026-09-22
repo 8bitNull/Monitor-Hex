@@ -3,15 +3,15 @@
 .node-card[data-indicator] .resource-label>span {white-space:normal}
 .node-card[data-indicator] .resource small {max-width:100%;font-variant-numeric:tabular-nums}
 /* Columns: four compact metrics in a balanced two-by-two grid. */
-.node-card[data-indicator=columns] .resources {gap:18px 20px}
+.node-card[data-indicator=columns] .resources {gap:12px 20px}
 .node-card[data-indicator=columns] .resource-columns {height:7px;gap:3px;margin-top:9px}
 .node-card[data-indicator=columns] .resource-columns i {height:7px!important}
 /* Bars: compact two-column resources; numbers lead, tracks support scanning. */
-.node-card[data-indicator=bar] .resources {grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 20px}
+.node-card[data-indicator=bar] .resources {grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 20px}
 .node-card[data-indicator=bar] .resource {display:flex;flex-direction:column;gap:0;min-width:0}
 .node-card[data-indicator=bar] .resource-label {order:0}
-.node-card[data-indicator=bar] .resource-bar {order:1;margin:10px 0 0;height:4px;width:100%}
-.node-card[data-indicator=bar] .resource small {order:2;margin:6px 0 0;max-width:100%;text-align:left;overflow-wrap:anywhere}
+.node-card[data-indicator=bar] .resource-bar {order:1;margin:6px 0 0;height:3px;width:100%}
+.node-card[data-indicator=bar] .resource small {order:2;margin:4px 0 0;max-width:100%;text-align:left;overflow-wrap:anywhere}
 /* Rings: side-by-side dial and caption, not four tall centred stacks. */
 .node-card[data-indicator=ring] .resources {gap:20px 16px}
 .node-card[data-indicator=ring] .resource {display:grid;grid-template-columns:52px minmax(0,1fr);grid-template-rows:auto auto;align-items:center;column-gap:8px;row-gap:3px}
@@ -26,7 +26,7 @@
 .node-card[data-indicator=ring] .speed-indicators strong {grid-column:2;grid-row:1/3;align-self:center;font-size:20px;white-space:nowrap}
 .node-card[data-indicator=ring] .speed-indicators .speed-stale-icon {grid-column:1;grid-row:3}
 /* Numbers: a typographic two-by-two grid, with no empty space left for tracks. */
-.node-card[data-indicator=minimal] .resources {gap:18px 20px}
+.node-card[data-indicator=minimal] .resources {gap:12px 20px}
 .node-card[data-indicator=minimal] .resource-label {flex-direction:column;align-items:flex-start;gap:5px}
 .node-card[data-indicator=minimal] .bar-number {font-size:22px;line-height:1.2;letter-spacing:-.6px;font-weight:600}
 .node-card[data-indicator=minimal] .resource small {margin-top:5px}
@@ -46,3 +46,16 @@
  .node-card[data-indicator=ring] .speed-indicators strong {font-size:20px}
  .node-card[data-indicator=minimal] .bar-number {font-size:22px}
 }
+
+.node-card[data-density=overview] .resources {padding-bottom:8px}
+.node-card[data-density=overview] .resource:nth-child(n+3) .resource-label {color:var(--muted-foreground)}
+.node-card[data-density=overview] .node-footer {padding:4px 0 8px}
+.node-card[data-density=overview] .node-more {padding-top:0}
+@media(min-width:721px){
+ .node-card[data-density=overview] .route-picker,.node-card[data-density=overview] .matrix-heading .route-select,.node-card[data-density=overview] .matrix-heading button,.node-card[data-density=overview] .latency-link {height:32px;min-height:32px}
+}
+
+.node-card[data-density=overview] .node-footer {display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px}
+.overview-expiry {font-size:12px;color:var(--muted-foreground)}
+.overview-expiry.expiring {color:var(--warn)}
+.node-card[data-density=overview] .node-footer .node-remarks {flex-basis:100%;order:3}

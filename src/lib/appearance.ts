@@ -6,8 +6,9 @@ export const moduleLabels = { online: '在线节点', busiest: '高负载提示'
 export const cardInfoLabels = { traffic: '本月用量', connections: 'TCP／UDP', uptime: '在线时长', expiry: '到期信息', remarks: '备注标签', price: '价格' };
 export type CardInfo = Record<keyof typeof cardInfoLabels, boolean>;
 export const defaultCardInfo: CardInfo = {traffic:true,connections:true,uptime:true,expiry:true,remarks:true,price:true};
-export type DisplayPatch = {detailInfoMode?: 'auto' | 'expanded' | 'collapsed'; cardInfo?: Partial<CardInfo>; mobileCardInfo?: CardInfo | null; mobileInfoMode?: 'follow' | 'custom'; desktopColumns?: 'auto' | '2' | '3' | '4'};
+export type DisplayPatch = {infoDensity?: 'overview' | 'full'; detailInfoMode?: 'auto' | 'expanded' | 'collapsed'; cardInfo?: Partial<CardInfo>; mobileCardInfo?: CardInfo | null; mobileInfoMode?: 'follow' | 'custom'; desktopColumns?: 'auto' | '2' | '3' | '4'};
 export type Preferences = {
+    infoDensity: 'overview' | 'full';
     detailInfoMode: 'auto' | 'expanded' | 'collapsed';
     cardInfo: CardInfo;
     mobileCardInfo: CardInfo | null;
@@ -22,7 +23,7 @@ export type Preferences = {
     skin: 'lumina' | 'original';
     mobileLayout: keyof typeof cardLayouts | 'inherit';
     designVersion: 1;
-    schemaVersion: 2;
+    schemaVersion: 3;
     palette: keyof typeof palettes;
     graph: keyof typeof graphStyles;
     layout: 'comfortable' | 'compact';
@@ -42,11 +43,12 @@ export type Preferences = {
     modules: Record<keyof typeof moduleLabels, boolean>;
 };
 export const defaults: Preferences = {
+    infoDensity: 'overview',
     detailInfoMode: 'auto',
     cardInfo: {...defaultCardInfo}, mobileCardInfo: null, mobileInfoMode: 'follow', desktopColumns: 'auto',
-    probe: 'auto', homeRoutes: 1, latencyScale:200, latencyWarn:80, latencyHigh:160, skin: 'lumina', mobileLayout: 'inherit', designVersion: 1, schemaVersion: 2, palette: 'default', graph: 'bar', layout: 'comfortable', cardLayout: 'classic', appearance: 'system', map: false,
+    probe: 'auto', homeRoutes: 1, latencyScale:200, latencyWarn:80, latencyHigh:160, skin: 'lumina', mobileLayout: 'inherit', designVersion: 1, schemaVersion: 3, palette: 'default', graph: 'bar', layout: 'comfortable', cardLayout: 'classic', appearance: 'system', map: false,
     showTotals: true, icons: true, backgroundUrl: '', backgroundBlur: 0, backgroundMask: 45, backgroundType: 'soft', glass: false, cardOpacity: 88, cardBlur: 12, speedStyle: 'spark',
-    modules: { online: true, busiest: true, traffic: true, speed: true, regions: false, clock: false, map: true },
+    modules: { online: true, busiest: true, traffic: true, speed: true, regions: false, clock: false, map: false },
 };
 function object(v: unknown): Record<string, unknown> { return v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {}; }
 export function safeBackground(value: unknown): string {
@@ -78,6 +80,7 @@ export function normalizePreferences(input: unknown, base: Preferences = default
     const info = (input: unknown, fallback: CardInfo): CardInfo => Object.fromEntries(Object.keys(defaultCardInfo).map(key=>[key,typeof object(input)[key]==='boolean'?object(input)[key]:fallback[key as keyof CardInfo]])) as CardInfo;
     const warn=number('latencyWarn',1,4999),high=number('latencyHigh',2,5000);
     return {
+        infoDensity:choose(v.infoDensity,['overview','full'],base.infoDensity),
         latencyScale:v.latencyScale===200||v.latencyScale===500?v.latencyScale:base.latencyScale,
         latencyWarn:warn<high?warn:base.latencyWarn,
         latencyHigh:warn<high?high:base.latencyHigh,
@@ -91,7 +94,7 @@ export function normalizePreferences(input: unknown, base: Preferences = default
         skin: choose(v.skin, ['lumina', 'original'], base.skin),
         mobileLayout: choose(v.mobileLayout, ['inherit', ...Object.keys(cardLayouts)] as Preferences['mobileLayout'][], Object.hasOwn(v, 'cardLayout') && !Object.hasOwn(v, 'mobileLayout') ? 'inherit' : base.mobileLayout),
         designVersion: 1,
-        schemaVersion: 2,
+        schemaVersion: 3,
         palette: choose(v.palette, Object.keys(palettes) as (keyof typeof palettes)[], base.palette),
         graph: choose(v.graph, Object.keys(graphStyles) as (keyof typeof graphStyles)[], base.graph),
         // v1.1/v1.2 layout was density, not a card design. Preserve that meaning.
@@ -119,16 +122,16 @@ export function parsePreferences(text: string, base: Preferences = defaults): Pr
     if (!v || typeof v !== 'object' || Array.isArray(v))
         throw new Error(tr("\u914D\u7F6E\u5FC5\u987B\u662F\u4E00\u4E2A\u5BF9\u8C61"));
     const data = object(v);
-    if (data.schemaVersion !== undefined && data.schemaVersion !== 1 && data.schemaVersion !== 2)
+    if (data.schemaVersion !== undefined && data.schemaVersion !== 1 && data.schemaVersion !== 2 && data.schemaVersion !== 3)
         throw new Error(tr("\u4E0D\u652F\u6301\u6B64\u914D\u7F6E\u7248\u672C"));
     if (!Object.keys(data).some(key => key !== 'schemaVersion' && Object.hasOwn(defaults, key)))
         throw new Error(tr("\u6CA1\u6709\u53EF\u7528\u7684\u5916\u89C2\u8BBE\u7F6E"));
     if (data.backgroundUrl && !safeBackground(data.backgroundUrl))
         throw new Error(tr("\u80CC\u666F\u4EC5\u652F\u6301 HTTP(S) \u5730\u5740\u6216\u7AD9\u5185\u7EDD\u5BF9\u8DEF\u5F84"));
-    return normalizePreferences(data, base);
+    return normalizePreferences({...data,...(!Object.hasOwn(data,"infoDensity")&&data.schemaVersion!==3?{infoDensity:"full"}:{})}, base);
 }
 export function restoreAppearance(current: Preferences, site: Preferences): Preferences {
-    return { ...site, detailInfoMode:current.detailInfoMode, cardInfo:current.cardInfo,mobileCardInfo:current.mobileCardInfo,mobileInfoMode:current.mobileInfoMode,desktopColumns:current.desktopColumns, probe:current.probe, homeRoutes:current.homeRoutes, latencyScale:current.latencyScale, latencyWarn:current.latencyWarn, latencyHigh:current.latencyHigh, map: current.map, modules: { ...current.modules } };
+    return { ...site, infoDensity:current.infoDensity, detailInfoMode:current.detailInfoMode, cardInfo:current.cardInfo,mobileCardInfo:current.mobileCardInfo,mobileInfoMode:current.mobileInfoMode,desktopColumns:current.desktopColumns, probe:current.probe, homeRoutes:current.homeRoutes, latencyScale:current.latencyScale, latencyWarn:current.latencyWarn, latencyHigh:current.latencyHigh, map: current.map, modules: { ...current.modules } };
 }
 
 /** Store only differing fields; nested module choices inherit independently. */

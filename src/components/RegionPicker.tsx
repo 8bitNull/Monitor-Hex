@@ -2,14 +2,15 @@ import {useEffect,useRef,useState} from 'react'
 import {Check,ChevronDown,Globe,X} from 'lucide-react'
 import type {Node} from '@/lib/api'
 import {groupRegions,UNKNOWN_REGION} from '@/lib/groups'
-import {locale,tr} from '@/lib/i18n'
+import {countryName} from '@/lib/regionNames'
+import {tr} from '@/lib/i18n'
 import {Flag} from './NodeIcons'
 
 export function RegionPicker({nodes,region,onChange}:{nodes:Node[];region:string;onChange:(region:string)=>void}) {
  const [open,setOpen]=useState(false)
  const trigger=useRef<HTMLButtonElement>(null),dialog=useRef<HTMLDialogElement>(null)
  const regions=groupRegions(nodes)
- const name=(code:string)=>{if(code===UNKNOWN_REGION)return tr('未知地区');try{return new Intl.DisplayNames([locale()],{type:'region'}).of(code)||code}catch{return code}}
+ const name=countryName
  const count=region==='all'?nodes.length:regions.find(r=>r.code===region)?.total??0
  useEffect(()=>{
   if(!open)return

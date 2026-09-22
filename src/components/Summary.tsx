@@ -33,7 +33,7 @@ function Flow({ down, up, className }: {
     up: string;
     className?: string;
 }) {
-    return (<div className={cn("tnum grid grid-cols-1 gap-x-2 sm:grid-cols-2", className)}>
+    return (<div className={cn("summary-flow tnum grid grid-cols-1 gap-x-2 sm:grid-cols-2", className)}>
       <span className="download inline-flex items-center gap-1">
         <ArrowDown className="size-3 shrink-0 text-muted-foreground"/>
         {down}

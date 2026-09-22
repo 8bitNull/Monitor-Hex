@@ -5,12 +5,12 @@ import type { Node } from './api.ts'
 import { getPing, summarizePing } from './ping.ts'
 export const sortLabels = { default: '后台默认', name: '名称', status: '在线状态', cpu: 'CPU', memory: '内存', disk: '硬盘', upload: '上传速度', download: '下载速度', traffic: '流量用量 / 总额度', latency: '所选线路延迟', expiry: '到期时间' }
 export type SortKey = keyof typeof sortLabels
-export type Browse = { query: string; status: string; region: string; sort: SortKey; direction: 'asc' | 'desc'; view: 'cards' | 'table'; probe: string; columns: string[]; columnsVersion: number }
-export const defaultBrowse: Browse = { query: '', status: 'all', region: 'all', sort: 'default', direction: 'asc', view: 'cards', probe: 'auto', columnsVersion: 2, columns: ['cpu', 'memory', 'disk', 'upload', 'download', 'traffic', 'latency', 'expiry'] }
+export type Browse = { query: string; status: string; region: string; sort: SortKey; direction: 'asc' | 'desc'; view: 'cards' | 'table'; probe: string; columns: string[]; mobileColumns: string[]; columnsVersion: number }
+export const defaultBrowse: Browse = { query: '', status: 'all', region: 'all', sort: 'default', direction: 'asc', view: 'cards', probe: 'auto', columnsVersion: 3, mobileColumns: ['cpu','memory','latency'], columns: ['cpu', 'memory', 'disk', 'upload', 'download', 'traffic', 'latency', 'expiry'] }
 export function readBrowse(): Browse {
   try {
     const v = JSON.parse(sessionStorage.getItem('monitor-next-browse-v1') || '{}')
-    return { ...defaultBrowse, query: typeof v.query === 'string' ? v.query : '', status: ['all', 'online', 'offline'].includes(v.status) ? v.status : 'all', region: typeof v.region === 'string' ? v.region : 'all', sort: Object.hasOwn(sortLabels, v.sort) ? v.sort : 'default', direction: v.direction === 'desc' ? 'desc' : 'asc', view: v.view === 'table' ? 'table' : 'cards', probe: typeof v.probe === 'string' ? v.probe : 'auto', columnsVersion: 2, columns: Array.isArray(v.columns) ? defaultBrowse.columns.filter(c => v.columns.includes(c) || (c === 'traffic' && v.columnsVersion !== 2)) : defaultBrowse.columns }
+    return { ...defaultBrowse, query: typeof v.query === 'string' ? v.query : '', status: ['all', 'online', 'offline'].includes(v.status) ? v.status : 'all', region: typeof v.region === 'string' ? v.region : 'all', sort: Object.hasOwn(sortLabels, v.sort) ? v.sort : 'default', direction: v.direction === 'desc' ? 'desc' : 'asc', view: v.view === 'table' ? 'table' : 'cards', probe: typeof v.probe === 'string' ? v.probe : 'auto', columnsVersion: 3, mobileColumns: Array.isArray(v.mobileColumns) ? defaultBrowse.columns.filter(c=>v.mobileColumns.includes(c)) : defaultBrowse.mobileColumns, columns: Array.isArray(v.columns) ? defaultBrowse.columns.filter(c => v.columns.includes(c) || (c === 'traffic' && v.columnsVersion !== 2 && v.columnsVersion !== 3)) : defaultBrowse.columns }
   } catch { return defaultBrowse }
 }
 const regionNames = new Intl.DisplayNames(['zh-CN'], { type: 'region' })

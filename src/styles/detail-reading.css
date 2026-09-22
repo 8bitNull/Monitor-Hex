@@ -287,30 +287,23 @@ main:has(>.node-detail)>.detail-navigation {margin-bottom:4px}
  .detail-history .detail-history-body {padding:16px 20px 20px}
 }
 
-/* v0.0.23: fact groups remain one desktop frame, while mobile opens each
-   group independently so the first screen is useful without being crowded. */
-.detail-fact-disclosure>summary {display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none;cursor:pointer}
-.detail-fact-disclosure>summary::-webkit-details-marker {display:none}
-.detail-fact-disclosure>summary h3 {margin:0!important}
-.detail-fact-disclosure>summary>svg {flex-shrink:0;color:var(--muted-foreground);transition:transform .16s ease}
-.detail-fact-disclosure[open]>summary>svg {transform:rotate(180deg)}
+/* Facts share one desktop frame and one outer disclosure on mobile. */
+.detail-fact-disclosure>.fact-section-heading {display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.detail-fact-disclosure>.fact-section-heading h3 {margin:0!important}
 .billing-status {display:flex;align-items:center;gap:8px;min-height:36px;margin:14px 0 0;padding:7px 10px;border:1px solid color-mix(in srgb,var(--muted-foreground) 24%,var(--detail-line));border-radius:8px;background:var(--muted);font-size:12px}
 .billing-status-dot {width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:var(--muted-foreground)}
 .billing-status strong {font-weight:600}
-.billing-status-normal {border-color:color-mix(in srgb,var(--ok) 30%,var(--detail-line));background:color-mix(in srgb,var(--ok) 7%,var(--card));color:var(--ok)}
+.billing-status-normal,.billing-status-unknown {border:0;background:transparent;padding:0;min-height:24px}
+.billing-status-normal {color:var(--ok)}
 .billing-status-normal .billing-status-dot {background:var(--ok)}
 .billing-status-soon {border-color:color-mix(in srgb,var(--warn) 35%,var(--detail-line));background:color-mix(in srgb,var(--warn) 9%,var(--card));color:var(--warn)}
 .billing-status-soon .billing-status-dot {background:var(--warn)}
 .billing-status-expired {border-color:color-mix(in srgb,var(--destructive) 32%,var(--detail-line));background:color-mix(in srgb,var(--destructive) 8%,var(--card));color:var(--destructive)}
 .billing-status-expired .billing-status-dot {background:var(--destructive)}
 @media(min-width:900px){
- .detail-fact-disclosure>summary {cursor:default}
  .detail-fact-disclosure>.detail-fact-section-body {padding-top:16px}
- .detail-fact-disclosure>summary>svg {display:none}
 }
 @media(max-width:899px){
- .detail-fact-disclosure>summary {min-height:44px}
- .detail-fact-groups>section:has(.detail-fact-disclosure:not([open])) {padding-bottom:8px}
  .detail-facts dd {text-align:right;justify-content:flex-end}
  .detail-facts .fact-long dd {text-align:right;justify-content:flex-end}
  .detail-facts dd:has(.copy-control) .fact-value,.detail-facts .fact-long dd .fact-value {text-align:right;justify-self:end}
@@ -335,7 +328,6 @@ main:has(>.node-detail)>.detail-navigation {margin-bottom:4px}
  .detail-chart-toolbar[data-range-count="4"] .detail-ranges {grid-column:1/3;grid-row:2;display:grid;grid-template-columns:repeat(4,44px);grid-auto-rows:44px;width:188px;justify-self:end;gap:4px}
  .detail-chart-toolbar[data-range-count="4"] .detail-ranges button:last-child {grid-column:auto}
 }
-@media(prefers-reduced-motion:reduce){.detail-fact-disclosure>summary>svg {transition:none}}
 
 /* Unified history controls: first-level tabs, secondary controls, then ranges. */
 .detail-chart-toolbar {display:flex;align-items:center;flex-wrap:nowrap;gap:4px;min-width:0;overflow:visible}
@@ -420,3 +412,27 @@ main:has(>.node-detail)>.detail-navigation {margin-bottom:4px}
  .detail-chart-toolbar .detail-ranges button {width:21px;min-width:21px}
  .detail-chart-toolbar .detail-refresh {flex-basis:28px;width:28px;min-width:28px}
 }
+
+.history-state {position:relative;overflow:hidden}
+.history-skeleton {position:absolute;inset:24px;display:flex;align-items:end;gap:16px;opacity:.45;border-bottom:1px solid var(--border);pointer-events:none}
+.history-skeleton i {flex:1;height:35%;background:var(--muted);border-radius:6px 6px 0 0}
+.history-skeleton i:nth-child(2n) {height:60%}.history-skeleton i:nth-child(3n) {height:45%}
+.history-state-message {position:relative;z-index:1;padding:12px;background:var(--card);border-radius:8px}
+@media(max-width:899px){
+ .detail-fact-disclosure>.detail-fact-section-body {padding-top:16px}
+}
+@media(max-width:720px){
+ .detail-navigation .detail-back {display:flex;min-height:44px}
+ .detail-title-row {display:flex;flex-wrap:wrap;gap:8px}
+ .detail-title-row .detail-title {flex-basis:100%;min-width:0}
+}
+@media(max-width:360px){
+ .detail-facts>div {display:flex;flex-direction:column;align-items:stretch;gap:5px}
+ .detail-facts dt {white-space:nowrap}
+ .detail-facts .detail-fact {text-align:left;justify-content:space-between;min-width:0}
+ .detail-facts .fact-value {overflow-wrap:anywhere}
+}
+
+.fact-section-heading h3 {display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.fact-section-heading h3 svg {color:var(--tone)}
+.detail-fact-disclosure>.detail-fact-section-body {padding-top:16px}

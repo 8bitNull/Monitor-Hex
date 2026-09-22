@@ -58,3 +58,10 @@
  .mobile-header-search-popover {position:fixed;top:50dvh;left:50vw;right:auto;transform:translate(-50%,-50%);width:min(360px,calc(100vw - 32px));box-sizing:border-box;padding:12px;box-shadow:0 18px 54px #0003}
  .back-to-top {right:16px;bottom:max(16px,env(safe-area-inset-bottom))}
 }
+
+.mobile-search-panel {position:fixed;inset:80px 0 auto;margin:0 auto;width:calc(100% - 24px);max-width:480px;padding:16px;border:1px solid var(--border);border-radius:14px;background:var(--card);color:var(--foreground);box-shadow:0 16px 48px #0002}
+.mobile-search-panel::backdrop {background:#10182755}
+.mobile-search-heading {display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.mobile-search-heading h2 {font-size:16px;font-weight:600}
+.mobile-search-heading button {display:grid;place-items:center;width:44px;height:44px}
+.mobile-search-panel>p {margin-top:12px;font-size:12px;color:var(--muted-foreground)}
