@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import {SpeedBuffer,trendPath,trendCeiling,bucketLoss} from './trends.ts'
+import {latencyBars,latencyBand,SpeedBuffer,trendPath,trendCeiling,bucketLoss} from './trends.ts'
 const cache=new SpeedBuffer()
 const put=(id:number,ts:number,tx=0,rx=100)=>({id,ts,tx,rx})
 cache.update([put(1,100),put(2,100,50)],[1,2],100)
@@ -22,3 +22,13 @@ for(const count of [20,100,500]){
  console.log(JSON.stringify({nodes:count,svgPathMs:Number((performance.now()-start).toFixed(2)),maxSamplesPerNode:60}))
 }
 console.log('network sample deduplication, expiry, isolation, gaps, zero, scale and loss semantics passed')
+
+const samples=[{ts:0,latency:0},{ts:60,latency:80},{ts:180,latency:160},{ts:240,latency:600},{ts:300,latency:null}]
+const bars=latencyBars(samples,200,80,160)
+assert.deepEqual(bars.map(b=>b.tone),['good','fair','bad','bad','timeout'])
+assert.equal(bars[3].height,30);assert.equal(bars[3].latency,600);assert.equal(bars[3].capped,true)
+assert.ok(bars[0].height>0);assert.equal(bars[4].height,0)
+assert.ok(Math.abs((bars[2].x-bars[1].x)-2*(bars[1].x-bars[0].x))<.001)
+assert.equal(latencyBars(samples,500,80,160)[1].height,4.8)
+assert.equal(latencyBand(80,100,200),'good');assert.equal(latencyBand(100,100,200),'fair')
+assert.deepEqual(latencyBars([{ts:NaN,latency:1},{ts:0,latency:-1}],200,80,160),[])

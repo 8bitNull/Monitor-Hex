@@ -63,6 +63,6 @@ test('partial stale fleet excludes expired high load and traffic from live total
  await expect(page.locator('.high-load-alert')).toHaveCount(0)
  const summary=page.locator('.summary-grid>div')
  await expect(summary.first()).toContainText('0 离线 · 1 待更新')
- await expect(summary.nth(2).locator('.summary-total')).toHaveText('158.4 KB/s')
+ await expect(summary.nth(2).locator('.summary-total')).toHaveText('1.30 Mbps')
  await expect(summary.nth(2)).toContainText('1 个节点暂无实时数据')
 })

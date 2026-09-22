@@ -36,5 +36,8 @@
   },
   "mobileInfoMode": "follow",
   "mobileCardInfo": null,
-  "desktopColumns": "auto"
+  "desktopColumns": "auto",
+  "latencyScale": 200,
+  "latencyWarn": 80,
+  "latencyHigh": 160
 }

@@ -6,7 +6,7 @@
 .node-card[data-indicator] .speed-indicators strong small,.detail-live .speed-indicators strong small {display:inline-block;min-width:4ch;margin:0;font-size:11px;color:var(--muted-foreground)}
 .node-card[data-indicator] .speed-indicators .speed-track {height:3px}
 .node-card[data-indicator=ring] .speed-indicators .speed-ring {grid-column:2;grid-row:1;justify-self:end;width:20px;height:20px}
-.node-card[data-indicator=ring] .speed-direction {padding-right:22px}
+
 .micro-trend {position:relative;min-width:0;color:var(--tone);height:24px}
 .micro-trend svg {display:block;width:100%;height:100%;overflow:hidden}
 .micro-empty {position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted-foreground);font-size:11px;background:var(--card)}
@@ -65,3 +65,19 @@
 .loss-track-scrubber::-webkit-slider-thumb {appearance:none;width:12px;height:12px;margin-top:-5px;background:var(--tone);border-radius:50%}
 .loss-track-scrubber::-moz-range-track {height:2px;background:var(--border)}
 .loss-track-scrubber::-moz-range-thumb {width:12px;height:12px;border:0;background:var(--tone);border-radius:50%}
+
+/* Network semantics stay fixed when resource indicator preferences change. */
+.node-card[data-indicator] .speed-indicators .speed-columns {display:flex;grid-column:1/-1;grid-row:3;gap:3px;height:8px;margin:0;width:100%}
+.node-card[data-indicator] .speed-indicators .speed-columns>span {flex:1;height:8px;background:var(--border);border-radius:2px;overflow:hidden}
+.node-card[data-indicator] .speed-indicators .speed-columns i {display:block;width:0;height:100%;background:currentColor}
+.node-card[data-indicator] .speed-indicators .speed-columns [data-active=true] i {width:100%}
+.latency-bars {height:36px;margin-top:5px}
+.latency-bars svg {display:block;width:100%;height:100%;overflow:hidden}
+.latency-bars g[data-tone=good] {fill:var(--upload)}
+.latency-bars g[data-tone=fair] {fill:var(--warn)}
+.latency-bars g[data-tone=bad] {fill:var(--destructive)}
+.latency-timeout {fill:none;stroke:var(--destructive);stroke-width:1.5}
+.latency-baseline {stroke:var(--border);stroke-width:1;vector-effect:non-scaling-stroke}
+.latency-settings {margin-top:12px}
+.latency-settings input {width:100%;min-width:0;height:38px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--foreground)}
+.latency-settings>button {margin-top:10px}

@@ -1,4 +1,4 @@
-import {memo,useState,useMemo} from 'react'
+import {memo,useState} from 'react'
 import {tr,locale} from '@/lib/i18n'
 import {trendCeiling,trendPath} from '@/lib/trends'
 export function useTrendCeiling(rows:unknown,max:number,floor=100){
@@ -7,10 +7,6 @@ export function useTrendCeiling(rows:unknown,max:number,floor=100){
  if(rows!==scale.rows){top=trendCeiling(max,scale.top,floor);setScale({rows,top})}
  return top
 }
-export const LatencyMicroTrend=memo(function LatencyMicroTrend({rows}:{rows:{ts:number;latency:number|null}[]}){
- const values=useMemo(()=>rows.map(p=>({ts:p.ts,value:p.latency})),[rows])
- return <MicroTrend rows={values} start={rows[0]?.ts??0} end={rows.at(-1)?.ts??0} label={tr('近期延迟采样')}/>
-})
 export const MicroTrend=memo(function MicroTrend({rows,start,end,floor=100,gap=120,top:sharedTop,label,emptyLabel}:{rows:{ts:number;value:number|null}[];start:number;end:number;floor?:number;gap?:number;top?:number;label:string;emptyLabel?:string}){
  const max=Math.max(0,...rows.map(p=>p.value??0))
  const ceiling=useTrendCeiling(rows,max,floor),top=sharedTop??ceiling

@@ -305,6 +305,7 @@ main:has(>.node-detail)>.detail-navigation {margin-bottom:4px}
 .billing-status-expired .billing-status-dot {background:var(--destructive)}
 @media(min-width:900px){
  .detail-fact-disclosure>summary {cursor:default}
+ .detail-fact-disclosure>.detail-fact-section-body {padding-top:16px}
  .detail-fact-disclosure>summary>svg {display:none}
 }
 @media(max-width:899px){

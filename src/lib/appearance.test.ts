@@ -63,3 +63,12 @@ for(const mode of ['auto','expanded','collapsed'] as const){
  assert.equal(restoreAppearance(prefs,defaults).detailInfoMode,mode)
 }
 assert.equal(normalizePreferences({detailInfoMode:'invalid'}).detailInfoMode,'auto')
+
+assert.equal(legacy.latencyScale,200);assert.equal(legacy.latencyWarn,80);assert.equal(legacy.latencyHigh,160)
+const customLatency=parsePreferences(JSON.stringify({...defaults,latencyScale:500,latencyWarn:100,latencyHigh:250}))
+assert.equal(customLatency.latencyScale,500);assert.equal(customLatency.latencyWarn,100)
+assert.equal(normalizePreferences({latencyScale:999}).latencyScale,200)
+assert.equal(normalizePreferences({latencyWarn:200,latencyHigh:100}).latencyWarn,80)
+assert.equal(normalizePreferences({latencyHigh:NaN}).latencyHigh,160)
+assert.equal(restoreAppearance(customLatency,defaults).latencyHigh,250)
+assert.equal(parsePreferences(JSON.stringify(customLatency)).latencyHigh,250)

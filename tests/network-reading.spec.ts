@@ -1,4 +1,5 @@
 import {test,expect,type Page} from '@playwright/test'
+import {toggleSettings,visualSelect} from './settings'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
 async function setup(page:Page){
  await page.addInitScript(()=>localStorage.setItem('monitor-next',JSON.stringify({designVersion:1,homeRoutes:3,modules:{map:false}})))
@@ -10,11 +11,11 @@ for(const width of [320,390,720,900,1440])test(`network readings fit in both lan
  for(const language of ['zh','en'])for(const appearance of ['light','dark']){
   await page.addInitScript(({language,appearance})=>{localStorage.setItem('monitor-next-language',language);const p=JSON.parse(localStorage.getItem('monitor-next')!);localStorage.setItem('monitor-next',JSON.stringify({...p,appearance}))},{language,appearance})
   await page.goto('/');const card=page.locator('.node-card');await expect(card.locator('.ping-probe')).toHaveCount(3)
-  await expect(card.locator('.micro-trend')).toHaveCount(1);await expect(card.locator('.micro-timeout')).toHaveCount(1)
-  await expect(card.locator('.speed-direction')).toHaveText(language==='zh'?['上行','下行']:['Upload','Download'])
+  await expect(card.locator('.latency-bars')).toHaveCount(1);await expect(card.locator('.latency-timeout')).toHaveCount(1)
+  await expect(card.locator('.speed-direction')).toHaveText(language==='zh'?['实时上行','实时下行']:['Live upload','Live download'])
   const controls=card.locator('.latency-link');for(const button of await controls.all()){await button.scrollIntoViewIfNeeded();const b=(await button.boundingBox())!;expect(await button.evaluate((el,{x,y})=>el.contains(document.elementFromPoint(x,y)),{x:b.x+b.width/2,y:b.y+b.height/2})).toBeTruthy()}
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
-  if(language==='zh'&&appearance==='light')await card.screenshot({path:`tests/artifacts/v012/home-${width}.png`})
+  if(language==='zh'&&appearance==='light')await card.screenshot({path:`tests/artifacts/v013/home-${width}.png`})
   await page.goto('/node/1?routes=1,2,3#latency');await expect(page.locator('.loss-track')).toBeVisible();await expect(page.locator('.detail-speed .micro-trend')).toHaveCount(2)
   const select=page.locator('.loss-track select');await select.selectOption('2');await expect(select).toHaveValue('2')
   await page.locator('.detail-probe-legend>summary').click();await expect(page.locator('.probe-label').first()).toHaveCSS('text-overflow','ellipsis');await page.keyboard.press('Escape')
@@ -22,7 +23,7 @@ for(const width of [320,390,720,900,1440])test(`network readings fit in both lan
   if(width<900){await page.locator('.detail-facts-toggle').click();await billing.locator('summary').click()}
   const status=(await billing.locator('.billing-status').boundingBox())!,facts=(await billing.locator('dl').boundingBox())!;expect(status.y).toBeGreaterThan(facts.y+facts.height)
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
-  if(language==='zh'&&appearance==='light')await page.locator('.detail-history').screenshot({path:`tests/artifacts/v012/latency-${width}.png`})
+  if(language==='zh'&&appearance==='light')await page.locator('.detail-history').screenshot({path:`tests/artifacts/v013/latency-${width}.png`})
  }
  expect(errors).toEqual([])
 })
@@ -45,4 +46,44 @@ test('live trends accumulate real reports and clear on offline state',async({pag
  count++;await page.clock.runFor(5100);await expect(speed.locator('.micro-empty')).toHaveCount(0);await expect(speed.locator('.upload .speed-amount')).toHaveText('0')
  expect(await speed.locator('.upload .micro-trend path').first().getAttribute('d')).toContain('L')
  offline=true;await page.clock.runFor(5100);await expect(speed.locator('.speed-amount').first()).toHaveText('—');await expect(speed.locator('.micro-trend circle')).toHaveCount(0)
+})
+
+
+test('network visuals remain fixed across resource styles and latency preferences persist',async({page})=>{
+ await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[nodes()[0]]}}))
+ await page.goto('/');const card=page.locator('.node-card');await expect(card.locator('.latency-bars')).toBeVisible()
+ for(const graph of ['ring','bar','columns','minimal']){
+  await toggleSettings(page);await visualSelect(page,'graph',graph);await toggleSettings(page)
+  await expect(card.locator('.speed-columns')).toHaveCount(2)
+  for(const bar of await card.locator('.speed-columns').all()){await expect(bar).toBeVisible();await expect(bar.locator(':scope>span')).toHaveCount(12)}
+  await expect(card.locator('.latency-bars')).toBeVisible();await expect(card.locator('.speed-ring,.speed-track')).toHaveCount(0)
+ }
+ await toggleSettings(page);await page.getByLabel('延迟统一刻度',{exact:true}).selectOption('500')
+ await page.getByLabel('黄色阈值（ms）',{exact:true}).fill('250');await page.getByLabel('红色阈值（ms）',{exact:true}).fill('100')
+ await expect(page.getByRole('button',{name:'应用延迟阈值',exact:true})).toBeDisabled()
+ await page.getByLabel('黄色阈值（ms）',{exact:true}).fill('100');await page.getByLabel('红色阈值（ms）',{exact:true}).fill('250')
+ await page.getByRole('button',{name:'应用延迟阈值',exact:true}).click();await toggleSettings(page);await page.reload()
+ await expect(card.locator('.latency-bars svg')).toHaveAttribute('aria-label',/0–500 ms.*100.*250/)
+ await toggleSettings(page);await page.getByRole('button',{name:'恢复默认外观',exact:true}).click();await expect(page.getByLabel('延迟统一刻度',{exact:true})).toHaveValue('500')
+ await page.getByRole('button',{name:'重置全部偏好',exact:true}).click();await expect(page.getByLabel('延迟统一刻度',{exact:true})).toHaveValue('200')
+})
+
+test('live activity distinguishes zero, slow, missing, stale and offline readings',async({page})=>{
+ await page.clock.install();const now=Math.floor(Date.now()/1000);let state='live'
+ await page.route('**/api/nodes',r=>{const n=nodes()[0];return r.fulfill({json:{nodes:[{...n,online:state!=='offline',last_seen:state==='stale'?now-120:now,metrics:state==='missing'?null:{...n.metrics,net_tx:0,net_rx:1}}]}})})
+ await page.goto('/');const speed=page.locator('.node-card .speed-indicators')
+ await expect(speed.locator('.upload .speed-amount')).toHaveText('0');await expect(speed.locator('.download .speed-amount')).toHaveText('<0.001')
+ await expect(speed.locator('.upload [data-active=true]')).toHaveCount(0);await expect(speed.locator('.download [data-active=true]')).toHaveCount(12)
+ for(state of ['missing','stale','offline']){
+  await page.clock.runFor(5100);await expect(speed.locator('.speed-amount')).toHaveText(['—','—']);await expect(speed.locator('[data-active=true]')).toHaveCount(0)
+ }
+})
+
+test('latency bars preserve timestamp gaps, threshold colors and capped actual values',async({page})=>{
+ await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[nodes()[0]]}}))
+ await page.route('**/api/nodes/*/metrics?*',r=>{const ts=Math.floor(Date.now()/1000);return r.fulfill({json:{...metrics(),probes:{1:'Primary'},loss:{1:0},ping:[{task_id:1,ts:ts-240,latency:20},{task_id:1,ts:ts-180,latency:100},{task_id:1,ts:ts-60,latency:null},{task_id:1,ts,latency:600}]}})})
+ await page.goto('/');const bars=page.locator('.latency-bars');await expect(bars.locator('g')).toHaveCount(4)
+ await expect(bars.locator('[data-tone=good]')).toHaveCount(1);await expect(bars.locator('[data-tone=fair]')).toHaveCount(1);await expect(bars.locator('.latency-timeout')).toHaveCount(1)
+ await expect(bars.locator('[data-capped=true] title')).toContainText('600 ms');await expect(page.locator('.latency-link')).toContainText('600')
+ const heights=await bars.locator('rect').evaluateAll(els=>els.map(e=>Number(e.getAttribute('height'))));expect(heights).toEqual([3,15,30])
 })

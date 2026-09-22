@@ -3,7 +3,7 @@
 // requires no runner, framework or dependency.
 //
 // Nothing imports it, so the bundle never includes it.
-import { axisBytes, axisTop, bytes, cpuName, daysUntil, osName, pair, quarters, timeTicks, uptime } from "./format.ts"
+import { rate, mbpsAmount, axisBytes, axisTop, bytes, cpuName, daysUntil, osName, pair, quarters, timeTicks, uptime } from "./format.ts"
 
 let failed = 0
 function eq(got: unknown, want: unknown, what: string) {
@@ -13,6 +13,14 @@ function eq(got: unknown, want: unknown, what: string) {
     console.error(`✗ ${what}\n    得到 ${a}\n    期望 ${b}`)
   }
 }
+
+eq(rate(125000), '1.00 Mbps', 'decimal Mbps conversion')
+eq(rate(0), '0 Mbps', 'idle is zero')
+eq(rate(1), '<0.001 Mbps', 'positive low speed is never zero')
+eq(rate(125), '0.001 Mbps', 'low speed precision')
+eq(mbpsAmount(NaN), '—', 'invalid speed is missing')
+eq(mbpsAmount(-1), '—', 'negative speed is missing')
+eq(rate(125000000000), '1.0e+6 Mbps', 'very high rate stays bounded')
 
 // bytes: the significant-digit ladder, and the sub-byte case that would
 // otherwise print "512 undefined".

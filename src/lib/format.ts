@@ -46,7 +46,16 @@ export function axisBytes(v: number): string {
     return bytes(v, v / 1024 ** unit >= 100 ? 0 : 1).replace(".0 ", " ");
 }
 export function rate(n: number): string {
-    return `${bytes(n, 1)}/s`;
+    return `${mbpsAmount(n)} Mbps`;
+}
+/** Agent rates are bytes/second; network readings use decimal megabits/second. */
+export function mbpsAmount(n: number): string {
+    if (!Number.isFinite(n) || n < 0) return '—';
+    const value = n * 8 / 1_000_000;
+    if (value === 0) return '0';
+    if (value < .001) return '<0.001';
+    if (value >= 1_000_000) return value.toExponential(1);
+    return value.toFixed(value < 1 ? 3 : value < 100 ? 2 : value < 1000 ? 1 : 0);
 }
 export function percent(used: number, total: number): number {
     return total > 0 ? Math.min(100, (used / total) * 100) : 0;

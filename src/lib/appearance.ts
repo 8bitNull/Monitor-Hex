@@ -16,6 +16,9 @@ export type Preferences = {
     // Legacy import metadata only; v2 uses one shared visual system.
     probe: string;
     homeRoutes: number;
+    latencyScale: 200 | 500;
+    latencyWarn: number;
+    latencyHigh: number;
     skin: 'lumina' | 'original';
     mobileLayout: keyof typeof cardLayouts | 'inherit';
     designVersion: 1;
@@ -41,7 +44,7 @@ export type Preferences = {
 export const defaults: Preferences = {
     detailInfoMode: 'auto',
     cardInfo: {...defaultCardInfo}, mobileCardInfo: null, mobileInfoMode: 'follow', desktopColumns: 'auto',
-    probe: 'auto', homeRoutes: 1, skin: 'lumina', mobileLayout: 'inherit', designVersion: 1, schemaVersion: 2, palette: 'default', graph: 'bar', layout: 'comfortable', cardLayout: 'classic', appearance: 'system', map: false,
+    probe: 'auto', homeRoutes: 1, latencyScale:200, latencyWarn:80, latencyHigh:160, skin: 'lumina', mobileLayout: 'inherit', designVersion: 1, schemaVersion: 2, palette: 'default', graph: 'bar', layout: 'comfortable', cardLayout: 'classic', appearance: 'system', map: false,
     showTotals: true, icons: true, backgroundUrl: '', backgroundBlur: 0, backgroundMask: 45, backgroundType: 'soft', glass: false, cardOpacity: 88, cardBlur: 12, speedStyle: 'spark',
     modules: { online: true, busiest: true, traffic: true, speed: true, regions: false, clock: false, map: true },
 };
@@ -73,7 +76,11 @@ export function normalizePreferences(input: unknown, base: Preferences = default
             modules[key] = object(v.modules)[key] as boolean;
     }
     const info = (input: unknown, fallback: CardInfo): CardInfo => Object.fromEntries(Object.keys(defaultCardInfo).map(key=>[key,typeof object(input)[key]==='boolean'?object(input)[key]:fallback[key as keyof CardInfo]])) as CardInfo;
+    const warn=number('latencyWarn',1,4999),high=number('latencyHigh',2,5000);
     return {
+        latencyScale:v.latencyScale===200||v.latencyScale===500?v.latencyScale:base.latencyScale,
+        latencyWarn:warn<high?warn:base.latencyWarn,
+        latencyHigh:warn<high?high:base.latencyHigh,
         detailInfoMode: choose(v.detailInfoMode, ['auto','expanded','collapsed'],base.detailInfoMode),
         cardInfo: info(v.cardInfo, base.cardInfo),
         mobileCardInfo: v.mobileCardInfo === null ? null : v.mobileCardInfo && typeof v.mobileCardInfo === 'object' && !Array.isArray(v.mobileCardInfo) ? info(v.mobileCardInfo, base.mobileCardInfo || base.cardInfo) : base.mobileCardInfo,
@@ -121,7 +128,7 @@ export function parsePreferences(text: string, base: Preferences = defaults): Pr
     return normalizePreferences(data, base);
 }
 export function restoreAppearance(current: Preferences, site: Preferences): Preferences {
-    return { ...site, detailInfoMode:current.detailInfoMode, cardInfo:current.cardInfo,mobileCardInfo:current.mobileCardInfo,mobileInfoMode:current.mobileInfoMode,desktopColumns:current.desktopColumns, probe:current.probe, homeRoutes:current.homeRoutes, map: current.map, modules: { ...current.modules } };
+    return { ...site, detailInfoMode:current.detailInfoMode, cardInfo:current.cardInfo,mobileCardInfo:current.mobileCardInfo,mobileInfoMode:current.mobileInfoMode,desktopColumns:current.desktopColumns, probe:current.probe, homeRoutes:current.homeRoutes, latencyScale:current.latencyScale, latencyWarn:current.latencyWarn, latencyHigh:current.latencyHigh, map: current.map, modules: { ...current.modules } };
 }
 
 /** Store only differing fields; nested module choices inherit independently. */

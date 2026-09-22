@@ -27,3 +27,14 @@ export function trendPath(rows:{ts:number;value:number|null}[],start:number,end:
 /** Expand immediately, contract at most 10% per fresh sample set. */
 export function trendCeiling(max:number,previous=0,floor=100){return Math.max(floor,Math.ceil(max/Math.max(1,floor/4))*Math.max(1,floor/4),previous*.9)}
 export function bucketLoss(value:unknown):number|null{return typeof value==='number'&&Number.isFinite(value)&&value>=0&&value<=100?value:null}
+
+export function latencyBand(value:number|null,warn=80,high=160){
+ return value===null?'timeout':value>=high?'bad':value>=warn?'fair':'good'
+}
+/** Timestamp placement preserves gaps; scale is shared by all cards. */
+export function latencyBars(rows:{ts:number;latency:number|null}[],scale:number,warn:number,high:number){
+ const valid=rows.filter(p=>Number.isFinite(p.ts)&&(p.latency===null||(Number.isFinite(p.latency)&&p.latency>=0)))
+ const end=Math.max(0,...valid.map(p=>p.ts)),start=Math.min(end,...valid.map(p=>p.ts)),span=Math.max(60,end-start)
+ const width=Math.min(6,280*60/span*.7)
+ return valid.map(p=>({...p,x:10+(p.ts-start)/span*280,width,height:p.latency===null?0:Math.max(1,Math.min(p.latency/scale,1)*30),tone:p.latency!==null&&p.latency>scale?'bad':latencyBand(p.latency,warn,high),capped:p.latency!==null&&p.latency>scale}))
+}

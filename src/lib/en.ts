@@ -1,4 +1,16 @@
 export const english: Record<string, string> = {
+"实时上行":"Live upload",
+"实时下行":"Live download",
+"延迟采样 · 统一刻度 0–{0} ms；黄色 ≥{1}，红色 ≥{2}":"Latency samples · shared scale 0–{0} ms; amber ≥{1}, red ≥{2}",
+"最近 {0} 分钟 · 采样 · 0–{1} ms":"Last {0} min · samples · 0–{1} ms",
+"延迟统一刻度":"Shared latency scale",
+"黄色阈值（ms）":"Amber threshold (ms)",
+"红色阈值（ms）":"Red threshold (ms)",
+"应用延迟阈值":"Apply latency thresholds",
+"阈值须满足：1 ≤ 黄色 < 红色 ≤ 5000 ms":"Thresholds must satisfy: 1 ≤ amber < red ≤ 5000 ms",
+"所有首页卡片共用刻度。超出刻度的采样封顶标红，实际数值保留；叉号代表超时，空隙代表缺失。":"All home cards share the scale. Above-scale samples are capped and red, with actual values retained; crosses mean timeout and gaps mean missing data.",
+"指标样式仅影响 CPU、内存和硬盘；首页网速固定分段条，延迟固定采样柱条。":"Indicator styles affect CPU, memory and disk only. Home network rates use fixed activity segments and latency uses sample bars.",
+
 "恢复之前选择":"Restore previous selection",
 "仅看：{0}":"Only show: {0}",
 "仅看此线路":"Only show this route",

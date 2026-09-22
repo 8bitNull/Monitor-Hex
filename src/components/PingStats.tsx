@@ -1,4 +1,5 @@
-import {LatencyMicroTrend} from './MicroTrend'
+import {LatencyBars} from './LatencyBars'
+import {latencyBand} from '@/lib/trends'
 import {LossMetric} from './LossMetric'
 import {Select} from '@/components/ui/select'
 import {useNodeProbe} from '../lib/nodeProbes'
@@ -6,8 +7,7 @@ import { tr } from '../lib/i18n.ts'
 import { ChartNoAxesCombined, Unlink, ChevronDown } from 'lucide-react'
 import { usePing } from '@/lib/usePing'
 import { summarizePing, probeCatalog } from '@/lib/ping'
-function tone(n: number | null) { return n === null ? 'timeout' : n < 80 ? 'good' : n < 160 ? 'fair' : n < 220 ? 'slow' : 'bad' }
-export function PingStats({ online = true, id, probe = "auto", onOpenRoutes, count = 1 }: { count?:number; online?:boolean; id:number; probe?:string; onOpenRoutes:(route?:number)=>void }) {
+export function PingStats({ online = true, id, probe = "auto", onOpenRoutes, count = 1, scale = 200, warn = 80, high = 160 }: { scale?:200|500; warn?:number; high?:number; count?:number; online?:boolean; id:number; probe?:string; onOpenRoutes:(route?:number)=>void }) {
  const choice=useNodeProbe(id,probe)
  const {ref,snapshot}=usePing(id)
  const stats=snapshot?.data?summarizePing(snapshot.data):null
@@ -22,11 +22,11 @@ export function PingStats({ online = true, id, probe = "auto", onOpenRoutes, cou
   {!stats?<p className="ping-empty">{snapshot?.failed?tr("暂不可用 · 自动重试"):tr("正在读取探测记录…")}</p>:!stats.length?<p className="ping-empty">{tr("暂无探测记录")}</p>:!primary?<p className="ping-empty">{tr("无该线路记录")}</p>:<>
    {shown.map(s=><div className="ping-probe" key={s.id}>
     <div className="matrix-values">
-     <div className="latency-stat"><div className="latency-reading"><span title={s.name}>{shown.length===1?tr("延迟"):s.name}</span><button className="latency-link" onClick={()=>onOpenRoutes(s.id)} aria-label={tr("查看线路：{0}",s.name)} data-tone={tone(s.latest.latency)} title={tr("延迟")}>{!online?"—":s.latest.latency===null?tr("超时"):<>{Math.round(s.latest.latency)}<small> ms</small></>}</button></div>
+     <div className="latency-stat"><div className="latency-reading"><span title={s.name}>{shown.length===1?tr("延迟"):s.name}</span><button className="latency-link" onClick={()=>onOpenRoutes(s.id)} aria-label={tr("查看线路：{0}",s.name)} data-tone={latencyBand(s.latest.latency,warn,high)} title={tr("延迟")}>{!online?"—":s.latest.latency===null?tr("超时"):<>{Math.round(s.latest.latency)}<small> ms</small></>}</button></div>
      </div>
      <LossMetric value={online?s.loss:null}/>
     </div>
-    {s.id===primary.id&&<><LatencyMicroTrend key={`${id}:${s.id}`} rows={s.rows}/><p className="latency-trend-caption">{tr('最近 {0} 分钟 · 采样趋势',Math.max(1,Math.round((s.latest.ts-(s.rows[0]?.ts??s.latest.ts))/60)))}</p></>}
+    {s.id===primary.id&&<><LatencyBars key={`${id}:${s.id}`} rows={s.rows} scale={scale} warn={warn} high={high}/><p className="latency-trend-caption">{tr('最近 {0} 分钟 · 采样 · 0–{1} ms',Math.max(1,Math.round((s.latest.ts-(s.rows[0]?.ts??s.latest.ts))/60)),scale)}</p></>}
     {Date.now()/1000-s.latest.ts>7200&&<p className="ping-stale">{tr("较旧记录")}</p>}
    </div>)}
   </>}
