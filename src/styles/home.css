@@ -160,9 +160,8 @@
 .settings-drawer .mobile-info-control>label {display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
 .settings-drawer .mobile-info-control select {width:auto;min-height:44px;max-width:100%}
 .settings-drawer .mobile-info-options {margin-top:12px;padding:12px;background:var(--background);border-radius:10px}
-.settings-drawer .advanced-appearance {margin-top:28px;border-top:1px solid var(--border);padding-top:8px}
-.settings-drawer .advanced-appearance>h3 {font-size:13px;font-weight:600}
-.settings-drawer .advanced-appearance fieldset {margin-top:10px}
+.settings-drawer .advanced-appearance {margin-top:28px}
+.settings-drawer .advanced-appearance fieldset {margin-top:0}
 @media(max-width:360px){.settings-drawer .card-info-switches {grid-template-columns:1fr}.settings-drawer .mobile-info-control select {width:100%}}
 /* Stable live readings: the unit has its own slot, including unknown values. */
 .node-card .speed-pair strong {display:grid;grid-template-columns:minmax(0,1fr) 32px;align-items:baseline;column-gap:5px;row-gap:3px;white-space:nowrap}
@@ -216,7 +215,7 @@
 .settings-drawer .mobile-follow-note {padding:12px;background:var(--muted);border-radius:8px;margin-top:12px}
 .settings-drawer .mobile-info-options {padding:16px}
 .settings-drawer .mobile-info-options .info-presets {margin-top:0}
-.settings-drawer .card-layout-controls {margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
+.settings-drawer .card-layout-controls {margin-top:0;padding-top:0}
 .settings-drawer select {border-color:var(--border)}
 .settings-drawer :is(.graph-options,.density-options) button {position:relative}
 .settings-drawer :is(.graph-options,.density-options) button[aria-pressed=true]::after {content:'✓';position:absolute;top:2px;right:5px;font-size:11px}

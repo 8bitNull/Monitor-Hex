@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
-import {toggleSettings,visualSelect} from './settings'
+import {toggleSettings,visualSelect,settingsCategory} from './settings'
 
 for(const width of [320,390,430,768,1024,1440])test('detail and settings polish remain usable at '+width,async({page})=>{
  await page.setViewportSize({width,height:844})
@@ -30,11 +30,13 @@ for(const width of [320,390,430,768,1024,1440])test('detail and settings polish 
   if(await tip.isVisible()){const box=await tip.boundingBox();expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.x+box!.width).toBeLessThanOrEqual(width)}
   await toggleSettings(page)
   const drawer=page.locator('.settings-drawer')
-  await expect(drawer.locator('[data-settings=alerts] input[type=checkbox]')).toHaveCount(1)
+  await expect(drawer.locator('[data-settings=home] input[type=checkbox]')).toHaveCount(7)
   expect(await drawer.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy()
-  await drawer.locator('.settings-nav button').last().click()
-  const alert=drawer.locator('[data-settings=alerts] input')
+  await drawer.locator('.settings-nav button').nth(1).click()
+  const alert=drawer.getByLabel(language==='zh'?'高负载提示':'High load alerts',{exact:true})
+  await alert.scrollIntoViewIfNeeded()
   await expect(alert).toBeInViewport();await alert.uncheck();await expect(alert).not.toBeChecked()
+  await settingsCategory(page,'other')
   await drawer.getByRole('button',{name:language==='zh'?'重置全部偏好':'Reset all preferences',exact:true}).scrollIntoViewIfNeeded()
   const close=drawer.getByRole('button',{name:language==='zh'?'关闭设置':'Close settings',exact:true})
   await expect(close).toBeInViewport();expect((await close.boundingBox())!.height).toBeGreaterThanOrEqual(44)

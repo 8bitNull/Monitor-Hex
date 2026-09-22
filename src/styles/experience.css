@@ -58,7 +58,7 @@
 .palette-options i {display:block;margin:0;width:22px;height:22px;background:var(--swatch);border-radius:50%}
 .graph-options button,.density-options button {display:flex;flex:1;flex-direction:column;align-items:center;gap:5px;padding:8px 4px;border:1px solid var(--border)}
 .graph-options button[aria-pressed=true],.density-options button[aria-pressed=true] {background:var(--tone-soft);border-color:var(--tone);color:var(--tone)}
-.settings-drawer .preference-actions {display:grid;grid-template-columns:1fr 1fr}
+.settings-drawer .preference-actions {display:block}
 .settings-drawer .preference-actions button,.settings-drawer .import-control {justify-content:center;text-align:center;padding:8px}
 @media(max-width:720px) {
  .next-theme header>div {display:flex;flex-wrap:nowrap;gap:4px;min-height:56px;padding:8px 12px}
@@ -313,14 +313,21 @@
 .settings-reset h3 {font-size:13px;font-weight:600}
 .settings-drawer .preference-actions {border:0;margin-top:16px;padding-top:0;gap:10px}
 .settings-drawer .preference-actions button,.settings-drawer .import-control {min-height:44px;background:transparent;line-height:1.5}
+.settings-drawer .preference-action-group {display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.settings-drawer .preference-action-group+.preference-action-group {margin-top:10px}
+.settings-drawer .preference-action-group>button,.settings-drawer .preference-action-group>.import-control {min-width:0}
+.settings-drawer .preference-action-group:last-child>button:last-child {border-color:color-mix(in srgb,var(--destructive) 55%,var(--border));color:var(--destructive)}
 .settings-drawer :is(button,input,select):focus-visible {outline:2px solid var(--tone);outline-offset:2px}
 @media(max-width:600px){
  .settings-drawer .preferences {padding:12px 18px max(24px,env(safe-area-inset-bottom))}
  .settings-top {top:-12px}
  .settings-drawer .preference-grid>label>select {width:100%}
  .settings-drawer .preference-grid>label {gap:8px}
+ .settings-drawer .settings-nav button {min-width:0;padding-inline:2px;font-size:12px;overflow-wrap:anywhere}
  .settings-drawer .palette-options {justify-content:space-between;gap:0}
  .settings-drawer .module-switches {grid-template-columns:1fr;gap:2px}
+ .settings-drawer .preference-action-group {grid-template-columns:1fr}
+ .settings-drawer .latency-presets {grid-template-columns:1fr}
 }
 
 @media(max-width:360px){
@@ -335,8 +342,11 @@
 .recommended-display {padding:12px;border:1px solid var(--border);border-radius:10px;margin-top:12px}
 .recommended-display>button {color:var(--tone);font-weight:600;min-height:44px}
 .information-density {display:grid;gap:8px;margin-bottom:16px;font-size:12px}
-.latency-presets {display:flex;flex-wrap:wrap;gap:8px}
+.latency-profile {display:grid;gap:8px;font-size:var(--text-small)}
+.latency-presets {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .latency-presets button {min-height:44px;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:12px}
+.latency-presets button[aria-pressed=true] {border-color:var(--tone);background:var(--tone-soft);color:var(--tone)}
+.latency-custom-fields {margin-top:4px}
 .region-atlas:not(:fullscreen) {height:310px}
 .region-atlas.is-collapsed {height:126px}
 .region-atlas .explorer-stage[hidden] {display:none}

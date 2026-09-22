@@ -23,11 +23,11 @@ export function PingStats({ online = true, id, probe = "auto", onOpenRoutes, cou
   {!stats?<p className="ping-empty">{snapshot?.failed?tr("暂不可用 · 自动重试"):tr("正在读取探测记录…")}</p>:!stats.length?<p className="ping-empty">{tr("暂无探测记录")}</p>:!primary?<p className="ping-empty">{tr("无该线路记录")}</p>:<>
    {shown.map(s=><div className="ping-probe" key={s.id}>
     <div className="matrix-values">
-     <div className="latency-stat"><div className="latency-reading"><span title={s.name}>{shown.length===1?tr("延迟"):s.name}</span><button className="latency-link" onClick={()=>onOpenRoutes({kind:"single",id:s.id})} aria-label={tr("查看线路：{0}",s.name)} data-tone={latencyBand(s.latest.latency,warn,high)} title={tr("延迟")}>{!online?"—":s.latest.latency===null?tr("超时"):<>{Math.round(s.latest.latency)}<small> ms</small></>}</button></div>
+     <div className="latency-stat"><div className="latency-reading"><span title={s.name}>{shown.length===1?tr("延迟"):s.name}</span><LatencyBars key={`${id}:${s.id}`} rows={s.rows} scale={scale} warn={warn} high={high}/><button className="latency-link" onClick={()=>onOpenRoutes({kind:"single",id:s.id})} aria-label={tr("查看线路：{0}",s.name)} data-tone={latencyBand(s.latest.latency,warn,high)} title={tr("延迟")}>{!online?"—":s.latest.latency===null?tr("超时"):<>{Math.round(s.latest.latency)}<small> ms</small></>}</button></div>
      </div>
      <LossMetric value={online?s.loss:null}/>
     </div>
-    <><LatencyBars key={`${id}:${s.id}`} rows={s.rows} scale={scale} warn={warn} high={high}/><p className="latency-trend-caption">{tr('最近 {0} 分钟 · 采样 · 0–{1} ms',Math.max(1,Math.round((s.latest.ts-(s.rows[0]?.ts??s.latest.ts))/60)),scale)}</p></>
+    {shown.length===1&&<p className="latency-trend-caption">{tr('最近 {0} 分钟 · 采样 · 0–{1} ms',Math.max(1,Math.round((s.latest.ts-(s.rows[0]?.ts??s.latest.ts))/60)),scale)}</p>}
     {Date.now()/1000-s.latest.ts>7200&&<p className="ping-stale">{tr("较旧记录")}</p>}
    </div>)}
   </>}

@@ -37,7 +37,7 @@ test('legacy preferences stay full; recommended preset preserves unrelated choic
  await expect(page.locator('.next-theme')).toHaveAttribute('data-palette','forest')
  await expect(page.locator('.latency-bars svg')).toHaveAttribute('aria-label',/500.*150.*300/)
  await page.getByRole('button',{name:'更多资料',exact:true}).click();await expect(page.locator('.node-connections')).toBeVisible()
- await toggleSettings(page);await (await setting(page,'黄色阈值（ms）',{exact:true})).fill('175')
+ await toggleSettings(page);await settingsCategory(page,'network');await page.locator('.latency-presets').getByRole('button',{name:'自定义',exact:true}).click();await (await setting(page,'黄色阈值（ms）',{exact:true})).fill('175')
  await settingsCategory(page,'cards');await settingsCategory(page,'network')
  await expect(page.getByLabel('黄色阈值（ms）',{exact:true})).toHaveValue('175')
  await expect(page.getByText('阈值修改尚未应用')).toBeVisible()

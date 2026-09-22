@@ -28,6 +28,9 @@
 .node-card .loss-stat[data-tone=fair] b {color:var(--warn)}
 .node-card .loss-stat[data-tone=bad] b {color:var(--destructive)}
 .node-card .ping-probe>.micro-trend {margin-top:5px}
+.node-card .latency-reading {display:grid;grid-template-columns:minmax(0,1fr) minmax(56px,1fr) auto;align-items:center;gap:6px;min-height:44px}
+.node-card .latency-reading .latency-bars {width:100%;min-width:0;margin-top:0}
+.node-card .latency-reading .latency-link {justify-self:end}
 .detail-chart-toolbar .detail-probe-legend .probe-options {width:min(430px,calc(100vw - 32px))}
 .detail-chart-toolbar .probe-select {grid-template-columns:14px 16px minmax(0,1fr) 8ch 11ch;gap:5px}
 .detail-chart-toolbar .probe-label {max-width:none}
@@ -53,9 +56,10 @@
 .node-card .loss-stat .loss-reading small {display:inline}
 .node-card .latency-reading {margin-bottom:0}
 .node-card .latency-link {flex-shrink:0}
+.node-card[data-indicator=minimal] .route-matrix[data-route-count="1"] .latency-reading {grid-template-columns:minmax(56px,1fr) auto}
 .node-card .route-matrix {min-height:154px}
-.node-card .route-matrix[data-requested-count="2"] {min-height:210px}
-.node-card .route-matrix[data-requested-count="3"] {min-height:266px}
+.node-card .route-matrix[data-requested-count="2"],.node-card .route-matrix[data-requested-count="3"] {min-height:0}
+.node-card .route-matrix[data-route-count="2"] .ping-probe+.ping-probe,.node-card .route-matrix[data-route-count="3"] .ping-probe+.ping-probe {margin-top:4px}
 
 .node-card[data-indicator] .speed-indicators strong {flex-direction:row;flex-wrap:nowrap}
 .node-card .route-matrix .loss-stat {align-self:center}
@@ -80,7 +84,7 @@
 .latency-bars g[data-tone=bad] {fill:var(--destructive)}
 .latency-timeout {fill:none;stroke:var(--destructive);stroke-width:1.5}
 .latency-baseline {stroke:var(--border);stroke-width:1;vector-effect:non-scaling-stroke}
-.latency-settings {margin-top:12px}
+.latency-settings {margin-top:20px}
 .latency-settings input {width:100%;min-width:0;height:38px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--foreground)}
 .latency-settings>button {margin-top:10px}
 
@@ -100,8 +104,7 @@
 
 @media(min-width:721px){
  .node-card[data-density=overview] .route-matrix {min-height:130px}
- .node-card[data-density=overview] .route-matrix[data-requested-count="2"] {min-height:174px}
- .node-card[data-density=overview] .route-matrix[data-requested-count="3"] {min-height:218px}
+ .node-card[data-density=overview] .route-matrix[data-requested-count="2"],.node-card[data-density=overview] .route-matrix[data-requested-count="3"] {min-height:0}
 }
 
 /* Keep the brush interaction bounds; reduce only its visible track. */

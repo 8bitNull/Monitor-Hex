@@ -59,7 +59,7 @@ for(const width of [320,390,430,720,721,1024,1440,1920])test('column safety and 
  await page.addInitScript(({language,appearance})=>{localStorage.setItem('monitor-next-language',language);localStorage.setItem('monitor-next',JSON.stringify({_storageVersion:1,appearance,modules:{map:false},desktopColumns:'4'}))},{language,appearance});await setup(page)
  const grid=page.locator('.node-grid'),card=page.locator('.node-card')
  for(const columns of ['2','3','4','auto']){
-  await toggleSettings(page);await page.getByLabel(language==='zh'?'桌面列数':'Desktop columns',{exact:true}).selectOption(columns);await toggleSettings(page)
+  await toggleSettings(page);await (await setting(page,language==='zh'?'桌面列数':'Desktop columns',{exact:true})).selectOption(columns);await toggleSettings(page)
   const count=await grid.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)
   if(width<=720)expect(count).toBe(1);else if(columns!=='auto'){expect(count).toBeLessThanOrEqual(Number(columns));expect((await card.boundingBox())!.width).toBeGreaterThanOrEqual(300)}
   if(width===1440&&columns==='4')expect(count).toBe(4)

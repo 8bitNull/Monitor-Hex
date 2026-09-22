@@ -38,7 +38,7 @@ test('each card layout fits its indicator, keeps data visible and persists selec
  }
  await page.reload();await expect(card).toHaveAttribute('data-indicator','minimal')
  await expect(card.locator('.latency-columns')).toBeHidden()
-})
+ })
 test('unselected settings controls keep neutral borders',async({page})=>{
  await page.goto('/');await toggleSettings(page)
  const colors=await page.locator('.settings-drawer').evaluate(drawer=>{
@@ -46,8 +46,20 @@ test('unselected settings controls keep neutral borders',async({page})=>{
   return {border:read('--border')}
  })
  await settingsCategory(page,'cards')
- for(const selector of ['.graph-options button[aria-pressed=false]','.density-options button[aria-pressed=false]','.info-presets button[aria-pressed=false]']){
+ for(const selector of ['.info-presets button[aria-pressed=false]']){
+  const button=page.locator(selector).first();await button.hover();await expect(button).toHaveCSS('border-top-color',colors.border)
+ }
+ await settingsCategory(page,'appearance')
+ for(const selector of ['.graph-options button[aria-pressed=false]','.density-options button[aria-pressed=false]']){
   const button=page.locator(selector).first();await button.hover();await expect(button).toHaveCSS('border-top-color',colors.border)
  }
  await settingsCategory(page,'appearance');const swatch=page.locator('.palette-options button[aria-pressed=false]').first();await swatch.hover();await expect(swatch).toHaveCSS('border-top-color','rgba(0, 0, 0, 0)')
+})
+test('settings categories keep related controls together',async({page})=>{
+ await page.goto('/');await toggleSettings(page);await settingsCategory(page,'appearance');const drawer=page.locator('dialog.settings-drawer')
+ await expect(drawer.locator('.settings-nav button')).toHaveText(['外观','显示内容','网络','偏好'])
+ await expect(drawer.locator('[data-settings=appearance]')).toBeVisible();await expect(drawer.locator('[data-settings=layout]')).toBeVisible();await expect(drawer.locator('[data-settings=indicators]')).toBeVisible();await expect(drawer.locator('.advanced-appearance')).toBeVisible()
+ await settingsCategory(page,'cards');await expect(drawer.locator('[data-settings=card-info]')).toBeVisible();await expect(drawer.locator('[data-settings=home] input[type=checkbox]')).toHaveCount(7);await expect(drawer.locator('[data-settings=detail]')).toBeVisible();await expect(drawer.locator('[data-settings=layout]')).toBeHidden()
+ await settingsCategory(page,'network');await expect(drawer.locator('[data-settings=routes]')).toBeVisible();await expect(drawer.locator('.latency-presets button')).toHaveCount(3);await expect(drawer.locator('[data-settings=home]')).toBeHidden()
+ await settingsCategory(page,'other');await expect(drawer.locator('.settings-language')).toBeVisible();await expect(drawer.locator('.settings-reset')).toBeVisible();await expect(drawer.locator('.preference-action-group')).toHaveCount(2)
 })

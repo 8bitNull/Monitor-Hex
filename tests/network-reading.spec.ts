@@ -1,6 +1,6 @@
 import {setting,settingsButton} from './settings'
 import {test,expect,type Page} from '@playwright/test'
-import {toggleSettings,visualSelect} from './settings'
+import {toggleSettings,visualSelect,settingsCategory} from './settings'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
 async function setup(page:Page){
  await page.addInitScript(()=>localStorage.setItem('monitor-next',JSON.stringify({designVersion:1,homeRoutes:3,modules:{map:false}})))
@@ -31,8 +31,9 @@ for(const width of [320,390,720,900,1440])test(`network readings fit in both lan
 test('home route count shows the latency indicator for every selected route',async({page})=>{
  await setup(page);await page.goto('/');const card=page.locator('.node-card')
  for(const count of ['1','2','3']){
-  await toggleSettings(page);await (await setting(page,'首页线路数量',{exact:true})).selectOption(count);await toggleSettings(page)
-  await expect(card.locator('.ping-probe')).toHaveCount(Number(count));await expect(card.locator('.latency-bars')).toHaveCount(Number(count));await expect(card.locator('.latency-trend-caption')).toHaveCount(Number(count))
+ await toggleSettings(page);await (await setting(page,'首页线路数量',{exact:true})).selectOption(count);await toggleSettings(page)
+  await expect(card.locator('.ping-probe')).toHaveCount(Number(count));await expect(card.locator('.latency-bars')).toHaveCount(Number(count));await expect(card.locator('.latency-trend-caption')).toHaveCount(count==='1'?1:0)
+  const reading=card.locator('.ping-probe').first().locator('.latency-reading');expect(await reading.evaluate(el=>[...el.children].map(child=>child.className||child.tagName))).toEqual(['SPAN','latency-bars','latency-link'])
  }
 })
 test('loss timeline preserves zero, unknown and timeout and follows selected routes',async({page})=>{
@@ -66,14 +67,14 @@ test('network visuals remain fixed across resource styles and latency preference
   for(const bar of await card.locator('.speed-columns').all()){await expect(bar).toBeVisible();await expect(bar.locator(':scope>span')).toHaveCount(12)}
   await expect(card.locator('.latency-bars')).toBeVisible();await expect(card.locator('.speed-ring,.speed-track')).toHaveCount(0)
  }
- await toggleSettings(page);await (await setting(page,'延迟统一刻度',{exact:true})).selectOption('500')
+ await toggleSettings(page);await settingsCategory(page,'network');const profiles=page.locator('.latency-presets');await expect(profiles.getByRole('button',{name:'原有分档 80/160ms',exact:true})).toHaveAttribute('aria-pressed','true');await profiles.getByRole('button',{name:'跨境参考 150/300ms',exact:true}).click();await expect(profiles.getByRole('button',{name:'跨境参考 150/300ms',exact:true})).toHaveAttribute('aria-pressed','true');await profiles.getByRole('button',{name:'自定义',exact:true}).click();await expect(profiles.getByRole('button',{name:'自定义',exact:true})).toHaveAttribute('aria-pressed','true');await (await setting(page,'延迟统一刻度',{exact:true})).selectOption('500')
  await (await setting(page,'黄色阈值（ms）',{exact:true})).fill('250');await (await setting(page,'红色阈值（ms）',{exact:true})).fill('100')
  await expect(page.getByRole('button',{name:'应用延迟阈值',exact:true})).toBeDisabled()
  await (await setting(page,'黄色阈值（ms）',{exact:true})).fill('100');await (await setting(page,'红色阈值（ms）',{exact:true})).fill('250')
  await page.getByRole('button',{name:'应用延迟阈值',exact:true}).click();await toggleSettings(page);await page.reload()
  await expect(card.locator('.latency-bars svg')).toHaveAttribute('aria-label',/0–500 ms.*100.*250/)
- await toggleSettings(page);await (await settingsButton(page,'恢复默认外观',{exact:true})).click();await expect((await setting(page,'延迟统一刻度',{exact:true}))).toHaveValue('500')
- await (await settingsButton(page,'重置全部偏好',{exact:true})).click();await expect((await setting(page,'延迟统一刻度',{exact:true}))).toHaveValue('200')
+ await toggleSettings(page);await (await settingsButton(page,'恢复默认外观',{exact:true})).click();await settingsCategory(page,'network');await page.locator('.latency-presets').getByRole('button',{name:'自定义',exact:true}).click();await expect((await setting(page,'延迟统一刻度',{exact:true}))).toHaveValue('500')
+ await (await settingsButton(page,'重置全部偏好',{exact:true})).click();await settingsCategory(page,'network');await page.locator('.latency-presets').getByRole('button',{name:'自定义',exact:true}).click();await expect((await setting(page,'延迟统一刻度',{exact:true}))).toHaveValue('200')
 })
 
 test('live activity distinguishes zero, slow, missing, stale and offline readings',async({page})=>{
