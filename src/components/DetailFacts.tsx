@@ -6,6 +6,7 @@ import {bytes,osName,money,CYCLES,FOREVER,daysUntil} from '@/lib/format'
 import {useEffect,useRef,useState} from 'react'
 import type {ComponentType,ReactNode} from 'react'
 import {Database,Copy,Check,ChevronDown, Cpu, Network, WalletCards} from 'lucide-react'
+import {trafficPeriodLabel, trafficUsage} from '@/lib/traffic'
 function Fact({ label, value, warning=false,copy=false }: {
     label: string;
     warning?:boolean;
@@ -29,7 +30,10 @@ function FactSection({label,Icon,children}:{label:string;Icon:ComponentType<{siz
 export function DetailFacts({node,mode,compact,onMode}:{node:Node;mode:Preferences['detailInfoMode'];compact:boolean;onMode:(mode:Preferences['detailInfoMode'])=>void}){
  const expanded=!compact || mode==='expanded';
  const m=liveMetrics(node)
- const monthly=node.traffic_mode==='up'?node.month_tx:node.traffic_mode==='down'?node.month_rx:node.traffic_mode==='max'?Math.max(node.month_rx,node.month_tx):node.month_rx+node.month_tx
+ const traffic=trafficUsage(node)
+ const monthly=traffic.value
+ const trafficLabel=tr(trafficPeriodLabel(node))
+ const trafficHint=tr('流量周期：每月 {0} 日重置，本周期自 {1} 起',traffic.resetDay,traffic.periodKey)
  const days=daysUntil(node.expires_at)
  const expiryLabel=days===null?tr('未设到期'):days<0?tr('已过期 {0} 天',-days):tr('{0} 天后到期',days)
  const billingState=days===null?'unknown':days<0?'expired':days<=7?'soon':'normal';
@@ -45,7 +49,7 @@ export function DetailFacts({node,mode,compact,onMode}:{node:Node;mode:Preferenc
      </dl>
    </FactSection>
    <FactSection label={tr("网络与流量")} Icon={Network}>
-     <div className="detail-quota" title={tr("本月用量")}><div><Database size={15}/><span>{bytes(monthly)} / {node.traffic_limit > 0 ? bytes(node.traffic_limit) : FOREVER}</span></div>{node.traffic_limit > 0 && <progress aria-label={tr("本月用量")} max={node.traffic_limit} value={Math.min(Math.max(0,monthly),node.traffic_limit)}/>}</div>
+     <div className="detail-quota" title={trafficHint}><div><Database size={15}/><span>{bytes(monthly)} / {node.traffic_limit > 0 ? bytes(node.traffic_limit) : FOREVER}</span></div>{node.traffic_limit > 0 && <progress aria-label={trafficLabel} max={node.traffic_limit} value={Math.min(Math.max(0,monthly),node.traffic_limit)}/>}</div>
      <dl className="detail-facts">
        <Fact copy label="IPv4" value={node.ipv4}/><Fact copy label="IPv6" value={node.ipv6}/><Fact label={tr("流量重置")} value={Number.isInteger(node.traffic_reset_day) && node.traffic_reset_day >= 1 && node.traffic_reset_day <= 31 ? tr("每月 {0} 日",node.traffic_reset_day) : tr("未知")}/>
        <Fact label={tr("累计流量")} value={`↑ ${bytes(node.total_tx)} · ↓ ${bytes(node.total_rx)}`}/>

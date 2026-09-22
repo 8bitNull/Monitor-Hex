@@ -3,6 +3,7 @@ import {resolveProbe} from './nodeProbes.ts'
 import { regionKey } from './groups.ts'
 import type { Node } from './api.ts'
 import { getPing, summarizePing } from './ping.ts'
+import { trafficUsed } from './traffic.ts'
 export const sortLabels = { default: '后台默认', name: '名称', status: '在线状态', cpu: 'CPU', memory: '内存', disk: '硬盘', upload: '上传速度', download: '下载速度', traffic: '流量用量 / 总额度', latency: '所选线路延迟', loss: '24h 丢包', expiry: '到期时间' }
 export type SortKey = keyof typeof sortLabels
 export type Browse = { query: string; status: string; region: string; sort: SortKey; direction: 'asc' | 'desc'; view: 'cards' | 'table'; probe: string; columns: string[]; mobileColumns: string[]; columnsVersion: number; tableLayout: 'grouped'|'separate'; mobileTableLayout: 'grouped'|'separate' }
@@ -52,7 +53,7 @@ export function sortValue(n: Node, key: SortKey, probe: string): number | string
     case 'disk': return m && m.disk_total > 0 ? Math.min(100, m.disk_used / m.disk_total * 100) : null
     case 'upload': return m?.net_tx ?? null
     case 'download': return m?.net_rx ?? null
-    case 'traffic': return n.traffic_mode === 'up' ? n.month_tx : n.traffic_mode === 'down' ? n.month_rx : n.traffic_mode === 'max' ? Math.max(n.month_rx,n.month_tx) : n.month_rx+n.month_tx
+    case 'traffic': return trafficUsed(n)
     case 'expiry': { const date = n.expires_at ? Date.parse(n.expires_at) : NaN; return Number.isFinite(date) ? date : null }
     case 'latency':
     case 'loss': {

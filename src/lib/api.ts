@@ -53,8 +53,12 @@ export type Node = {
   traffic_reset_day: number
   total_rx: number
   total_tx: number
+  /** Aggregates for the current traffic-reset period, not necessarily a calendar month. */
   month_rx: number
   month_tx: number
+  /** Current reset-period usage after applying traffic_mode, as calculated by the hub. */
+  month_used?: number
+  /** Local-calendar start date of the current traffic-reset period. */
   month_start: string
   day_rx: number
   day_tx: number

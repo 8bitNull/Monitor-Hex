@@ -12,6 +12,7 @@ import type { Preferences, CardInfo } from '@/lib/appearance';
 import { Flag, OsIcon } from './NodeIcons';
 import { PingStats } from '@/components/PingStats';
 import { bytes, daysUntil, FOREVER, osName, pair, percent, uptime, money, CYCLES } from '@/lib/format';
+import { trafficPeriodLabel, trafficUsage } from '@/lib/traffic';
 export function NodeCard({ node, onOpen, onOpenRoutes, probe = 'auto', prefs, info = prefs.cardInfo, mobile = false }: {
     node: Node;
     onOpen: () => void;
@@ -26,12 +27,15 @@ export function NodeCard({ node, onOpen, onOpenRoutes, probe = 'auto', prefs, in
     const auxiliary=!overview||expanded;
     const notes = (info.remarks ? node.remark ?? "" : "").split(/[;；]/).map(text=>text.trim()).filter(Boolean);
     const m = liveMetrics(node);
-    const used = node.traffic_mode === 'up' ? node.month_tx : node.traffic_mode === 'down' ? node.month_rx : node.traffic_mode === 'max' ? Math.max(node.month_rx, node.month_tx) : node.month_rx + node.month_tx;
+    const traffic = trafficUsage(node);
+    const used = traffic.value;
+    const trafficLabel = tr(trafficPeriodLabel(node));
+    const trafficHint = tr("流量周期：每月 {0} 日重置，本周期自 {1} 起", traffic.resetDay, traffic.periodKey);
     const days = daysUntil(node.expires_at);
     const expiry = days === null ? tr("未设到期") : days < 0 ? tr("已过期 {0} 天", -days) : tr("{0} 天后到期", days);
     const hasSecondary = info.traffic || info.connections || info.uptime || (info.expiry && days !== null) || (info.price && node.price > 0) || notes.length > 0;
     const secondary = hasSecondary && <div className="node-secondary">
-      {info.traffic && <div className="network-box traffic-summary"><div><span><CalendarDays size={14}/><small>{tr("本月用量")}</small></span><b>{bytes(used)} / {node.traffic_limit > 0 ? bytes(node.traffic_limit) : FOREVER}</b></div>{node.traffic_limit > 0 && <div className="quota"><i style={{ width: `${Math.min(100, percent(used, node.traffic_limit))}%` }}/></div>}</div>}
+      {info.traffic && <div className="network-box traffic-summary" title={trafficHint}><div><span><CalendarDays size={14}/><small>{trafficLabel}</small></span><b>{bytes(used)} / {node.traffic_limit > 0 ? bytes(node.traffic_limit) : FOREVER}</b></div>{node.traffic_limit > 0 && <div className="quota"><i style={{ width: `${Math.min(100, percent(used, node.traffic_limit))}%` }}/></div>}</div>}
       {info.connections && auxiliary && <div className="node-connections">{([ ["TCP",m?.tcp], ["UDP",m?.udp] ] as const).map(([label,value])=><div key={label}><span><Network size={14}/>{label}</span><b>{value === undefined ? "—" : value.toLocaleString()}</b></div>)}</div>}
       {((info.uptime && auxiliary) || (info.expiry && days!==null) || (info.price && node.price>0) || (notes.length>0 && auxiliary)) && <section className="node-more" aria-label={tr("更多信息")}>
       {((info.uptime && auxiliary) || (!overview && info.expiry && days!==null)) && <div className="node-timing">{info.uptime && auxiliary && <span title={tr("在线时长")}><Clock3 size={14}/><b>{m ? uptime(m.uptime) : '—'}</b></span>}{!overview && info.expiry && days !== null && <span className={days <= 7 ? 'expiring' : ''}><CalendarDays size={14}/><b>{expiry}</b></span>}</div>}

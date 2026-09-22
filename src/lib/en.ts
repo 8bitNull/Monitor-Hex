@@ -338,6 +338,8 @@ export const english: Record<string, string> = {
   "实时网速": "Current network speed",
   "累计流量": "Total traffic",
   "本月用量": "Monthly usage",
+  "当前周期用量": "Current cycle usage",
+  "流量周期：每月 {0} 日重置，本周期自 {1} 起": "Traffic cycle resets on day {0} of each month; current cycle starts {1}",
   "延迟统计与历史": "Latency statistics and history",
   "服务器": "Server",
   "1 小时": "1 hour",
