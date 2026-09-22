@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { defaults, normalizePreferences, parsePreferences, restoreAppearance, safeBackground } from './appearance.ts'
 const legacy = normalizePreferences({ palette:'forest', graph:'bar', layout:'compact', map:true })
-assert.equal(legacy.schemaVersion,2)
+assert.equal(legacy.schemaVersion,3)
 assert.equal(legacy.cardLayout,'classic')
 assert.equal(legacy.layout,'compact')
 assert.equal(legacy.graph,'bar')
@@ -72,3 +72,8 @@ assert.equal(normalizePreferences({latencyWarn:200,latencyHigh:100}).latencyWarn
 assert.equal(normalizePreferences({latencyHigh:NaN}).latencyHigh,160)
 assert.equal(restoreAppearance(customLatency,defaults).latencyHigh,250)
 assert.equal(parsePreferences(JSON.stringify(customLatency)).latencyHigh,250)
+
+assert.equal(parsePreferences('{"schemaVersion":2,"graph":"columns"}').infoDensity,'full')
+assert.equal(parsePreferences(JSON.stringify(defaults)).infoDensity,'overview')
+assert.equal(restoreAppearance({...defaults,infoDensity:'full'},defaults).infoDensity,'full')
+assert.equal(normalizePreferences({infoDensity:'invalid'}).infoDensity,'overview')

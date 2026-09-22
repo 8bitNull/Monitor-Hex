@@ -1,3 +1,4 @@
+import {settingsButton} from './settings'
 import {test,expect} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
 import {toggleSettings,visualSelect} from './settings'
@@ -47,7 +48,7 @@ test('fresh defaults, legacy choices, explicit site-equal choices and resets sta
  config={graph:'ring'};await page.reload();await expect(page.locator('.next-theme')).toHaveAttribute('data-graph','ring')
  await toggleSettings(page);await visualSelect(page,'graph','ring');await toggleSettings(page)
  config={graph:'columns'};await page.reload();await expect(page.locator('.next-theme')).toHaveAttribute('data-graph','ring')
- await toggleSettings(page);await page.getByRole('button',{name:'恢复默认外观',exact:true}).click();await toggleSettings(page)
+ await toggleSettings(page);await (await settingsButton(page,'恢复默认外观',{exact:true})).click();await toggleSettings(page)
  await expect(page.locator('.next-theme')).toHaveAttribute('data-graph','columns')
  for(const modern of [false,true])for(const graph of ['ring','bar','columns','minimal']){
   await page.evaluate(({modern,graph})=>localStorage.setItem('monitor-next',JSON.stringify(modern?{_storageVersion:1,graph}:{graph})),{modern,graph})

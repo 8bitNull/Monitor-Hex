@@ -1,6 +1,7 @@
 import {test,expect} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
 async function setup(page:any,count=10){
+ await page.addInitScript(()=>{if(!localStorage.getItem('monitor-next'))localStorage.setItem('monitor-next',JSON.stringify({schemaVersion:3,infoDensity:'full',modules:{map:true}}))})
  await page.route('**/api/nodes',(r:any)=>r.fulfill({json:{nodes:Array.from({length:count},(_,i)=>({...nodes()[0],id:i+1,name:`Node ${i+1}`,ipv4:'192.0.2.1'}))}}))
  await page.route('**/api/nodes/*/metrics?*',(r:any)=>{const d=metrics();return r.fulfill({json:{...d,probes:{1:'A',2:'B'},ping:d.ping.flatMap(p=>[p,{...p,task_id:2,latency:80}])}})})
 }
@@ -49,7 +50,7 @@ test('failed refresh keeps successful timestamp, copy is complete and map reset 
  await map.getByRole('button',{name:'适配全部',exact:true}).click();await expect(map.locator('.map-scale')).toHaveText('100%')
 })
 
-test('mobile detail removes the top overview return control while desktop keeps it',async({page})=>{
+test('mobile and desktop detail both expose overview navigation',async({page})=>{
  await setup(page,2);await page.goto('/node/1');await expect(page.locator('.detail-navigation')).toBeVisible()
- await page.setViewportSize({width:390,height:844});await expect(page.locator('.detail-navigation')).toHaveCount(0)
+ await page.setViewportSize({width:390,height:844});await expect(page.locator('.detail-navigation')).toBeVisible();await page.getByRole('button',{name:'返回总览',exact:true}).click();await expect(page.locator('.node-grid')).toBeVisible()
 })

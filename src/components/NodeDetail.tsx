@@ -89,6 +89,8 @@ function despike(points: PingPoint[], window = 7, sigmas = 3): PingPoint[] {
         return outlier ? { ...p, latency: mid } : p;
     });
 }
+import {readRouteSelection,selectedRouteIds,type RouteSelection} from '@/lib/routeSelection'
+
 export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMode, onDetailInfoMode }: {
     detailInfoMode:Preferences['detailInfoMode'];
     onDetailInfoMode:(mode:Preferences['detailInfoMode'])=>void;
@@ -119,8 +121,9 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
     // Probes switched off. Hiding a slow one is what makes the fast ones readable,
     // as the axis rescales to what remains.
     const choice = useNodeProbe(node.id,probe);
+    const [routeFilter,setRouteFilter]=useState('');
     const [highlightProbe, setHighlightProbe] = useState<number | null>(null);
-    const [selectedProbes, setSelectedProbes] = useState<number[] | null>(()=>params.has("routes")?params.get("routes")!.split(",").map(Number).filter(n=>Number.isInteger(n)&&n>0):null);
+    const [selectedProbes, setSelectedProbes] = useState<RouteSelection>(()=>readRouteSelection(params.get("routes")));
     const [data, setData] = useState<{
         metrics: Point[];
         ping: PingPoint[];
@@ -138,7 +141,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
     const retained=useRef<{key:string;value:NonNullable<typeof data>}|null>(null);
     const refresh=()=>{if(!busy.current){busy.current=true;setLoading(true);setRetry(n=>n+1);}};
     const [updated,setUpdated]=useState<number|null>(null);
-    useEffect(()=>{const q=new URLSearchParams(location.search);q.set('rh',String(ranges.resources));q.set('lh',String(ranges.latency));q.set('metric',resourceMetric);if(selectedProbes===null)q.delete('routes');else q.set('routes',selectedProbes.join(','));history.replaceState({},'',location.pathname+'?'+q+(tab==='latency'?'#latency':''))},[ranges,resourceMetric,selectedProbes,tab]);
+    useEffect(()=>{const q=new URLSearchParams(location.search);q.set('rh',String(ranges.resources));q.set('lh',String(ranges.latency));q.set('metric',resourceMetric);if(selectedProbes===null)q.delete('routes');else q.set('routes',selectedProbes==='all'?'all':selectedProbes.join(','));history.replaceState({},'',location.pathname+'?'+q+(tab==='latency'?'#latency':''))},[ranges,resourceMetric,selectedProbes,tab]);
     // Where the brush has been dragged, so the axis reticks for the visible span
     // rather than retaining the whole window's ticks.
     const [zoom, setZoom] = useState<[
@@ -201,10 +204,10 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
     // The hub answers in seconds; the time axis requires milliseconds.
     const metricRows = useMemo(() => (data?.metrics ?? []).map((m) => ({ ...m, ts: m.ts * 1000 })), [data]);
     const defaultProbe = choice.probe === "auto" ? primaryPing(node.id,probe)?.id ?? pingSeries.find(s=>s.points.length)?.id : Number(choice.probe);
-    const visibleIds = selectedProbes ?? (defaultProbe === undefined ? [] : [defaultProbe]);
+    const visibleIds = selectedRouteIds(selectedProbes,pingSeries.map(s=>s.id),defaultProbe);
     const shownProbes = pingSeries.filter(s=>visibleIds.includes(s.id));
     // The same probe ID retains its colour when the time window/catalog changes.
-    const style = (id:number) => ({...PALETTE[(id-1) % PALETTE.length],dash:[undefined,"6 3","2 3","8 3 2 3"][Math.floor((id-1)/PALETTE.length)%4]});
+    const style = (id:number) => ({...PALETTE[(id-1) % PALETTE.length],dash:[undefined,"6 3","2 3","8 3 2 3"][(id-1)%4]});
     // The hub stamps every sample with its bucket rather than the second the probe
     // finished, so probes reporting at the bucket's rate share rows instead of each
     // contributing its own: a day of four probes is 717 rows rather than 2,868. A
@@ -257,8 +260,8 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
     });
     const latencyControls = tab === "latency" ? <details ref={legend} className="detail-probe-legend" onToggle={e=>{if(e.currentTarget.open)setRouteOrder([...visibleIds])}} onKeyDown={e=>{if(e.key==='Escape'){e.currentTarget.open=false;e.currentTarget.querySelector('summary')?.focus()}}}>
       <summary aria-label={tr("选择线路")}><span>{tr("线路")}</span><ChevronDown size={13} aria-hidden="true"/></summary>
-      <div className="probe-options">
-        {[...pingSeries].sort((a,b)=>Number(routeOrder.includes(b.id))-Number(routeOrder.includes(a.id))).map(s=>{
+      <div className="probe-options">{pingSeries.length>3&&<input className="probe-filter" type="search" aria-label={tr("查找线路")} placeholder={tr("查找线路")} value={routeFilter} onChange={e=>setRouteFilter(e.target.value)}/>}
+        {pingSeries.filter(s=>s.name.toLocaleLowerCase().includes(routeFilter.trim().toLocaleLowerCase())).sort((a,b)=>Number(routeOrder.includes(b.id))-Number(routeOrder.includes(a.id))).map(s=>{
           const shown=visibleIds.includes(s.id), latest=s.points.at(-1);
           return <button className="probe-select" key={s.id} aria-label={s.name} title={s.name} aria-pressed={shown} onMouseEnter={()=>setHighlightProbe(s.id)} onMouseLeave={()=>setHighlightProbe(null)} onFocus={()=>setHighlightProbe(s.id)} onBlur={()=>setHighlightProbe(null)} onClick={()=>setSelectedProbes(shown ? visibleIds.filter(id=>id!==s.id) : [...visibleIds,s.id])}>
             <span className="probe-check" aria-hidden="true">{shown?'✓':''}</span>
@@ -268,7 +271,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
             <span className="probe-loss" title={tr("丢包统计范围：{0} 小时",hours)}>{tr("丢包")} {s.loss===null || !latest ? '—' : `${s.loss.toFixed(1)}%`}</span>
           </button>;
         })}
-      </div>
+      {routeFilter&&!pingSeries.some(s=>s.name.toLocaleLowerCase().includes(routeFilter.trim().toLocaleLowerCase()))&&<p className="preferences-note">{tr("没有符合条件的线路")}</p>}</div>
     </details> : null;
     return (<div className="node-detail">
       <DetailIdentity node={node} nodes={nodes} onSwitch={onSwitch}/>
@@ -281,6 +284,10 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
       <div className="detail-history-body" data-history={tab}>
       {!data ? (<HistoryState loading message={tr("正在读取历史数据")}/>) : failed && !data.metrics?.length && !data.ping?.length ? (<HistoryState failed message={tr("暂无可用历史数据")}/>) : tab === "latency" ? (pingSeries.length === 0 ? (<HistoryState message={tr("这段时间没有延迟数据")}/>) : (
          <div className="latency-view">
+            <div className="route-chips" role="group" aria-label={tr("线路图例")}>
+              {(pingSeries.length<=3?pingSeries:[...shownProbes,...pingSeries.filter(s=>!visibleIds.includes(s.id))].slice(0,3)).map(s=>{const latest=s.points.at(-1),shown=visibleIds.includes(s.id);return <button key={s.id} aria-pressed={shown} title={`${s.name} · ${latest?tr("采样：{0}",new Date(latest.ts*1000).toLocaleString(locale())):tr("暂无探测记录")}`} onMouseEnter={()=>setHighlightProbe(s.id)} onMouseLeave={()=>setHighlightProbe(null)} onFocus={()=>setHighlightProbe(s.id)} onBlur={()=>setHighlightProbe(null)} onClick={()=>setSelectedProbes(shown?visibleIds.filter(id=>id!==s.id):[...visibleIds,s.id])}><svg width="20" height="8" aria-hidden="true"><line x1="0" y1="4" x2="20" y2="4" stroke={style(s.id).stroke} strokeDasharray={style(s.id).dash} strokeWidth="2"/></svg><span>{s.name}</span><b>{!latest?'—':latest.latency===null?tr("超时"):`${Math.round(latest.latency)} ms`}</b></button>})}
+              {pingSeries.length>3&&<button onClick={()=>{if(legend.current){legend.current.open=true;legend.current.querySelector('button')?.focus()}}}>{tr("已选 {0} / {1} 条线路",shownProbes.length,pingSeries.length)}</button>}
+            </div>
             <div className="detail-chart-frame text-muted-foreground" ref={tooltipFrame} onClickCapture={tooltipClick} onPointerMove={tooltipMove} onKeyDownCapture={tooltipKey}>
               {shownProbes.length === 0 ? (<HistoryState message={(selectedProbes?.length || selectedProbes === null && choice.probe !== "auto") ? tr("无该线路记录") : tr("没有选中任何探测")}/>) : !shownProbes.some(s=>s.points.length) ? <HistoryState message={tr("这段时间没有延迟数据")}/> : (<ResponsiveContainer>
                   <ComposedChart data={pingRows}>
@@ -310,7 +317,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
                     shownProbes.map((s) => (<Area key={`band${s.id}`} dataKey={`b${s.id}`} stroke="none" fill={style(s.id).stroke} fillOpacity={0.10} isAnimationActive={false} tooltipType="none" legendType="none" connectNulls={false}/>))}
                     {shownProbes.map((s) => (<Line key={s.id} dataKey={`${smooth ? "s" : "t"}${s.id}`} name={s.name} stroke={style(s.id).stroke} strokeDasharray={style(s.id).dash} {...SERIES} strokeOpacity={highlightProbe!==null && visibleIds.includes(highlightProbe) && highlightProbe!==s.id ? 0.2 : 1} onMouseEnter={()=>{if(!compact)setHighlightProbe(s.id)}} onMouseLeave={()=>{if(!compact)setHighlightProbe(null)}} connectNulls={false}/>))}
                     {/* Drag either handle to zoom into a stretch of the trend. */}
-                    <Brush dataKey="ts" height={22} travellerWidth={8} tickFormatter={clockFor(hours)} fill="var(--muted)" className="fill-muted" stroke="var(--color-muted-foreground)" onChange={(r) => setZoom([r.startIndex ?? 0, r.endIndex ?? pingRows.length - 1])}/>
+                    <Brush dataKey="ts" height={compact?44:22} travellerWidth={12} tickFormatter={clockFor(hours)} fill="transparent" className="latency-brush" stroke="var(--border)" onChange={(r) => setZoom([r.startIndex ?? 0, r.endIndex ?? pingRows.length - 1])}/>
                   </ComposedChart>
                 </ResponsiveContainer>)}
             </div>

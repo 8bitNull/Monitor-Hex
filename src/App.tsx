@@ -1,3 +1,5 @@
+import {MobileSearch} from './components/MobileSearch';
+import {countryName} from './lib/regionNames';
 import {RegionPicker} from './components/RegionPicker';
 import themeManifest from '../theme.json';
 import {useLoadAlerts} from './lib/useLoadAlerts';
@@ -116,6 +118,7 @@ export default function App({ siteDefaults = defaults }: {
     }, [open]);
     const mapVisible = browse.view === "cards" && prefs.modules.map && !compactViewport;
     const { status, region } = browse;
+    const shownColumns=compactViewport?browse.mobileColumns:browse.columns;
     const patchBrowse = (patch: Partial<Browse>) => setBrowse(prev => ({ ...prev, ...patch }));
     const setQuery = (query: string) => patchBrowse({ query });
     const setStatus = (status: string) => patchBrowse({ status });
@@ -168,7 +171,7 @@ export default function App({ siteDefaults = defaults }: {
     const probes = new Map<number, string>();
     sorted.forEach(n => { const d = getPing(n.id)?.data; if (d)
         probeCatalog(d).forEach(p => probes.set(p.id, p.name)); });
-    const viewSwitch = <div className="view-switch"><button className={browse.view === 'cards' ? 'active' : ''} onClick={() => patchBrowse({view:'cards'})} aria-label={tr("卡片视图")} aria-pressed={browse.view === 'cards'}><LayoutGrid size={17}/>{tr("卡片")}</button><button className={browse.view === 'table' ? 'active' : ''} onClick={() => patchBrowse({view:'table'})} aria-label={tr("表格视图")} aria-pressed={browse.view === 'table'}><Table2 size={17}/>{tr("表格")}</button></div>;
+    const viewSwitch = <div className="view-toolbar"><div className="view-switch"><button className={browse.view === 'cards' ? 'active' : ''} onClick={() => patchBrowse({view:'cards'})} aria-label={tr("卡片视图")} aria-pressed={browse.view === 'cards'}><LayoutGrid size={17}/>{tr("卡片")}</button><button className={browse.view === 'table' ? 'active' : ''} onClick={() => patchBrowse({view:'table'})} aria-label={tr("表格视图")} aria-pressed={browse.view === 'table'}><Table2 size={17}/>{tr("表格")}</button></div>{browse.view === 'table' && <details className="column-options"><summary title={tr("显示列")} aria-label={tr("显示列")}><Columns3 size={16}/></summary><div>{defaultBrowse.columns.map(key=><label key={key}><input type="checkbox" checked={shownColumns.includes(key)} onChange={e=>patchBrowse({[compactViewport?"mobileColumns":"columns"]:e.target.checked?defaultBrowse.columns.filter(c=>c===key||shownColumns.includes(c)):shownColumns.filter(c=>c!==key)})}/>{tr(sortLabels[key as SortKey])}</label>)}</div></details>}</div>;
     const searchField = (className = '') => <div className={`node-search-control ${className}`.trim()}>
       <Search size={16} aria-hidden="true"/>
       <input type="search" value={browse.query} onChange={event => setQuery(event.target.value)} onKeyDown={event=>{if(event.key==='Escape')setMobileSearchOpen(false)}} placeholder={tr("搜索名称、地区、操作系统…")} aria-label={tr("搜索节点")}/>
@@ -195,8 +198,7 @@ export default function App({ siteDefaults = defaults }: {
       {background.ready && <Background url={prefs.backgroundUrl}/>}
       <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
         <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-4 py-3 sm:px-6">
-          {/* The site name is the way back to the list, so a node page needs
-            no back button of its own. */}
+          {/* The brand and explicit detail navigation share scroll restoration. */}
           <button className="brand" onClick={() => go(null)}>
             <span>{me.site_name || "Monitor HEX"}<small>MONITOR HEX</small></span>
           </button>
@@ -216,7 +218,7 @@ export default function App({ siteDefaults = defaults }: {
           </Button>
         </div>
       </header>
-      {compactViewport && mobileSearchOpen && <div className="mobile-header-search-popover" role="dialog" aria-label={tr("搜索节点")}>{searchField()}</div>}
+      {compactViewport && mobileSearchOpen && <MobileSearch count={filtered.length} onClose={()=>setMobileSearchOpen(false)}>{searchField()}</MobileSearch>}
 
         {settings && <Preferences onClose={()=>setSettings(false)} probes={probes} value={prefs} onChange={setPrefs} onGraphChange={selectGraph} onDisplayChange={selectDisplay} siteDefaults={siteDefaults} backgroundError={background.error} onReset={scope => {
                 setPrefs(scope === 'all' ? { ...siteDefaults, modules: { ...siteDefaults.modules } } : restoreAppearance(prefs, siteDefaults), true, scope === 'all');
@@ -236,7 +238,7 @@ export default function App({ siteDefaults = defaults }: {
       <main key={language} className="mx-auto max-w-[1400px] space-y-5 px-4 py-4 sm:px-6">
         {(error || meError) && <p role="alert" className="error-banner">{tr("连接异常，正在重试。")}{error || meError}</p>}
 
-        {open !== null && selected && !compactViewport && <div className="detail-navigation">
+        {open !== null && selected && <div className="detail-navigation">
           <Button className="detail-back" variant="ghost" aria-label={tr("返回总览")} title={tr("返回总览")} onClick={()=>go(null)}><ArrowLeft/><span>{tr("返回总览")}</span></Button>
         </div>}
         {open !== null ? (!nodes ? (<Skeleton className="h-96"/>) : selected ? (<Suspense fallback={<Skeleton className="h-96"/>}>
@@ -249,21 +251,21 @@ export default function App({ siteDefaults = defaults }: {
             <p className="update-time">{lastUpdated ? tr("最后更新：{0}", new Date(lastUpdated).toLocaleString(locale())) : tr("等待首次数据")}</p></section>
             <Summary nodes={sorted} prefs={prefs} loadAlerts={loadAlerts} onAlert={event=>go(event.nodeId,"",`?eventStart=${event.start}&eventEnd=${event.end??event.last}`)}/>
             <>{compactViewport&&<div className="mobile-node-toolbar"><div className="mobile-toolbar-main"><RegionPicker nodes={sorted} region={region} onChange={setRegion}/><div className="mobile-toolbar-actions">{viewSwitch}</div></div></div>}</>
-            <section hidden={(compactViewport || mapVisible) && system==='all' && new Set(sorted.map(n=>systemKey(n.os))).size<2} className="node-browser streamlined-browser" aria-label={tr("节点浏览")}>
-            <div className="filters">{!compactViewport && !mapVisible && <div className="restored-regions" role="group" aria-label={tr("地区快速筛选")}><button className="all-regions-icon" aria-label={tr("所有地区")} title={tr("所有地区")} aria-pressed={region==='all'} onClick={()=>setRegion('all')}><Globe size={17}/></button>{groupRegions(sorted).map(r=><button key={r.code} aria-pressed={region===r.code} title={r.code} onClick={()=>setRegion(r.code)}>{r.code!==UNKNOWN_REGION&&<Flag code={r.code}/>}<span>{r.code===UNKNOWN_REGION?tr("未知地区"):r.code}</span><small>{r.total}</small></button>)}</div>}<div className="filter-categories"><div className="system-pills" hidden={new Set(sorted.map(n=>systemKey(n.os))).size < 2 && system==='all'} role="group" aria-label={tr("系统快速筛选")}>{['all',...new Set(sorted.map(n=>systemKey(n.os)))].map(key=><button key={key} aria-pressed={system===key} onClick={()=>setSystem(key)}>{key==='all'?tr("所有系统"):key==='other'?tr("其他 / 未知系统"):key}</button>)}</div>
+            <section hidden={!browse.query && (compactViewport || mapVisible) && system==='all' && new Set(sorted.map(n=>systemKey(n.os))).size<2} className="node-browser streamlined-browser" aria-label={tr("节点浏览")}>
+            <div className="filters">{!compactViewport && !mapVisible && <div className="restored-regions" role="group" aria-label={tr("地区快速筛选")}><button className="all-regions-icon" aria-label={tr("所有地区")} title={tr("所有地区")} aria-pressed={region==='all'} onClick={()=>setRegion('all')}><Globe size={17}/></button>{groupRegions(sorted).map(r=><button key={r.code} aria-pressed={region===r.code} title={r.code} onClick={()=>setRegion(r.code)}>{r.code!==UNKNOWN_REGION&&<Flag code={r.code}/>}<span>{r.code===UNKNOWN_REGION?tr("未知地区"):countryName(r.code)}</span><small>{r.total}</small></button>)}</div>}<div className="filter-categories"><div className="system-pills" hidden={new Set(sorted.map(n=>systemKey(n.os))).size < 2 && system==='all'} role="group" aria-label={tr("系统快速筛选")}>{['all',...new Set(sorted.map(n=>systemKey(n.os)))].map(key=><button key={key} aria-pressed={system===key} onClick={()=>setSystem(key)}>{key==='all'?tr("所有系统"):key==='other'?tr("其他 / 未知系统"):key}</button>)}</div>
 </div>
 {!compactViewport && !mapVisible && viewSwitch}</div>
             <div className="active-filters">
-{!compactViewport && !mapVisible && region !== 'all' && <button aria-label={tr("清除地区筛选")} onClick={()=>setRegion('all')}>{region===UNKNOWN_REGION?tr("未知地区"):region} ×</button>}
+{!compactViewport && !mapVisible && region !== 'all' && <button aria-label={tr("清除地区筛选")} onClick={()=>setRegion('all')}>{region===UNKNOWN_REGION?tr("未知地区"):countryName(region)} ×</button>}
 {system !== 'all' && <button aria-label={tr("清除系统筛选")} onClick={()=>setSystem('all')}>{system} ×</button>}
 {browse.query && <button aria-label={tr("清除搜索")} onClick={()=>setQuery('')}>{tr("搜索节点")}：{browse.query} ×</button>}
 {(browse.query || region !== 'all' || system !== 'all') && <button className="clear-all-filters" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); }}>{tr("清除筛选")}</button>}
 </div></section>
-{browse.view === 'table' && !mapVisible && <details className="column-options"><summary title={tr("显示列")} aria-label={tr("显示列")}><Columns3 size={16}/></summary><div>{defaultBrowse.columns.map(key=><label key={key}><input type="checkbox" checked={browse.columns.includes(key)} onChange={e=>patchBrowse({columns:e.target.checked?defaultBrowse.columns.filter(c=>c===key||browse.columns.includes(c)):browse.columns.filter(c=>c!==key)})}/>{tr(sortLabels[key as SortKey])}</label>)}</div></details>}
+
 
             {browse.view === 'table' && browse.sort === 'latency' && <p className="sort-note">{tr("延迟采用所选线路的最新采样桶；超时、旧记录和无数据排在末尾。已读取")}{sorted.filter(n => getPing(n.id)?.data).length}/{sorted.length}{tr("个节点。")}{tr("各节点所选线路可能不同，延迟比较请注意探测目标。")}</p>}
             {mapVisible && <Suspense fallback={<div className="map-placeholder"/>}><WorldMap viewSwitch={viewSwitch} nodes={sorted.filter(n=>(status==='all'||(status==='online'?n.online:!n.online))&&(system==='all'||systemKey(n.os)===system))} region={region} onRegion={setRegion}/></Suspense>}
-            {sorted.length === 0 ? (<p className="py-16 text-center text-sm text-muted-foreground">{tr("还没有节点")}</p>) : filtered.length === 0 ? (<div className="empty-state"><p>{tr("没有符合条件的节点")}</p><Button variant="outline" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); }}>{tr("清除筛选")}</Button></div>) : browse.view === "table" ? (<NodeTable nodes={filtered} browse={browse} onSort={sortBy} onOpen={id => go(id)}/>) : (<div className="node-grid" data-columns={prefs.desktopColumns}>{filtered.map(n=><NodeCard key={n.id} node={n} mobile={mobileCards} prefs={prefs} info={mobileCards && prefs.mobileInfoMode==='custom' ? prefs.mobileCardInfo || prefs.cardInfo : prefs.cardInfo} probe={prefs.probe} onOpen={()=>go(n.id)} onOpenRoutes={route=>go(n.id,"latency",route?`?routes=${route}`:"")}/>)}</div>)}
+            {sorted.length === 0 ? (<p className="py-16 text-center text-sm text-muted-foreground">{tr("还没有节点")}</p>) : filtered.length === 0 ? (<div className="empty-state"><p>{tr("没有符合条件的节点")}</p><Button variant="outline" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); }}>{tr("清除筛选")}</Button></div>) : browse.view === "table" ? (<NodeTable nodes={filtered} browse={{...browse,columns:shownColumns}} onSort={sortBy} onOpen={id => go(id)}/>) : (<div className="node-grid" data-columns={prefs.desktopColumns}>{filtered.map(n=><NodeCard key={n.id} node={n} mobile={mobileCards} prefs={prefs} info={mobileCards && prefs.mobileInfoMode==='custom' ? prefs.mobileCardInfo || prefs.cardInfo : prefs.cardInfo} probe={prefs.probe} onOpen={()=>go(n.id)} onOpenRoutes={route=>go(n.id,"latency",`?routes=${route.kind==="all"?"all":route.id}`)}/>)}</div>)}
           </>)}
       </main>
       {open === null && showScrollTop && <button type="button" className="back-to-top" aria-label={tr("返回顶部")} title={tr("返回顶部")} onClick={() => window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}><ArrowUp size={17}/></button>}

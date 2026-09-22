@@ -1,27 +1,29 @@
 /* Network values lead; direction colors identify marks, never imply capacity. */
 .node-card[data-indicator] .speed-indicators>div,.detail-live .speed-indicators>div {display:grid;grid-template-columns:16px minmax(0,1fr);gap:5px 6px;min-width:0}
-.speed-indicators .speed-direction {grid-column:2;grid-row:1;font-size:11px;color:var(--muted-foreground);white-space:nowrap}
+.speed-indicators .speed-direction {grid-column:2;grid-row:1;font-size:12px;color:var(--muted-foreground);white-space:nowrap}
 .node-card[data-indicator] .speed-indicators>div>svg:first-child,.detail-live .speed-indicators>div>svg:first-child {grid-column:1;grid-row:1;justify-self:start}
 .node-card[data-indicator] .speed-indicators strong,.detail-live .speed-indicators strong {grid-column:1/-1;grid-row:2;display:flex;align-items:baseline;justify-content:flex-start;gap:4px;min-width:0;margin:0;color:var(--foreground);font-size:20px;line-height:1.4;white-space:nowrap;font-variant-numeric:tabular-nums}
-.node-card[data-indicator] .speed-indicators strong small,.detail-live .speed-indicators strong small {display:inline-block;min-width:4ch;margin:0;font-size:11px;color:var(--muted-foreground)}
+.node-card[data-indicator] .speed-indicators strong small,.detail-live .speed-indicators strong small {display:inline-block;min-width:4ch;margin:0;font-size:12px;color:var(--muted-foreground)}
 .node-card[data-indicator] .speed-indicators .speed-track {height:3px}
 .node-card[data-indicator=ring] .speed-indicators .speed-ring {grid-column:2;grid-row:1;justify-self:end;width:20px;height:20px}
 
 .micro-trend {position:relative;min-width:0;color:var(--tone);height:24px}
 .micro-trend svg {display:block;width:100%;height:100%;overflow:hidden}
-.micro-empty {position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted-foreground);font-size:11px;background:var(--card)}
+.micro-empty {position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted-foreground);font-size:12px;background:var(--card)}
 .speed-trend {grid-column:1/-1;min-width:0}
 .speed-trend .micro-trend {height:40px;color:inherit}
-.speed-trend-caption,.latency-trend-caption {display:block;font-size:11px;color:var(--muted-foreground);margin:4px 0 0;line-height:1.4}
+.speed-trend-caption,.latency-trend-caption {display:block;font-size:12px;color:var(--muted-foreground);margin:4px 0 0;line-height:1.4}
 .detail-live .detail-speed .speed-track,.detail-live .detail-speed .speed-columns,.detail-live .detail-speed .speed-ring {display:none}
-.node-card .latency-link[data-tone] {color:var(--foreground)}
+.node-card .latency-link[data-tone=good] {color:var(--foreground)}
+.node-card .latency-link[data-tone=fair] {color:var(--warn)}
+.node-card .latency-link[data-tone=bad] {color:var(--destructive)}
 .node-card .latency-link[data-tone=timeout] {color:var(--destructive)}
 .node-card .route-matrix .matrix-values {display:flex;justify-content:space-between;align-items:center;gap:10px}
 .node-card .latency-stat {min-width:0;flex:1}
 .node-card .loss-stat {display:block!important;width:auto;min-width:0;flex-shrink:0;color:var(--muted-foreground)}
 .node-card .loss-stat .loss-visual {display:none}
 .node-card .loss-stat .loss-reading {display:flex;align-items:baseline;gap:5px;white-space:nowrap}
-.node-card .loss-stat .loss-reading small {font-size:11px}
+.node-card .loss-stat .loss-reading small {font-size:12px}
 .node-card .loss-stat .loss-reading b {font-size:12px;font-weight:500;font-variant-numeric:tabular-nums}
 .node-card .loss-stat[data-tone=fair] b {color:var(--warn)}
 .node-card .loss-stat[data-tone=bad] b {color:var(--destructive)}
@@ -30,7 +32,7 @@
 .detail-chart-toolbar .probe-select {grid-template-columns:14px 16px minmax(0,1fr) 8ch 11ch;gap:5px}
 .detail-chart-toolbar .probe-label {max-width:none}
 .detail-chart-toolbar .probe-select b,.detail-chart-toolbar .probe-loss {text-align:right;font-variant-numeric:tabular-nums}
-.loss-track {padding:10px 10px 6px;min-width:0;border-top:1px solid var(--border);font-size:11px}
+.loss-track {padding:10px 10px 6px;min-width:0;border-top:1px solid var(--border);font-size:12px}
 .loss-track-heading {display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--muted-foreground)}
 .loss-track-heading label {display:flex;align-items:center;gap:8px;min-width:0;flex:1}
 .loss-track-heading label>span {overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -51,9 +53,9 @@
 .node-card .loss-stat .loss-reading small {display:inline}
 .node-card .latency-reading {margin-bottom:0}
 .node-card .latency-link {flex-shrink:0}
-.node-card .route-matrix {min-height:128px}
-.node-card .route-matrix[data-requested-count="2"] {min-height:164px}
-.node-card .route-matrix[data-requested-count="3"] {min-height:200px}
+.node-card .route-matrix {min-height:154px}
+.node-card .route-matrix[data-requested-count="2"] {min-height:210px}
+.node-card .route-matrix[data-requested-count="3"] {min-height:266px}
 
 .node-card[data-indicator] .speed-indicators strong {flex-direction:row;flex-wrap:nowrap}
 .node-card .route-matrix .loss-stat {align-self:center}
@@ -67,11 +69,11 @@
 .loss-track-scrubber::-moz-range-thumb {width:12px;height:12px;border:0;background:var(--tone);border-radius:50%}
 
 /* Network semantics stay fixed when resource indicator preferences change. */
-.node-card[data-indicator] .speed-indicators .speed-columns {display:flex;grid-column:1/-1;grid-row:3;gap:3px;height:8px;margin:0;width:100%}
-.node-card[data-indicator] .speed-indicators .speed-columns>span {flex:1;height:8px;background:var(--border);border-radius:2px;overflow:hidden}
+.node-card[data-indicator] .speed-indicators .speed-columns {display:flex;grid-column:1/-1;grid-row:3;gap:3px;height:6px;margin:0;width:100%}
+.node-card[data-indicator] .speed-indicators .speed-columns>span {flex:1;height:6px;background:var(--border);border-radius:2px;overflow:hidden}
 .node-card[data-indicator] .speed-indicators .speed-columns i {display:block;width:0;height:100%;background:currentColor}
 .node-card[data-indicator] .speed-indicators .speed-columns [data-active=true] i {width:100%}
-.latency-bars {height:36px;margin-top:5px}
+.latency-bars {height:28px;margin-top:5px}
 .latency-bars svg {display:block;width:100%;height:100%;overflow:hidden}
 .latency-bars g[data-tone=good] {fill:var(--upload)}
 .latency-bars g[data-tone=fair] {fill:var(--warn)}
@@ -81,3 +83,31 @@
 .latency-settings {margin-top:12px}
 .latency-settings input {width:100%;min-width:0;height:38px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--foreground)}
 .latency-settings>button {margin-top:10px}
+
+/* Sample history is quiet; the latest point and explicit exceptions lead. */
+.latency-bars g {opacity:.82}
+.latency-bars g[data-latest],.latency-bars g[data-tone=timeout] {opacity:1}
+.latency-cap {fill:none;stroke:var(--destructive);stroke-width:1.2}
+.route-chips {display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px 4px}
+.route-chips button {display:flex;align-items:center;gap:8px;min-height:40px;max-width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:8px;color:var(--muted-foreground);background:var(--muted);font-size:12px}
+.route-chips button[aria-pressed=true] {background:var(--card);color:var(--foreground)}
+.route-chips button[aria-pressed=false] {text-decoration:line-through}
+.route-chips button span {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.route-chips button svg,.route-chips button b {flex-shrink:0}
+.route-chips button b {font-weight:500;font-variant-numeric:tabular-nums}
+.loss-track-note {margin:8px 0;color:var(--muted-foreground);font-size:12px}
+@media(max-width:720px){.route-chips {padding:12px 10px 4px;gap:6px}.route-chips button {min-height:44px;flex:1 1 140px;padding-inline:8px;gap:6px}.route-chips button svg {width:16px}.route-chips button b {margin-left:auto}}
+
+@media(min-width:721px){
+ .node-card[data-density=overview] .route-matrix {min-height:130px}
+ .node-card[data-density=overview] .route-matrix[data-requested-count="2"] {min-height:174px}
+ .node-card[data-density=overview] .route-matrix[data-requested-count="3"] {min-height:218px}
+}
+
+/* Keep the brush interaction bounds; reduce only its visible track. */
+.latency-brush>rect:first-child {stroke:transparent}
+.latency-brush .recharts-brush-slide {height:6px;transform:translateY(8px);fill:var(--tone);fill-opacity:.18}
+.latency-brush .recharts-brush-traveller rect {fill:var(--muted-foreground);rx:3px}
+@media(max-width:899px){.latency-brush .recharts-brush-slide {transform:translateY(19px)}}
+
+.probe-filter {width:100%;min-width:0;min-height:44px;border:1px solid var(--border);border-radius:6px;padding:8px;background:var(--card);color:var(--foreground);font-size:12px}

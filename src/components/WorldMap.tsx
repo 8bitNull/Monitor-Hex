@@ -1,5 +1,5 @@
 import {Flag} from './NodeIcons'
-import {tr,locale} from '../lib/i18n.ts'
+import {tr} from '../lib/i18n.ts'
 import {RotateCcw,Plus,Minus,Scan,Maximize,Minimize,Globe} from 'lucide-react'
 import {useMemo,useState,useRef,useEffect,type ReactNode} from 'react'
 import {geoNaturalEarth1,geoPath,geoCentroid} from 'd3-geo'
@@ -15,13 +15,15 @@ const path=geoPath(projection)
 const names=new Intl.DisplayNames(['en'],{type:'region'})
 const aliases:Record<string,string>={US:'United States of America',TR:'Turkey',KR:'South Korea',KP:'North Korea',RU:'Russia',TW:'Taiwan',CZ:'Czechia'}
 const positions:Record<string,[number,number]>={US:[-98,39],RU:[95,60],HK:[114.17,22.32],MO:[113.55,22.2],SG:[103.82,1.35]}
-export function countryName(code:string){if(code===UNKNOWN_REGION)return tr("未知地区");try{return new Intl.DisplayNames([locale()],{type:'region'}).of(code)||code}catch{return tr("未知地区")}}
+import {countryName} from '@/lib/regionNames'
+export {countryName} from '@/lib/regionNames'
 export function WorldMap({nodes,region='all',onRegion,viewSwitch}:{nodes:Node[];region?:string;onRegion:(code:string)=>void;viewSwitch?:ReactNode}){
  const regions=useMemo(()=>groupRegions(nodes),[nodes])
  const panel=useRef<HTMLElement>(null),svg=useRef<SVGSVGElement>(null)
  // Initial framing favours the northern node belt, matching the homepage composition.
  const [view,setView]=useState({x:-363,y:-34.6,k:1.69}),[full,setFull]=useState(false),[help,setHelp]=useState(false)
  const [unit,setUnit]=useState(1)
+ const [collapsed,setCollapsed]=useState(false)
  useEffect(()=>{const el=svg.current!;const update=()=>{const r=el.getBoundingClientRect();if(r.width&&r.height){const u=Math.max(1000/r.width,480/r.height);setUnit(u)}};update();const observer=new ResizeObserver(update);observer.observe(el);return()=>observer.disconnect()},[])
  const suppressClick=useRef(false)
  const drag=useRef<{id:number;x:number;y:number;moved:boolean}|null>(null)
@@ -41,9 +43,9 @@ export function WorldMap({nodes,region='all',onRegion,viewSwitch}:{nodes:Node[];
  const tone=(r:typeof regions[number])=>r.online===r.total?'good':r.online===0?'offline':'mixed'
  const byName=new Map(regions.filter(r=>r.code!==UNKNOWN_REGION).map(r=>[aliases[r.code]||names.of(r.code),r]))
  const markers=points.filter(r=>['HK','MO','SG'].includes(r.code)||!countries.some(f=>f.properties?.name===(aliases[r.code]||names.of(r.code)))).map(r=>({...r,x:r.point[0]*view.k+view.x,y:r.point[1]*view.k+view.y}))
- return <section ref={panel} className={`world-panel explorer-map region-atlas ${full?'is-fullscreen':''}`}>
-  <div className="section-heading"><h2>{tr("全球节点分布")}</h2><span>{regions.length} {tr("个地区 ·")} {nodes.length} {tr("个节点")}</span></div>
-  <div className="explorer-stage">
+ return <section ref={panel} className={`world-panel explorer-map region-atlas ${full?'is-fullscreen':''} ${collapsed&&!full?'is-collapsed':''}`}>
+  <div className="section-heading"><h2>{tr("全球节点分布")}</h2><span>{regions.length} {tr("个地区 ·")} {nodes.length} {tr("个节点")}</span><button className="map-collapse" aria-expanded={!collapsed} onClick={()=>setCollapsed(v=>!v)}>{tr(collapsed?"展开地图":"收起地图")}</button></div>
+  <div className="explorer-stage" hidden={collapsed&&!full}>
    <svg ref={svg} viewBox="0 0 1000 480" role="group" aria-label={tr("世界节点分布地图")} tabIndex={0} onKeyDown={e=>{if(e.target!==e.currentTarget)return;const delta:Record<string,[number,number]>={ArrowLeft:[40,0],ArrowRight:[-40,0],ArrowUp:[0,40],ArrowDown:[0,-40]};if(delta[e.key]){e.preventDefault();const [x,y]=delta[e.key];setView(v=>({...v,x:v.x+x,y:v.y+y}))}else if(e.key==='+'||e.key==='='){e.preventDefault();zoom(1.3)}else if(e.key==='-'){e.preventDefault();zoom(1/1.3)}}}
     onClickCapture={e=>{if(suppressClick.current){e.stopPropagation();suppressClick.current=false}}} onPointerDown={e=>{if(e.button!==0)return;suppressClick.current=false;const p=local(e.clientX,e.clientY);drag.current={id:e.pointerId,x:p.x,y:p.y,moved:false}}}
     onPointerMove={e=>{const d=drag.current;if(!d||d.id!==e.pointerId)return;const p=local(e.clientX,e.clientY);const dx=p.x-d.x,dy=p.y-d.y;if(!d.moved&&Math.abs(dx)+Math.abs(dy)<4)return;d.moved=true;suppressClick.current=true;e.currentTarget.setPointerCapture(e.pointerId);setView(v=>({...v,x:v.x+dx,y:v.y+dy}));d.x=p.x;d.y=p.y}}

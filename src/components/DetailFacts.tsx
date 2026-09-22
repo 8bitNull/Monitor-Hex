@@ -23,14 +23,8 @@ function Fact({ label, value, warning=false,copy=false }: {
       <dd className={`detail-fact text-sm ${warning?"detail-expiry-warning":""}`}><span className="fact-value">{value}</span>{copy&&<span className="copy-control"><button className="copy-fact" aria-label={tr("复制：{0}",label)} title={tr("复制：{0}",label)} onClick={copyValue}>{notice===tr("已复制")?<Check size={14}/>:<Copy size={14}/>}</button>{notice&&<small role="status" className="copy-notice">{notice}</small>}</span>}</dd>
     </div>);
 }
-function FactSection({label,Icon,compact,defaultOpen=true,children}:{label:string;Icon:ComponentType<{size?:number}>;compact:boolean;defaultOpen?:boolean;children:ReactNode}){
-    const [open,setOpen]=useState(defaultOpen);
-    return <section aria-label={label}>
-      <details className="detail-fact-disclosure" open={!compact || open} onToggle={event=>{if(compact)setOpen((event.currentTarget as HTMLDetailsElement).open)}}>
-        <summary><h3><Icon size={15}/>{label}</h3><ChevronDown size={16}/></summary>
-        <div className="detail-fact-section-body">{children}</div>
-      </details>
-    </section>;
+function FactSection({label,Icon,children}:{label:string;Icon:ComponentType<{size?:number}>;children:ReactNode}){
+    return <section aria-label={label}><div className="detail-fact-disclosure"><div className="fact-section-heading"><h3><Icon size={15}/>{label}</h3></div><div className="detail-fact-section-body">{children}</div></div></section>;
 }
 export function DetailFacts({node,mode,compact,onMode}:{node:Node;mode:Preferences['detailInfoMode'];compact:boolean;onMode:(mode:Preferences['detailInfoMode'])=>void}){
  const expanded=!compact || mode==='expanded';
@@ -41,7 +35,7 @@ export function DetailFacts({node,mode,compact,onMode}:{node:Node;mode:Preferenc
  const billingState=days===null?'unknown':days<0?'expired':days<=7?'soon':'normal';
  const billingLabel=billingState==='unknown'?tr('未设到期'):billingState==='expired'?tr('已过期'):billingState==='soon'?tr('即将到期'):tr('正常');
  return <div className="detail-information">{compact&&<button className="detail-facts-toggle" aria-expanded={expanded} aria-controls="detail-fact-groups" onClick={()=>onMode(expanded?'collapsed':'expanded')}><span className="detail-facts-title"><Database size={15}/>{tr("设备资料")}</span><ChevronDown size={16}/></button>}<div id="detail-fact-groups" className="detail-fact-groups" hidden={!expanded}>
-   <FactSection label={tr("硬件与系统")} Icon={Cpu} compact={compact} defaultOpen>
+   <FactSection label={tr("硬件与系统")} Icon={Cpu}>
      <dl className="detail-facts">
        <Fact label="Agent" value={node.agent_version}/><Fact label={tr("系统")} value={[osName(node.os), node.kernel].filter(Boolean).join(" · ")}/>
        <Fact label="CPU" value={node.cpu_name ? `${node.cpu_name} × ${node.cpu_cores}` : tr("{0} 核", node.cpu_cores)}/>
@@ -50,7 +44,7 @@ export function DetailFacts({node,mode,compact,onMode}:{node:Node;mode:Preferenc
        <Fact label={tr("交换空间")} value={m?`${bytes(m.swap_used)} / ${bytes(m.swap_total)}`:"—"}/>
      </dl>
    </FactSection>
-   <FactSection label={tr("网络与流量")} Icon={Network} compact={compact} defaultOpen={false}>
+   <FactSection label={tr("网络与流量")} Icon={Network}>
      <div className="detail-quota" title={tr("本月用量")}><div><Database size={15}/><span>{bytes(monthly)} / {node.traffic_limit > 0 ? bytes(node.traffic_limit) : FOREVER}</span></div>{node.traffic_limit > 0 && <progress aria-label={tr("本月用量")} max={node.traffic_limit} value={Math.min(Math.max(0,monthly),node.traffic_limit)}/>}</div>
      <dl className="detail-facts">
        <Fact copy label="IPv4" value={node.ipv4}/><Fact copy label="IPv6" value={node.ipv6}/><Fact label={tr("流量重置")} value={Number.isInteger(node.traffic_reset_day) && node.traffic_reset_day >= 1 && node.traffic_reset_day <= 31 ? tr("每月 {0} 日",node.traffic_reset_day) : tr("未知")}/>
@@ -58,10 +52,10 @@ export function DetailFacts({node,mode,compact,onMode}:{node:Node;mode:Preferenc
        <Fact label={tr("今日流量")} value={`↓ ${bytes(node.day_rx)} · ↑ ${bytes(node.day_tx)}`}/>
      </dl>
    </FactSection>
-   <FactSection label={tr("费用与到期")} Icon={WalletCards} compact={compact} defaultOpen={false}>
+   <FactSection label={tr("费用与到期")} Icon={WalletCards}>
      <dl className="detail-facts">
        <Fact label={tr("到期")} value={expiryLabel} warning={days!==null && days<=7}/>
-       <Fact label={tr("续费")} value={node.price > 0 ? `${money(node.price, node.currency)} / ${tr(Object.hasOwn(CYCLES, node.billing_cycle) ? CYCLES[node.billing_cycle] : node.billing_cycle)}` : node.price === 0 ? tr("零价：免费或未填写") : tr("价格未知")}/>
+       <Fact label={tr("续费")} value={node.price > 0 ? `${money(node.price, node.currency)} / ${tr(Object.hasOwn(CYCLES, node.billing_cycle) ? CYCLES[node.billing_cycle] : node.billing_cycle)}` : node.price === 0 ? tr("免费 / 未填写") : tr("价格未知")}/>
      </dl>
      <div className={`billing-status billing-status-${billingState}`} data-state={billingState}><span className="billing-status-dot"/><strong>{billingLabel}</strong></div>
    </FactSection>

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "homeRoutes": 1,
   "palette": "default",
   "appearance": "system",
@@ -22,7 +22,7 @@
     "speed": true,
     "regions": false,
     "clock": false,
-    "map": true
+    "map": false
   },
   "designVersion": 1,
   "probe": "auto",
@@ -39,5 +39,6 @@
   "desktopColumns": "auto",
   "latencyScale": 200,
   "latencyWarn": 80,
-  "latencyHigh": 160
+  "latencyHigh": 160,
+  "infoDensity": "overview"
 }

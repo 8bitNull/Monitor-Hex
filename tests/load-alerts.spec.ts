@@ -1,3 +1,4 @@
+import {setting} from './settings'
 import {test,expect} from '@playwright/test'
 import {nodes} from '../scripts/fixtures.mjs'
 import {toggleSettings} from './settings'
@@ -20,7 +21,7 @@ test('load records persist across recovery, reload, disabled monitoring and stal
  cpu=97;await page.clock.runFor(6000);await expect(tile.locator('.summary-total')).toHaveText('2告警中')
  fail=true;await page.clock.runFor(22000);await expect(tile.locator('.summary-total')).toHaveText('0告警中');await expect(tile).toContainText('监测中断')
  expect(await page.evaluate(k=>JSON.parse(localStorage.getItem(k)!).length,key)).toBe(4)
- await toggleSettings(page);await page.getByLabel('高负载提示',{exact:true}).uncheck();await toggleSettings(page)
+ await toggleSettings(page);await (await setting(page,'高负载提示',{exact:true})).uncheck();await toggleSettings(page)
  await expect(tile).toHaveCount(0)
  expect(await page.evaluate(k=>JSON.parse(localStorage.getItem(k)!).length,key)).toBe(4)
 })

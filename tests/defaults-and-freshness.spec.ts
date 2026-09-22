@@ -1,3 +1,4 @@
+import {setting,settingsButton} from './settings'
 import {test,expect} from '@playwright/test'
 import {nodes} from '../scripts/fixtures.mjs'
 import {toggleSettings,visualSelect} from './settings'
@@ -8,14 +9,14 @@ test('site defaults propagate while explicit choices and module overrides persis
  await page.goto('/')
  await expect(page.locator('.next-theme')).toHaveAttribute('data-palette','ocean')
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('monitor-next')!))).not.toHaveProperty('palette')
- await toggleSettings(page);await visualSelect(page,'palette','rose');await page.getByLabel('当前时间',{exact:true}).check();await toggleSettings(page)
+ await toggleSettings(page);await visualSelect(page,'palette','rose');await (await setting(page,'当前时间',{exact:true})).check();await toggleSettings(page)
  config={palette:'forest',graph:'bar',modules:{regions:true,clock:false}}
  await page.reload()
  await expect(page.locator('.next-theme')).toHaveAttribute('data-palette','rose')
  await expect(page.locator('.next-theme')).toHaveAttribute('data-graph','bar')
  await toggleSettings(page)
- await expect(page.getByLabel('地区统计',{exact:true})).toBeChecked();await expect(page.getByLabel('当前时间',{exact:true})).toBeChecked()
- await page.getByRole('button',{name:'恢复默认外观',exact:true}).click();await toggleSettings(page)
+ await expect((await setting(page,'地区统计',{exact:true}))).toBeChecked();await expect((await setting(page,'当前时间',{exact:true}))).toBeChecked()
+ await (await settingsButton(page,'恢复默认外观',{exact:true})).click();await toggleSettings(page)
  await expect(page.locator('.next-theme')).toHaveAttribute('data-palette','forest')
  config={...config,palette:'ocean',graph:'minimal'};await page.reload()
  await expect(page.locator('.next-theme')).toHaveAttribute('data-palette','ocean')

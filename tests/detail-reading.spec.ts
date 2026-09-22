@@ -1,3 +1,5 @@
+import {settingsCategory} from './settings'
+import {setting,settingsButton} from './settings'
 import {test,expect} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
 import {toggleSettings,visualSelect} from './settings'
@@ -51,12 +53,12 @@ test('device information preference persists, exports, inherits and resets',asyn
  const toggle=page.locator('.detail-facts-toggle');await expect(toggle).toHaveAttribute('aria-expanded','false')
  await page.setViewportSize({width:900,height:900});await expect(toggle).toHaveCount(0);await expect(page.locator('#detail-fact-groups')).toBeVisible()
  await page.setViewportSize({width:899,height:900});await expect(toggle).toHaveAttribute('aria-expanded','false');await toggle.click();await page.reload();await expect(toggle).toHaveAttribute('aria-expanded','true')
- await toggleSettings(page);const select=page.getByLabel('设备资料展开方式',{exact:true});await expect(select).toHaveValue('expanded')
- const download=page.waitForEvent('download');await page.getByRole('button',{name:'导出外观偏好',exact:true}).click();const path=await (await download).path()
- await page.getByRole('button',{name:'恢复默认外观',exact:true}).click();await expect(select).toHaveValue('expanded')
- await page.getByRole('button',{name:'重置全部偏好',exact:true}).click();await expect(select).toHaveValue('auto')
- await page.getByLabel('导入外观偏好',{exact:true}).setInputFiles(path!);await expect(select).toHaveValue('expanded')
- await select.selectOption('expanded');await toggleSettings(page);await page.setViewportSize({width:390,height:844});await expect(toggle).toHaveAttribute('aria-expanded','true')
+ await toggleSettings(page);const select=(await setting(page,'设备资料展开方式',{exact:true}));await expect(select).toHaveValue('expanded')
+ const download=page.waitForEvent('download');await (await settingsButton(page,'导出外观偏好',{exact:true})).click();const path=await (await download).path()
+ await (await settingsButton(page,'恢复默认外观',{exact:true})).click();await expect(select).toHaveValue('expanded')
+ await (await settingsButton(page,'重置全部偏好',{exact:true})).click();await expect(select).toHaveValue('auto')
+ await (await setting(page,'导入外观偏好',{exact:true})).setInputFiles(path!);await expect(select).toHaveValue('expanded')
+ await settingsCategory(page,'cards');await select.selectOption('expanded');await toggleSettings(page);await page.setViewportSize({width:390,height:844});await expect(toggle).toHaveAttribute('aria-expanded','true')
  await expect(page.getByRole('region',{name:'硬件与系统',exact:true})).toContainText('1.2.3')
 })
 test('loading empty failure and success share the same history canvas',async({page})=>{
@@ -83,7 +85,7 @@ test('long identity notes expand and copy feedback does not move facts',async({p
  await page.setViewportSize({width:320,height:568});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
  await page.getByRole('button',{name:'展开备注',exact:true}).click();await expect(page.locator('.detail-meta-tags .detail-remark-tag')).toHaveCount(8)
  await page.getByRole('button',{name:'收起备注',exact:true}).click();await page.locator('.detail-facts-toggle').click()
- await expect(page.getByRole('button',{name:'复制：CPU',exact:true})).toHaveCount(0);await page.locator('section[aria-label="网络与流量"] summary').click();const button=page.getByRole('button',{name:'复制：IPv4',exact:true}),row=button.locator('xpath=ancestor::dd');const before=(await row.boundingBox())!.height
+ await expect(page.getByRole('button',{name:'复制：CPU',exact:true})).toHaveCount(0);const button=page.getByRole('button',{name:'复制：IPv4',exact:true}),row=button.locator('xpath=ancestor::dd');const before=(await row.boundingBox())!.height
  await button.click();await expect(page.getByRole('status')).toHaveText('已复制');expect((await row.boundingBox())!.height).toBe(before)
  await page.evaluate(()=>Object.defineProperty(navigator.clipboard,'writeText',{value:()=>Promise.reject(new Error('denied')),configurable:true}));await button.click()
  await expect(page.getByRole('status')).toHaveText('复制失败，请手动选择文本');expect((await row.boundingBox())!.height).toBe(before)
