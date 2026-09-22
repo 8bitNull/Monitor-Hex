@@ -6,6 +6,7 @@ test.beforeEach(async({page})=>{await page.addInitScript(()=>{if(!localStorage.g
 test('country flags appear only without map and retain the selected region',async({page})=>{
  await page.goto('/')
  await expect(page.locator('.region-atlas')).toBeVisible()
+ await expect(page.locator('.map-collapse')).toHaveCount(0)
  await expect(page.getByRole('group',{name:'地区快速筛选'})).toHaveCount(0)
  await page.locator('.region-list button[data-region="JP"]').click()
  await expect(page.locator('.node-card')).toHaveCount(1)

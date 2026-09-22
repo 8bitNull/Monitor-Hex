@@ -84,7 +84,6 @@ export const english: Record<string, string> = {
 "正在加载节点": "Loading nodes",
 "高级外观": "Advanced appearance",
 "仅影响宽度不超过 720px 的首页卡片。": "Applies to home cards at widths up to 720px.",
-"仅影响首页卡片，详情页保留完整资料。": "Applies to home cards only. Details keep all information.",
 "单独设置": "Custom settings",
 "跟随通用设置": "Follow general settings",
 "手机显示": "Mobile display",
@@ -564,8 +563,6 @@ export const english: Record<string, string> = {
   "阈值修改尚未应用":"Threshold changes have not been applied",
   "关闭搜索":"Close search",
   "找到 {0} 个节点":"{0} nodes found",
-  "展开地图":"Expand map",
-  "收起地图":"Collapse map",
   "查找线路":"Find routes",
   "没有符合条件的线路":"No matching routes"
 }
