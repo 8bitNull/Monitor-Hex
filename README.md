@@ -47,10 +47,6 @@ HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.1.2**，主题
 - “恢复默认外观”保留卡片显示与列数选择；“重置全部偏好”重新跟随站点默认。导入导出包含新选项，旧配置仍可使用。
 - 偏好保存在当前浏览器，不跨设备同步。站点默认可在 `public/theme-config.json` 中设置 `cardInfo`、`mobileInfoMode`、`mobileCardInfo`、`desktopColumns`；列数值使用字符串 `"auto"`、`"2"`、`"3"`、`"4"`。
 
-| 完整卡片 | 精简卡片 |
-| --- | --- |
-| ![完整卡片](screenshots/card-light.png) | ![精简卡片](screenshots/card-dark.png) |
-
 ## 高负载记录
 
 在主题设置中开启高负载提示。CPU 达到 85% 开始记录，低于 80% 标为恢复，避免阈值附近反复闪动。第四栏显示当前告警数量及最近事件，点击可查看开始、恢复或最后观测时间、持续时长（时:分:秒）及 CPU 峰值。
