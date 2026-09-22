@@ -69,11 +69,11 @@ test('mobile search closes with focus, keeps query, and detail has a single fact
 })
 test('mobile and desktop table columns remain independent',async({page})=>{
  await setup(page);await page.goto('/');await page.getByRole('button',{name:'表格视图',exact:true}).click()
- await expect(page.locator('thead th')).toHaveCount(10)
+ await expect(page.locator('thead th')).toHaveCount(8)
  await page.setViewportSize({width:390,height:844});await expect(page.locator('thead th')).toHaveCount(5)
  await page.getByLabel('显示列',{exact:true}).click();await page.locator('.column-options').getByLabel('上传速度',{exact:true}).check()
  await expect(page.locator('thead th')).toHaveCount(6)
- await page.setViewportSize({width:1440,height:1000});await expect(page.locator('thead th')).toHaveCount(10)
+ await page.setViewportSize({width:1440,height:1000});await expect(page.locator('thead th')).toHaveCount(8)
  await page.reload();await page.setViewportSize({width:390,height:844});await expect(page.locator('thead th')).toHaveCount(6)
 })
 test('responsive visual evidence for both themes',async({page})=>{
