@@ -17,21 +17,6 @@
 .trend-caption {font-size:10px;color:var(--muted-foreground)}
 .matrix-heading button {color:var(--muted-foreground)}
 .matrix-heading .route-select {border-color:transparent;padding-left:0}
-.node-table td,.node-table th {padding:8px 12px;height:60px}
-.node-table th {height:44px}
-.node-table td:first-child {min-width:200px}
-.node-table .table-node-name {display:inline-block;vertical-align:middle;max-width:190px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.node-table .table-node-name small {display:block;overflow:hidden;text-overflow:ellipsis}
-.table-ping {min-width:230px}
-.table-ping-value {display:flex;align-items:center;gap:8px;white-space:nowrap}
-.table-ping-value small {color:var(--muted-foreground)}
-.next-theme .table-ping-value button {display:inline-flex;align-items:center;justify-content:center;min-height:28px;min-width:28px;padding:0}
-.table-ping>.table-route {max-width:230px;margin:0;overflow:hidden;text-overflow:ellipsis;font-size:11px;line-height:18px}
-.table-metric {display:grid;gap:5px;min-width:50px;text-align:right;font-variant-numeric:tabular-nums}
-.table-metric progress {height:3px;width:100%;appearance:none;border:0;background:var(--muted);color:var(--tone)}
-.table-metric progress::-webkit-progress-bar {background:var(--muted)}
-.table-metric progress::-webkit-progress-value {background:var(--tone)}
-.table-metric progress::-moz-progress-bar {background:var(--tone)}
 .column-options {position:relative;display:flex;justify-content:flex-end;margin-bottom:8px!important}
 .column-options summary {display:grid;place-items:center;list-style:none;width:36px;height:36px;border-radius:var(--radius-control);cursor:pointer;color:var(--muted-foreground)}
 .column-options summary::-webkit-details-marker {display:none}
@@ -103,9 +88,6 @@
  .region-pills button,.system-pills button {padding:5px 8px}
  .filters>.result-count {grid-column:1/-1;grid-row:3}
  .node-browser .active-filters {display:none}
- .node-table td:first-child {min-width:140px;max-width:155px}
- .node-table .table-node-name {max-width:95px}
- .node-table td,.node-table th {padding:8px}
 
 
 
@@ -150,8 +132,7 @@
 .node-remarks .detail-remark-tag {font-size:11px;white-space:normal;overflow-wrap:anywhere}
 .node-footer:not(:has(.node-price)) .node-remarks {justify-content:flex-start}
 
-.node-table .table-node-name {max-width:230px}
-@media(max-width:720px){.node-table .table-node-name {max-width:140px}.node-remarks {flex-basis:100%;justify-content:flex-start}}
+@media(max-width:720px){.node-remarks {flex-basis:100%;justify-content:flex-start}}
 
 .node-remarks .detail-remark-tag {max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .node-remarks .remark-more {display:inline-flex;align-items:center;justify-content:center;min-width:30px;min-height:28px;padding:3px 6px;border:1px solid var(--border);border-radius:var(--radius-control);color:var(--tone);font-size:11px}
@@ -286,9 +267,7 @@
 [data-graph=ring] .route-matrix .loss-visual {width:26px;flex-shrink:0}
 [data-graph=ring] .route-matrix .loss-reading {margin:0}
 
-.table-traffic {white-space:nowrap;font-size:12px;font-variant-numeric:tabular-nums}.table-traffic small {font-size:11px;color:var(--muted-foreground)}
 
-.table-expiry {display:grid;gap:4px;white-space:nowrap;font-size:12px;font-variant-numeric:tabular-nums}.table-expiry small {font-size:10px;color:var(--muted-foreground)}.table-expiry[data-state=soon] small {color:var(--warn)}.table-expiry[data-state=expired] small {color:var(--destructive)}
 
 /* Language is a persistent preference, kept inside settings on every screen. */
 .settings-language {display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0 16px}

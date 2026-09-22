@@ -10,6 +10,7 @@
 @import "./styles/card-layouts.css";
 @import "./styles/detail-reading.css";
 @import "./styles/network-reading.css";
+@import "./styles/table.css";
 
 @source "../index.html";
 @source "../src";
