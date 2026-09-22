@@ -28,7 +28,7 @@
 .node-card .loss-stat[data-tone=fair] b {color:var(--warn)}
 .node-card .loss-stat[data-tone=bad] b {color:var(--destructive)}
 .node-card .ping-probe>.micro-trend {margin-top:5px}
-.node-card .latency-reading {display:grid;grid-template-columns:minmax(0,1fr) minmax(64px,100px) auto;align-items:center;gap:6px;min-height:44px}
+.node-card .latency-reading {display:grid;grid-template-columns:fit-content(12ch) minmax(64px,100px) auto;align-items:center;gap:6px;min-height:44px}
 .node-card .latency-reading .latency-bars {width:100%;min-width:0;margin-top:0}
 .node-card .latency-reading .latency-link {justify-self:end}
 .detail-chart-toolbar .detail-probe-legend .probe-options {width:min(430px,calc(100vw - 32px))}
@@ -61,7 +61,7 @@
 .node-card .route-matrix[data-requested-count="2"],.node-card .route-matrix[data-requested-count="3"] {min-height:0}
 .node-card .route-matrix[data-route-count="2"] .ping-probe+.ping-probe,.node-card .route-matrix[data-route-count="3"] .ping-probe+.ping-probe {margin-top:4px}
 @media(max-width:360px){
- .node-card .latency-reading {grid-template-columns:minmax(0,1fr) 48px auto}
+ .node-card .latency-reading {grid-template-columns:fit-content(10ch) 48px auto}
  .node-card .latency-link {font-size:13px}
  .node-card .latency-link small {font-size:11px}
 }

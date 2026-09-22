@@ -34,7 +34,12 @@ test('home route count shows the latency indicator for every selected route',asy
  await toggleSettings(page);await (await setting(page,'首页线路数量',{exact:true})).selectOption(count);await toggleSettings(page)
  await expect(card.locator('.ping-probe')).toHaveCount(Number(count));await expect(card.locator('.latency-bars')).toHaveCount(Number(count));await expect(card.locator('.latency-trend-caption')).toHaveCount(0)
   const reading=card.locator('.ping-probe').first().locator('.latency-reading');expect(await reading.evaluate(el=>[...el.children].map(child=>child.className||child.tagName))).toEqual(['SPAN','latency-bars','latency-link'])
- }
+}
+})
+test('latency indicator stays close to the route label',async({page})=>{
+ await page.setViewportSize({width:428,height:900});await setup(page);await page.goto('/')
+ const reading=page.locator('.node-card .ping-probe').first().locator('.latency-reading');const label=reading.locator(':scope > span');const bars=reading.locator(':scope > .latency-bars')
+ const labelBox=(await label.boundingBox())!,barsBox=(await bars.boundingBox())!;expect(barsBox.x-(labelBox.x+labelBox.width)).toBeLessThanOrEqual(12)
 })
 test('home latency window defaults to one hour and can show six or twenty-four hours',async({page})=>{
  await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[nodes()[0]]}}))
