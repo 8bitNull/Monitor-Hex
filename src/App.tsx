@@ -1,3 +1,4 @@
+import {TableColumns,TableSort} from './components/TableControls';
 import {MobileSearch} from './components/MobileSearch';
 import {countryName} from './lib/regionNames';
 import {RegionPicker} from './components/RegionPicker';
@@ -9,12 +10,12 @@ import { tr, locale, getLanguage, subscribeLanguage, setLanguage } from './lib/i
 import { readCollection } from '@/lib/collection';
 import { groupRegions, systemKey, UNKNOWN_REGION } from '@/lib/groups';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, useRef, useLayoutEffect, useSyncExternalStore } from "react";
-import {  Moon, Sun, Wrench, SlidersHorizontal, Globe, LayoutGrid, ArrowLeft, Radio, Table2, Columns3, Search, X, ArrowUp } from "lucide-react";
+import {  Moon, Sun, Wrench, SlidersHorizontal, Globe, LayoutGrid, ArrowLeft, Radio, Table2, Search, X, ArrowUp } from "lucide-react";
 import { Preferences } from '@/components/Preferences';
 import { usePreferences, useAppearance } from '@/lib/preferences';
 import { type Preferences as ThemePreferences, defaults, restoreAppearance } from '@/lib/appearance';
 import { Background, useBackground } from '@/components/Background';
-import { readBrowse, browseNodes, sortLabels, defaultBrowse, type Browse, type SortKey } from '@/lib/browse';
+import { readBrowse, browseNodes, defaultBrowse, type Browse, type SortKey } from '@/lib/browse';
 import { getPing, watchPing, pingRevision, subscribePing, probeCatalog } from '@/lib/ping';
 import { NodeTable } from '@/components/NodeTable';
 import { NodeCard } from "@/components/NodeCard";
@@ -40,7 +41,7 @@ const WorldMap = lazy(() => import('@/components/WorldMap').then(m => ({ default
 function useNodeRoute() {
     const read = () => {const match=location.pathname.match(/^\/node\/(\d+)/);return match?Number(match[1]):null;};
     const [id,setId]=useState(read);
-    const home=useRef({y:0,node:0,offset:0,width:0});
+    const home=useRef({y:0,node:0,offset:0,width:0,tableX:0,tableOffset:0,tableY:0,table:false});
     const pending=useRef(false);
     useEffect(()=>{
         const previous=history.scrollRestoration;history.scrollRestoration='manual';
@@ -55,7 +56,9 @@ function useNodeRoute() {
         const restore=()=>{
             if(stopped)return;
             const target=document.querySelector<HTMLElement>(`[data-node-id="${home.current.node}"]`);
-            if(!target){scrollTo(0,home.current.y);return;}
+            if(!target){const table=document.querySelector<HTMLElement>('.table-scroll');if(table){table.scrollTop=home.current.tableY;table.scrollLeft=home.current.tableX;}scrollTo(0,home.current.y);return;}
+            const table=document.querySelector<HTMLElement>('.table-scroll');
+            if(table&&home.current.table){table.scrollLeft=home.current.tableX;table.scrollTop+=target.getBoundingClientRect().top-table.getBoundingClientRect().top-home.current.tableOffset;}
             const top=(document.querySelector('header')?.getBoundingClientRect().bottom || 0)+12;
             const desired=home.current.width===innerWidth?Math.max(top,Math.min(home.current.offset,innerHeight-80)):top;
             scrollTo(0,scrollY+target.getBoundingClientRect().top-desired);
@@ -71,7 +74,7 @@ function useNodeRoute() {
         return()=>{stop();cancelAnimationFrame(frame);clearTimeout(timer);for(const event of ['wheel','touchstart','pointerdown','keydown'])removeEventListener(event,stop);};
     },[id]);
     return [id,(next:number|null,section?:string,query='')=>{
-        if(id===null && next!==null){const target=document.querySelector<HTMLElement>(`[data-node-id="${next}"]`);home.current={y:scrollY,node:next,offset:target?.getBoundingClientRect().top || 0,width:innerWidth};}
+        if(id===null && next!==null){const target=document.querySelector<HTMLElement>(`[data-node-id="${next}"]`);const table=document.querySelector<HTMLElement>('.table-scroll');home.current={y:scrollY,node:next,offset:target?.getBoundingClientRect().top || 0,width:innerWidth,table:!!table,tableX:table?.scrollLeft||0,tableY:table?.scrollTop||0,tableOffset:target&&table?target.getBoundingClientRect().top-table.getBoundingClientRect().top:0};}
         const anchor=section ?? (id!==null && next!==null?location.hash.slice(1):'');
         pending.current=next===null;
         history.pushState({},'',next===null?'/':`/node/${next}${query}${anchor?'#'+anchor:''}`);
@@ -131,7 +134,7 @@ export default function App({ siteDefaults = defaults }: {
     const sortBy = (key: SortKey) => patchBrowse({ sort: key, direction: browse.sort === key && browse.direction === 'asc' ? 'desc' : 'asc' });
     const nodeIds = (nodes || []).map(n => n.id).join(',');
     useEffect(() => {
-        if (!settings && (browse.sort !== 'latency' || open !== null))
+        if (!settings && (!['latency','loss'].includes(browse.sort) || open !== null))
             return;
         return watchPing(nodeIds.split(',').filter(Boolean).map(Number));
     }, [browse.sort, nodeIds, open, settings]);
@@ -171,7 +174,7 @@ export default function App({ siteDefaults = defaults }: {
     const probes = new Map<number, string>();
     sorted.forEach(n => { const d = getPing(n.id)?.data; if (d)
         probeCatalog(d).forEach(p => probes.set(p.id, p.name)); });
-    const viewSwitch = <div className="view-toolbar"><div className="view-switch"><button className={browse.view === 'cards' ? 'active' : ''} onClick={() => patchBrowse({view:'cards'})} aria-label={tr("卡片视图")} aria-pressed={browse.view === 'cards'}><LayoutGrid size={17}/>{tr("卡片")}</button><button className={browse.view === 'table' ? 'active' : ''} onClick={() => patchBrowse({view:'table'})} aria-label={tr("表格视图")} aria-pressed={browse.view === 'table'}><Table2 size={17}/>{tr("表格")}</button></div>{browse.view === 'table' && <details className="column-options"><summary title={tr("显示列")} aria-label={tr("显示列")}><Columns3 size={16}/></summary><div>{defaultBrowse.columns.map(key=><label key={key}><input type="checkbox" checked={shownColumns.includes(key)} onChange={e=>patchBrowse({[compactViewport?"mobileColumns":"columns"]:e.target.checked?defaultBrowse.columns.filter(c=>c===key||shownColumns.includes(c)):shownColumns.filter(c=>c!==key)})}/>{tr(sortLabels[key as SortKey])}</label>)}</div></details>}</div>;
+    const viewSwitch = <div className="view-toolbar"><div className="view-switch"><button className={browse.view === 'cards' ? 'active' : ''} onClick={() => patchBrowse({view:'cards'})} aria-label={tr("卡片视图")} aria-pressed={browse.view === 'cards'}><LayoutGrid size={17}/>{tr("卡片")}</button><button className={browse.view === 'table' ? 'active' : ''} onClick={() => patchBrowse({view:'table'})} aria-label={tr("表格视图")} aria-pressed={browse.view === 'table'}><Table2 size={17}/>{tr("表格")}</button></div>{browse.view === 'table' && <TableColumns browse={browse} mobile={compactViewport} onChange={patchBrowse}/>}</div>;
     const searchField = (className = '') => <div className={`node-search-control ${className}`.trim()}>
       <Search size={16} aria-hidden="true"/>
       <input type="search" value={browse.query} onChange={event => setQuery(event.target.value)} onKeyDown={event=>{if(event.key==='Escape')setMobileSearchOpen(false)}} placeholder={tr("搜索名称、地区、操作系统…")} aria-label={tr("搜索节点")}/>
@@ -263,9 +266,10 @@ export default function App({ siteDefaults = defaults }: {
 </div></section>
 
 
-            {browse.view === 'table' && browse.sort === 'latency' && <p className="sort-note">{tr("延迟采用所选线路的最新采样桶；超时、旧记录和无数据排在末尾。已读取")}{sorted.filter(n => getPing(n.id)?.data).length}/{sorted.length}{tr("个节点。")}{tr("各节点所选线路可能不同，延迟比较请注意探测目标。")}</p>}
+            {browse.view === 'table' && <TableSort browse={browse} onChange={patchBrowse}/>}
+             {browse.view === 'table' && ['latency','loss'].includes(browse.sort) && <p className="sort-note">{tr("延迟和丢包按所选线路比较；无效或旧数据排在末尾。已读取")}{sorted.filter(n => getPing(n.id)?.data).length}/{sorted.length}{tr("个节点。")}{tr("各节点所选线路可能不同，延迟比较请注意探测目标。")}</p>}
             {mapVisible && <Suspense fallback={<div className="map-placeholder"/>}><WorldMap viewSwitch={viewSwitch} nodes={sorted.filter(n=>(status==='all'||(status==='online'?n.online:!n.online))&&(system==='all'||systemKey(n.os)===system))} region={region} onRegion={setRegion}/></Suspense>}
-            {sorted.length === 0 ? (<p className="py-16 text-center text-sm text-muted-foreground">{tr("还没有节点")}</p>) : filtered.length === 0 ? (<div className="empty-state"><p>{tr("没有符合条件的节点")}</p><Button variant="outline" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); }}>{tr("清除筛选")}</Button></div>) : browse.view === "table" ? (<NodeTable nodes={filtered} browse={{...browse,columns:shownColumns}} onSort={sortBy} onOpen={id => go(id)}/>) : (<div className="node-grid" data-columns={prefs.desktopColumns}>{filtered.map(n=><NodeCard key={n.id} node={n} mobile={mobileCards} prefs={prefs} info={mobileCards && prefs.mobileInfoMode==='custom' ? prefs.mobileCardInfo || prefs.cardInfo : prefs.cardInfo} probe={prefs.probe} onOpen={()=>go(n.id)} onOpenRoutes={route=>go(n.id,"latency",`?routes=${route.kind==="all"?"all":route.id}`)}/>)}</div>)}
+            {sorted.length === 0 ? (<p className="py-16 text-center text-sm text-muted-foreground">{tr("还没有节点")}</p>) : filtered.length === 0 ? (<div className="empty-state"><p>{tr("没有符合条件的节点")}</p><Button variant="outline" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); }}>{tr("清除筛选")}</Button></div>) : browse.view === "table" ? (<NodeTable nodes={filtered} browse={{...browse,columns:shownColumns}} onSort={sortBy} onSortChange={(sort,direction)=>patchBrowse({sort,direction})} mobile={compactViewport} warn={prefs.latencyWarn} high={prefs.latencyHigh} onOpen={id => go(id)}/>) : (<div className="node-grid" data-columns={prefs.desktopColumns}>{filtered.map(n=><NodeCard key={n.id} node={n} mobile={mobileCards} prefs={prefs} info={mobileCards && prefs.mobileInfoMode==='custom' ? prefs.mobileCardInfo || prefs.cardInfo : prefs.cardInfo} probe={prefs.probe} onOpen={()=>go(n.id)} onOpenRoutes={route=>go(n.id,"latency",`?routes=${route.kind==="all"?"all":route.id}`)}/>)}</div>)}
           </>)}
       </main>
       {open === null && showScrollTop && <button type="button" className="back-to-top" aria-label={tr("返回顶部")} title={tr("返回顶部")} onClick={() => window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}><ArrowUp size={17}/></button>}

@@ -105,7 +105,6 @@
 .node-card .latency-link:hover {text-decoration:underline}.node-card .latency-link[data-tone=good] {color:var(--foreground)}.node-card .latency-link[data-tone=fair] {color:var(--warn)}.node-card .latency-link:is([data-tone=slow],[data-tone=bad],[data-tone=timeout]) {color:var(--destructive)}
 .node-card .matrix-heading .route-select {border-color:transparent;background:transparent}.node-card .matrix-heading .route-select:is(:hover,:focus-visible) {background:var(--muted);border-color:var(--border)}
 .alert-node-link {text-align:left;font-weight:600;overflow-wrap:anywhere;color:var(--tone);min-width:0}.alert-node-link:disabled {color:var(--muted-foreground);cursor:default}.load-record-title>small {font-size:10px}
-.node-table th:first-child,.node-table td:first-child {position:sticky;left:0;z-index:1;background:var(--card);box-shadow:1px 0 0 var(--border)}.node-table td:not(:first-child),.node-table th:not(:first-child) {text-align:right}.node-table .table-ping-value {justify-content:flex-end}
 
 /* Shared numeric rhythm and quieter secondary information. */
 .node-card {font-variant-numeric:tabular-nums}
@@ -257,9 +256,6 @@
  .summary-grid>div {padding:10px 12px}
  .summary-grid .load-latest-name,.summary-grid .load-latest-time,.summary-grid .load-empty {display:none}
  .summary-grid .h-7 {display:none}
- .node-table td:first-child {min-width:128px;max-width:150px}
- .node-table .table-node-name {max-width:128px;white-space:normal;overflow-wrap:anywhere}
- .table-ping {min-width:150px}.table-ping-value {flex-wrap:wrap}
 }
 
 @media(max-width:720px){
