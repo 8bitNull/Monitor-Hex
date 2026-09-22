@@ -68,7 +68,7 @@ button,select { cursor:pointer; }
 .background-input input { border:1px solid var(--border); background:var(--background); border-radius:var(--radius-control); padding:10px 12px; font-size:var(--text-small); width:100%; min-width:0; }
 .background-input p { flex-basis:100%; color:var(--destructive); }
 .preferences button,.import-control { border:1px solid var(--border); border-radius:var(--radius-control); padding:9px 12px; font-size:var(--text-small); background:var(--background); cursor:pointer; }
-.preferences button:hover,.import-control:hover { border-color:var(--tone); }
+.preferences button:hover,.import-control:hover { border-color:var(--border); }
 .background-presets { display:flex; gap:8px; margin-bottom:20px; }
 .module-switches { display:flex; flex-wrap:wrap; gap:16px 24px; }
 .preference-actions { display:flex; flex-wrap:wrap; gap:10px; border-top:1px solid var(--border); padding-top:20px; margin-top:24px; }

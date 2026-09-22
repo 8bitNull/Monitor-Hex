@@ -69,6 +69,6 @@ for(const width of [320,390,430,720,721,1024,1440,1920])test('column safety and 
    expect(await card.evaluate(el=>[...el.querySelectorAll('.resource')].every(r=>[...r.querySelectorAll('.bar-number,.metric-ring strong,.resource small')].every(n=>{const box=n.getBoundingClientRect(),parent=r.getBoundingClientRect();return !box.width||(box.right<=parent.right+1&&box.left>=parent.left-1)})))).toBeTruthy()
   }
  }
- await toggleSettings(page);await settingsCategory(page,'appearance');await expect(page.locator('.advanced-appearance')).not.toHaveAttribute('open','');await page.locator('.advanced-appearance>summary').click();await expect(page.getByLabel(language==='zh'?'背景图片地址':'Background image URL',{exact:true})).toBeVisible();await toggleSettings(page)
+ await toggleSettings(page);await settingsCategory(page,'appearance');await expect(page.locator('.advanced-appearance')).toBeVisible();await expect(page.getByLabel(language==='zh'?'背景图片地址':'Background image URL',{exact:true})).toBeVisible();await toggleSettings(page)
  }
 })

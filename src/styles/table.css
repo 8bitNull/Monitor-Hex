@@ -68,6 +68,10 @@
 .table-sort-toolbar label {display:flex;align-items:center;gap:8px}
 .table-sort-toolbar select {max-width:240px;min-height:44px;background:var(--card);border:1px solid var(--border);padding:0 8px;color:var(--foreground)}
 .table-sort-toolbar button {min-height:44px;color:var(--tone)}
+.view-toolbar .table-sort-toolbar {margin:0;gap:6px;flex-wrap:nowrap}
+.view-toolbar .table-sort-toolbar label {gap:6px;white-space:nowrap}
+.view-toolbar .table-sort-toolbar select {max-width:190px}
+.view-toolbar .table-sort-toolbar button {display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 8px;white-space:nowrap}
 .column-options[open]>div {width:288px;max-height:min(650px,75dvh);overflow:auto;z-index:20}
 .column-options[open]>div>label {display:flex;align-items:center;gap:10px;min-height:44px;font-size:12px}
 .column-options label select {margin-left:auto;min-height:44px}
@@ -98,6 +102,12 @@
  .table-shell[data-right=true]:after {opacity:1}
  .table-shell[data-left=true] .node-table td:first-child {box-shadow:3px 0 5px -3px #0005}
  .table-sort-toolbar select {max-width:calc(100vw - 125px)}
+ .mobile-toolbar-actions .view-toolbar {max-width:100%;gap:4px}
+ .mobile-toolbar-actions .view-toolbar .table-sort-toolbar {min-width:0;gap:4px}
+ .mobile-toolbar-actions .view-toolbar .table-sort-toolbar label {font-size:0;gap:0}
+ .mobile-toolbar-actions .view-toolbar .table-sort-toolbar select {max-width:130px;min-width:0}
+ .mobile-toolbar-actions .view-toolbar .table-sort-toolbar button {width:44px;padding:0}
+ .mobile-toolbar-actions .view-toolbar .table-sort-reset-label {display:none}
 }
 /* Native rows remain in the accessibility tree; offscreen paint can be deferred. */
 .node-table tbody tr {content-visibility:auto;contain-intrinsic-block-size:auto 68px}

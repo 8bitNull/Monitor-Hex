@@ -27,7 +27,7 @@ export function PingStats({ online = true, id, probe = "auto", onOpenRoutes, cou
      </div>
      <LossMetric value={online?s.loss:null}/>
     </div>
-    {s.id===primary.id&&<><LatencyBars key={`${id}:${s.id}`} rows={s.rows} scale={scale} warn={warn} high={high}/><p className="latency-trend-caption">{tr('最近 {0} 分钟 · 采样 · 0–{1} ms',Math.max(1,Math.round((s.latest.ts-(s.rows[0]?.ts??s.latest.ts))/60)),scale)}</p></>}
+    <><LatencyBars key={`${id}:${s.id}`} rows={s.rows} scale={scale} warn={warn} high={high}/><p className="latency-trend-caption">{tr('最近 {0} 分钟 · 采样 · 0–{1} ms',Math.max(1,Math.round((s.latest.ts-(s.rows[0]?.ts??s.latest.ts))/60)),scale)}</p></>
     {Date.now()/1000-s.latest.ts>7200&&<p className="ping-stale">{tr("较旧记录")}</p>}
    </div>)}
   </>}

@@ -1,5 +1,5 @@
 import {useEffect,useRef} from 'react'
-import {Columns3} from 'lucide-react'
+import {Columns3,RotateCcw} from 'lucide-react'
 import {defaultBrowse,tablePreset,sortLabels,type Browse,type SortKey} from '@/lib/browse'
 import {tr} from '@/lib/i18n'
 export function TableColumns({browse,mobile,onChange}:{browse:Browse;mobile:boolean;onChange:(patch:Partial<Browse>)=>void}) {
@@ -18,5 +18,5 @@ export function TableColumns({browse,mobile,onChange}:{browse:Browse;mobile:bool
  </details>
 }
 export function TableSort({browse,onChange}:{browse:Browse;onChange:(patch:Partial<Browse>)=>void}) {
- return <div className="table-sort-toolbar"><label>{tr('表格排序')}<select aria-label={tr('表格排序')} value={browse.sort==='default'?'default':`${browse.sort}:${browse.direction}`} onChange={e=>{const [sort,direction]=e.target.value.split(':');onChange({sort:sort as SortKey,direction:direction==='desc'?'desc':'asc'})}}><option value="default">{tr('后台默认')}</option>{Object.entries(sortLabels).filter(([key])=>key!=='default').flatMap(([key,label])=>(['asc','desc'] as const).map(dir=><option key={`${key}:${dir}`} value={`${key}:${dir}`}>{tr(label)} · {tr(dir==='asc'?'升序':'降序')}</option>))}</select></label>{browse.sort!=='default'&&<button onClick={()=>onChange({sort:'default',direction:'asc'})}>{tr('恢复默认顺序')}</button>}</div>
+ return <div className="table-sort-toolbar"><label>{tr('表格排序')}<select aria-label={tr('表格排序')} value={browse.sort==='default'?'default':`${browse.sort}:${browse.direction}`} onChange={e=>{const [sort,direction]=e.target.value.split(':');onChange({sort:sort as SortKey,direction:direction==='desc'?'desc':'asc'})}}><option value="default">{tr('后台默认')}</option>{Object.entries(sortLabels).filter(([key])=>key!=='default').flatMap(([key,label])=>(['asc','desc'] as const).map(dir=><option key={`${key}:${dir}`} value={`${key}:${dir}`}>{tr(label)} · {tr(dir==='asc'?'升序':'降序')}</option>))}</select></label>{browse.sort!=='default'&&<button type="button" aria-label={tr('恢复默认顺序')} title={tr('恢复默认顺序')} onClick={()=>onChange({sort:'default',direction:'asc'})}><RotateCcw size={16} aria-hidden="true"/><span className="table-sort-reset-label">{tr('恢复默认顺序')}</span></button>}</div>
 }

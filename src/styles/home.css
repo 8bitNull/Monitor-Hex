@@ -161,8 +161,7 @@
 .settings-drawer .mobile-info-control select {width:auto;min-height:44px;max-width:100%}
 .settings-drawer .mobile-info-options {margin-top:12px;padding:12px;background:var(--background);border-radius:10px}
 .settings-drawer .advanced-appearance {margin-top:28px;border-top:1px solid var(--border);padding-top:8px}
-.settings-drawer .advanced-appearance>summary {min-height:44px;align-content:center;font-size:13px;font-weight:600;cursor:pointer}
-.settings-drawer .advanced-appearance>summary:focus-visible {outline:2px solid var(--tone);outline-offset:2px}
+.settings-drawer .advanced-appearance>h3 {font-size:13px;font-weight:600}
 .settings-drawer .advanced-appearance fieldset {margin-top:10px}
 @media(max-width:360px){.settings-drawer .card-info-switches {grid-template-columns:1fr}.settings-drawer .mobile-info-control select {width:100%}}
 /* Stable live readings: the unit has its own slot, including unknown values. */
@@ -210,7 +209,7 @@
 .settings-drawer .preset-heading {display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;font-size:12px}
 .settings-drawer .preset-heading small {color:var(--muted-foreground);font-size:11px}
 .settings-drawer .info-presets [role=group] {display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.settings-drawer .info-presets button {min-width:0;min-height:76px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:12px;border:1px solid var(--muted-foreground);border-radius:10px;background:transparent;text-align:left;color:var(--foreground)}
+.settings-drawer .info-presets button {min-width:0;min-height:76px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:12px;border:1px solid var(--border);border-radius:10px;background:transparent;text-align:left;color:var(--foreground)}
 .settings-drawer .info-presets button>span {display:flex;align-items:center;gap:5px;min-height:20px;font-size:13px;font-weight:600}
 .settings-drawer .info-presets button small {font-size:11px;line-height:1.6;color:var(--muted-foreground)}
 .settings-drawer .info-presets button[aria-pressed=true] {border-color:var(--tone);background:var(--tone-soft)}
@@ -218,7 +217,7 @@
 .settings-drawer .mobile-info-options {padding:16px}
 .settings-drawer .mobile-info-options .info-presets {margin-top:0}
 .settings-drawer .card-layout-controls {margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
-.settings-drawer select {border-color:var(--muted-foreground)}
+.settings-drawer select {border-color:var(--border)}
 .settings-drawer :is(.graph-options,.density-options) button {position:relative}
 .settings-drawer :is(.graph-options,.density-options) button[aria-pressed=true]::after {content:'✓';position:absolute;top:2px;right:5px;font-size:11px}
 .next-theme :is(button,select,input,summary):focus-visible {outline:2px solid var(--tone);outline-offset:3px}

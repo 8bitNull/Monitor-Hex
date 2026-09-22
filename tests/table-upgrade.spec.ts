@@ -14,6 +14,11 @@ test('grouped table fits desktop and sorts each network metric independently',as
  await page.getByLabel('表格排序',{exact:true}).selectOption('latency:desc');await expect(page.locator('.table-node-name').last()).toContainText('Node 5')
  await page.getByRole('button',{name:'恢复默认顺序',exact:true}).click();await expect(page.locator('.table-node-name').first()).toContainText('Node 1')
 })
+test('table sorting sits before the card and table controls',async({page})=>{
+ await setup(page);await table(page)
+ const toolbar=page.locator('.view-toolbar');await expect(toolbar.locator('.table-sort-toolbar')).toHaveCount(1);await expect(toolbar.locator('.view-switch')).toHaveCount(1);await expect(toolbar.locator('.column-options')).toHaveCount(1);await expect(page.locator('.node-browser + .table-sort-toolbar')).toHaveCount(0)
+ const order=await toolbar.evaluate(element=>Array.from(element.children).map(child=>child.className));expect(order[0]).toBe('table-sort-toolbar');expect(order[1]).toBe('view-switch');expect(order[2]).toContain('column-options')
+})
 test('legacy columns remain reversible and grouped mode never revives a hidden direction',async({page})=>{
  await setup(page);await page.addInitScript(()=>{if(!sessionStorage.getItem('monitor-next-browse-v1'))sessionStorage.setItem('monitor-next-browse-v1',JSON.stringify({columnsVersion:3,columns:['cpu','download','latency'],mobileColumns:[]}))})
  await table(page);await expect(page.locator('thead th')).toHaveCount(5)

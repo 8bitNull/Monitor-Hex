@@ -39,3 +39,15 @@ test('each card layout fits its indicator, keeps data visible and persists selec
  await page.reload();await expect(card).toHaveAttribute('data-indicator','minimal')
  await expect(card.locator('.latency-columns')).toBeHidden()
 })
+test('unselected settings controls keep neutral borders',async({page})=>{
+ await page.goto('/');await toggleSettings(page)
+ const colors=await page.locator('.settings-drawer').evaluate(drawer=>{
+  const styles=getComputedStyle(drawer),read=(name:string)=>{const probe=document.createElement('span');probe.style.color=styles.getPropertyValue(name).trim();document.body.append(probe);const color=getComputedStyle(probe).color;probe.remove();return color}
+  return {border:read('--border')}
+ })
+ await settingsCategory(page,'cards')
+ for(const selector of ['.graph-options button[aria-pressed=false]','.density-options button[aria-pressed=false]','.info-presets button[aria-pressed=false]']){
+  const button=page.locator(selector).first();await button.hover();await expect(button).toHaveCSS('border-top-color',colors.border)
+ }
+ await settingsCategory(page,'appearance');const swatch=page.locator('.palette-options button[aria-pressed=false]').first();await swatch.hover();await expect(swatch).toHaveCSS('border-top-color','rgba(0, 0, 0, 0)')
+})

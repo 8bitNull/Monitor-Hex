@@ -54,6 +54,7 @@
 .palette-options {flex-wrap:wrap}
 .preferences .palette-options button {display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;min-height:40px;box-sizing:border-box;padding:0;line-height:1;border:2px solid transparent}
 .preferences .palette-options button[aria-pressed=true] {border-color:var(--tone)}
+.preferences .palette-options button:not([aria-pressed=true]):hover {border-color:transparent}
 .palette-options i {display:block;margin:0;width:22px;height:22px;background:var(--swatch);border-radius:50%}
 .graph-options button,.density-options button {display:flex;flex:1;flex-direction:column;align-items:center;gap:5px;padding:8px 4px;border:1px solid var(--border)}
 .graph-options button[aria-pressed=true],.density-options button[aria-pressed=true] {background:var(--tone-soft);border-color:var(--tone);color:var(--tone)}

@@ -12,7 +12,7 @@ for(const width of [320,390,720,900,1440])test(`network readings fit in both lan
  for(const language of ['zh','en'])for(const appearance of ['light','dark']){
   await page.addInitScript(({language,appearance})=>{localStorage.setItem('monitor-next-language',language);const p=JSON.parse(localStorage.getItem('monitor-next')!);localStorage.setItem('monitor-next',JSON.stringify({...p,appearance}))},{language,appearance})
   await page.goto('/');const card=page.locator('.node-card');await expect(card.locator('.ping-probe')).toHaveCount(3)
-  await expect(card.locator('.latency-bars')).toHaveCount(1);await expect(card.locator('.latency-timeout')).toHaveCount(1)
+  await expect(card.locator('.latency-bars')).toHaveCount(3);await expect(card.locator('.latency-timeout')).toHaveCount(3)
   await expect(card.locator('.speed-direction')).toHaveText(language==='zh'?['实时上行','实时下行']:['Live upload','Live download'])
   const controls=card.locator('.latency-link');for(const button of await controls.all()){await button.scrollIntoViewIfNeeded();const b=(await button.boundingBox())!;expect(await button.evaluate((el,{x,y})=>el.contains(document.elementFromPoint(x,y)),{x:b.x+b.width/2,y:b.y+b.height/2})).toBeTruthy()}
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
@@ -27,6 +27,13 @@ for(const width of [320,390,720,900,1440])test(`network readings fit in both lan
   if(language==='zh'&&appearance==='light')await page.locator('.detail-history').screenshot({path:`tests/artifacts/v013/latency-${width}.png`})
  }
  expect(errors).toEqual([])
+})
+test('home route count shows the latency indicator for every selected route',async({page})=>{
+ await setup(page);await page.goto('/');const card=page.locator('.node-card')
+ for(const count of ['1','2','3']){
+  await toggleSettings(page);await (await setting(page,'首页线路数量',{exact:true})).selectOption(count);await toggleSettings(page)
+  await expect(card.locator('.ping-probe')).toHaveCount(Number(count));await expect(card.locator('.latency-bars')).toHaveCount(Number(count));await expect(card.locator('.latency-trend-caption')).toHaveCount(Number(count))
+ }
 })
 test('loss timeline preserves zero, unknown and timeout and follows selected routes',async({page})=>{
  await setup(page);await page.goto('/node/1?routes=1,2,3#latency')
