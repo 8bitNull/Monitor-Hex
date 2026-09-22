@@ -1,4 +1,6 @@
 import {test,expect} from '@playwright/test'
+test.beforeEach(async({page})=>{await page.addInitScript(()=>{if(!localStorage.getItem('monitor-next'))localStorage.setItem('monitor-next',JSON.stringify({schemaVersion:3,infoDensity:'full',modules:{map:true}}))})})
+
 test('map supports zoom, pan, fit, filtering and fullscreen without stealing page scroll',async({page})=>{
  await page.goto('/')
  const map=page.locator('.explorer-map'),svg=map.locator('.explorer-stage>svg')

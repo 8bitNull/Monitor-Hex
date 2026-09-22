@@ -35,7 +35,7 @@ test('mobile retained data shows successful timestamp, new range does not',async
  await page.getByRole('button',{name:'24 小时',exact:true}).click();await expect(page.locator('.history-notice')).toContainText('读取历史数据失败');await expect(page.locator('.history-retained-time')).toHaveCount(0)
 })
 test('mobile long facts use full row and copy full value',async({page,context})=>{
- await context.grantPermissions(['clipboard-read','clipboard-write']);await setup(page,320);await page.locator('.detail-facts-toggle').click();await page.locator('section[aria-label="网络与流量"] summary').click()
+ await context.grantPermissions(['clipboard-read','clipboard-write']);await setup(page,320);await page.locator('.detail-facts-toggle').click()
  await expect(page.getByRole('button',{name:'复制：CPU',exact:true})).toHaveCount(0);for(const label of ['IPv6']){const copy=page.getByRole('button',{name:`复制：${label}`,exact:true}),row=copy.locator('xpath=ancestor::dd/..'),dt=(await row.locator('dt').boundingBox())!,dd=(await row.locator('dd').boundingBox())!;expect(dd.y).toBeGreaterThanOrEqual(dt.y+dt.height);expect(Math.abs(dd.x-dt.x)).toBeLessThanOrEqual(1);await copy.click();expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe(await row.locator('.fact-value').textContent());expect((await copy.boundingBox())!.width).toBeGreaterThanOrEqual(44)}
  await page.getByRole('button',{name:'展开备注',exact:true}).focus();await page.keyboard.press('Enter');await expect(page.getByRole('button',{name:'收起备注',exact:true})).toBeFocused()
 })

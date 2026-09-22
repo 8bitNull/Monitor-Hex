@@ -1,7 +1,8 @@
+import {settingsCategory} from './settings'
 import {test,expect} from '@playwright/test'
 import {toggleSettings,visualSelect} from './settings'
 test('palette swatches are centred at desktop and mobile widths',async({page})=>{
- await page.goto('/');await toggleSettings(page)
+ await page.goto('/');await toggleSettings(page);await settingsCategory(page,'appearance')
  for(const width of [1440,390,320]){
   await page.setViewportSize({width,height:1000})
   for(const b of await page.locator('.palette-options button').all()){

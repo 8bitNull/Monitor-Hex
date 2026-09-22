@@ -1,5 +1,5 @@
 import {test,expect} from '@playwright/test'
-import {toggleSettings} from './settings'
+import {toggleSettings,settingsCategory} from './settings'
 
 for(const width of [320,390,1440]){
  test('language lives in settings and persists at '+width+'px',async({page})=>{
@@ -7,7 +7,7 @@ for(const width of [320,390,1440]){
   if(width===390)await page.addInitScript(()=>localStorage.setItem('monitor-next',JSON.stringify({designVersion:1,appearance:'dark'})))
   await page.goto('/')
   await expect(page.locator('header').getByLabel('Language / 语言')).toHaveCount(0)
-  await toggleSettings(page)
+  await toggleSettings(page);if(await page.locator('.settings-drawer').isVisible())await settingsCategory(page,'other')
   const drawer=page.locator('dialog.settings-drawer')
   const language=drawer.getByRole('group',{name:'Language / 语言'})
   await expect(language.getByRole('button',{name:'简体中文'})).toHaveAttribute('aria-pressed','true')
@@ -26,12 +26,12 @@ for(const width of [320,390,1440]){
   await page.screenshot({path:`tests/artifacts/language-settings-${width}-en.png`})
   await page.keyboard.press('Escape')
   await expect(page.locator('header').getByRole('button',{name:'Appearance',exact:true})).toBeFocused()
-  await page.reload();await toggleSettings(page)
+  await page.reload();await toggleSettings(page);if(await page.locator('.settings-drawer').isVisible())await settingsCategory(page,'other')
   await expect(language.getByRole('button',{name:'English',exact:true})).toHaveAttribute('aria-pressed','true')
   await language.getByRole('button',{name:'简体中文'}).click()
   await expect(page.locator('html')).toHaveAttribute('lang','zh-CN')
   await page.screenshot({path:`tests/artifacts/language-settings-${width}-zh.png`})
-  await toggleSettings(page)
+  await toggleSettings(page);if(await page.locator('.settings-drawer').isVisible())await settingsCategory(page,'other')
   expect(await page.evaluate(()=>document.body.style.overflow)).not.toBe('hidden')
   await page.screenshot({path:`tests/artifacts/language-header-${width}.png`})
  })
