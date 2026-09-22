@@ -59,11 +59,11 @@ export function DetailFacts({node,mode,compact,onMode}:{node:Node;mode:Preferenc
      </dl>
    </FactSection>
    <FactSection label={tr("费用与到期")} Icon={WalletCards} compact={compact} defaultOpen={false}>
-     <div className={`billing-status billing-status-${billingState}`} data-state={billingState}><span className="billing-status-dot"/><strong>{billingLabel}</strong></div>
      <dl className="detail-facts">
        <Fact label={tr("到期")} value={expiryLabel} warning={days!==null && days<=7}/>
        <Fact label={tr("续费")} value={node.price > 0 ? `${money(node.price, node.currency)} / ${tr(Object.hasOwn(CYCLES, node.billing_cycle) ? CYCLES[node.billing_cycle] : node.billing_cycle)}` : node.price === 0 ? tr("零价：免费或未填写") : tr("价格未知")}/>
      </dl>
+     <div className={`billing-status billing-status-${billingState}`} data-state={billingState}><span className="billing-status-dot"/><strong>{billingLabel}</strong></div>
    </FactSection>
  </div></div>;
 }

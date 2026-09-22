@@ -1,0 +1,67 @@
+/* Network values lead; direction colors identify marks, never imply capacity. */
+.node-card[data-indicator] .speed-indicators>div,.detail-live .speed-indicators>div {display:grid;grid-template-columns:16px minmax(0,1fr);gap:5px 6px;min-width:0}
+.speed-indicators .speed-direction {grid-column:2;grid-row:1;font-size:11px;color:var(--muted-foreground);white-space:nowrap}
+.node-card[data-indicator] .speed-indicators>div>svg:first-child,.detail-live .speed-indicators>div>svg:first-child {grid-column:1;grid-row:1;justify-self:start}
+.node-card[data-indicator] .speed-indicators strong,.detail-live .speed-indicators strong {grid-column:1/-1;grid-row:2;display:flex;align-items:baseline;justify-content:flex-start;gap:4px;min-width:0;margin:0;color:var(--foreground);font-size:20px;line-height:1.4;white-space:nowrap;font-variant-numeric:tabular-nums}
+.node-card[data-indicator] .speed-indicators strong small,.detail-live .speed-indicators strong small {display:inline-block;min-width:4ch;margin:0;font-size:11px;color:var(--muted-foreground)}
+.node-card[data-indicator] .speed-indicators .speed-track {height:3px}
+.node-card[data-indicator=ring] .speed-indicators .speed-ring {grid-column:2;grid-row:1;justify-self:end;width:20px;height:20px}
+.node-card[data-indicator=ring] .speed-direction {padding-right:22px}
+.micro-trend {position:relative;min-width:0;color:var(--tone);height:24px}
+.micro-trend svg {display:block;width:100%;height:100%;overflow:hidden}
+.micro-empty {position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted-foreground);font-size:11px;background:var(--card)}
+.speed-trend {grid-column:1/-1;min-width:0}
+.speed-trend .micro-trend {height:40px;color:inherit}
+.speed-trend-caption,.latency-trend-caption {display:block;font-size:11px;color:var(--muted-foreground);margin:4px 0 0;line-height:1.4}
+.detail-live .detail-speed .speed-track,.detail-live .detail-speed .speed-columns,.detail-live .detail-speed .speed-ring {display:none}
+.node-card .latency-link[data-tone] {color:var(--foreground)}
+.node-card .latency-link[data-tone=timeout] {color:var(--destructive)}
+.node-card .route-matrix .matrix-values {display:flex;justify-content:space-between;align-items:center;gap:10px}
+.node-card .latency-stat {min-width:0;flex:1}
+.node-card .loss-stat {display:block!important;width:auto;min-width:0;flex-shrink:0;color:var(--muted-foreground)}
+.node-card .loss-stat .loss-visual {display:none}
+.node-card .loss-stat .loss-reading {display:flex;align-items:baseline;gap:5px;white-space:nowrap}
+.node-card .loss-stat .loss-reading small {font-size:11px}
+.node-card .loss-stat .loss-reading b {font-size:12px;font-weight:500;font-variant-numeric:tabular-nums}
+.node-card .loss-stat[data-tone=fair] b {color:var(--warn)}
+.node-card .loss-stat[data-tone=bad] b {color:var(--destructive)}
+.node-card .ping-probe>.micro-trend {margin-top:5px}
+.detail-chart-toolbar .detail-probe-legend .probe-options {width:min(430px,calc(100vw - 32px))}
+.detail-chart-toolbar .probe-select {grid-template-columns:14px 16px minmax(0,1fr) 8ch 11ch;gap:5px}
+.detail-chart-toolbar .probe-label {max-width:none}
+.detail-chart-toolbar .probe-select b,.detail-chart-toolbar .probe-loss {text-align:right;font-variant-numeric:tabular-nums}
+.loss-track {padding:10px 10px 6px;min-width:0;border-top:1px solid var(--border);font-size:11px}
+.loss-track-heading {display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--muted-foreground)}
+.loss-track-heading label {display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+.loss-track-heading label>span {overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loss-track-heading select {min-width:0;max-width:75%;height:32px;background:var(--card);color:var(--foreground);border:1px solid var(--border);border-radius:5px;padding:0 5px}
+.loss-track-plot {margin:8px -5px 0 47px;height:36px}
+.loss-track-plot svg {display:block;width:100%;height:36px;touch-action:pan-y}
+.loss-track-scrubber {display:block;width:calc(100% - 42px);height:20px;margin-left:47px;accent-color:var(--tone)}
+.loss-track-reading {display:flex;flex-wrap:wrap;gap:6px 14px;min-height:20px;color:var(--muted-foreground);font-variant-numeric:tabular-nums}
+.detail-history-body:has(.loss-track) {height:auto;min-height:0}
+@media(max-width:600px){
+ .node-card[data-indicator] .speed-indicators strong {font-size:18px}
+ .detail-chart-toolbar .detail-probe-legend .probe-options {left:50%;width:min(310px,calc(100vw - 32px));transform:translateX(-50%)}
+ .detail-chart-toolbar .probe-select {grid-template-columns:12px 12px minmax(0,1fr) 7ch 10ch;gap:4px;padding-inline:4px}
+ .loss-track-heading select {height:44px}
+ .loss-track-scrubber {height:32px}
+}
+
+.node-card .loss-stat .loss-reading small {display:inline}
+.node-card .latency-reading {margin-bottom:0}
+.node-card .latency-link {flex-shrink:0}
+.node-card .route-matrix {min-height:128px}
+.node-card .route-matrix[data-requested-count="2"] {min-height:164px}
+.node-card .route-matrix[data-requested-count="3"] {min-height:200px}
+
+.node-card[data-indicator] .speed-indicators strong {flex-direction:row;flex-wrap:nowrap}
+.node-card .route-matrix .loss-stat {align-self:center}
+.node-card .loss-stat .loss-reading {margin:0;min-height:0}
+.loss-track-heading label {white-space:nowrap}
+.loss-track-heading select {flex:1;width:0;max-width:320px;text-overflow:ellipsis}
+.loss-track-scrubber {appearance:none;background:transparent;cursor:pointer}
+.loss-track-scrubber::-webkit-slider-runnable-track {height:2px;background:var(--border)}
+.loss-track-scrubber::-webkit-slider-thumb {appearance:none;width:12px;height:12px;margin-top:-5px;background:var(--tone);border-radius:50%}
+.loss-track-scrubber::-moz-range-track {height:2px;background:var(--border)}
+.loss-track-scrubber::-moz-range-thumb {width:12px;height:12px;border:0;background:var(--tone);border-radius:50%}

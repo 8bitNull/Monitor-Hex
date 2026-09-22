@@ -1,3 +1,4 @@
+import {SpeedBuffer} from './trends.ts'
 import {liveMetrics} from './freshness.ts'
 import { useEffect, useState } from "react"
 
@@ -93,11 +94,14 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
 const KEEP = 60
 export const speedHistory: { rx: number; tx: number }[] = []
 
+const networkSamples = new SpeedBuffer()
+export const nodeSpeedSamples = (id:number) => networkSamples.get(id)
 const nodeSpeedHistory = new Map<number, number[]>()
 export function nodeSpeedPeak(id: number): number {
   return Math.max(1, ...(nodeSpeedHistory.get(id) ?? []))
 }
 function sample(nodes: Node[]) {
+  networkSamples.update(nodes.flatMap(node=>{const m=liveMetrics(node);return m?[{id:node.id,ts:node.last_seen,tx:m.net_tx,rx:m.net_rx}]:[]}),nodes.filter(n=>liveMetrics(n)!==null).map(n=>n.id),Date.now()/1000)
   const ids = new Set(nodes.map(n => n.id))
   for (const id of nodeSpeedHistory.keys()) if (!ids.has(id)) nodeSpeedHistory.delete(id)
   for (const node of nodes) {

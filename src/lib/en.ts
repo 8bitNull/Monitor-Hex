@@ -490,5 +490,12 @@ export const english: Record<string, string> = {
  "全屏地图":"Fullscreen map",
  "拖拽移动；Ctrl / ⌘ + 滚轮缩放，全屏内直接滚轮缩放。地图表示地区分组，不是机房精确位置。":"Drag to pan; Ctrl / ⌘ + scroll to zoom, or scroll directly in fullscreen. Locations represent regions, not exact datacentres.",
   "选择地区": "Select region",
-  "{0} 个节点": "{0} nodes"
+  "{0} 个节点": "{0} nodes",
+  "积累数据中":"Collecting samples",
+  "最近 60 秒网速":"Network speed over the last 60 seconds",
+  "最近 60 秒":"Last 60s",
+  "最近 {0} 分钟 · 采样趋势":"Last {0} min · sampled trend",
+  "丢包时间轨道":"Packet loss timeline",
+  "丢包线路":"Loss route",
+  "查看丢包采样":"Inspect packet loss sample"
 }

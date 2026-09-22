@@ -9,6 +9,7 @@
 @import "./styles/mobile-browser.css";
 @import "./styles/card-layouts.css";
 @import "./styles/detail-reading.css";
+@import "./styles/network-reading.css";
 
 @source "../index.html";
 @source "../src";

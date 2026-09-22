@@ -294,7 +294,7 @@ main:has(>.node-detail)>.detail-navigation {margin-bottom:4px}
 .detail-fact-disclosure>summary h3 {margin:0!important}
 .detail-fact-disclosure>summary>svg {flex-shrink:0;color:var(--muted-foreground);transition:transform .16s ease}
 .detail-fact-disclosure[open]>summary>svg {transform:rotate(180deg)}
-.billing-status {display:flex;align-items:center;gap:8px;min-height:36px;margin:0 0 14px;padding:7px 10px;border:1px solid color-mix(in srgb,var(--muted-foreground) 24%,var(--detail-line));border-radius:8px;background:var(--muted);font-size:12px}
+.billing-status {display:flex;align-items:center;gap:8px;min-height:36px;margin:14px 0 0;padding:7px 10px;border:1px solid color-mix(in srgb,var(--muted-foreground) 24%,var(--detail-line));border-radius:8px;background:var(--muted);font-size:12px}
 .billing-status-dot {width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:var(--muted-foreground)}
 .billing-status strong {font-weight:600}
 .billing-status-normal {border-color:color-mix(in srgb,var(--ok) 30%,var(--detail-line));background:color-mix(in srgb,var(--ok) 7%,var(--card));color:var(--ok)}

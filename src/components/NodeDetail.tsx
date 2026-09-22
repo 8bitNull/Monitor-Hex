@@ -1,3 +1,4 @@
+import {LossTrack} from './LossTrack'
 import {ChevronDown} from 'lucide-react'
 import {ChartTooltip,useChartTooltip} from './ChartTooltip'
 import type {Preferences} from '@/lib/appearance'
@@ -294,7 +295,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
             // `dataKey` is `t7`/`s7`; the loss sits at `l7`.
             formatter={(v, name, item) => {
                     const loss = item?.payload?.[`l${String(item.dataKey).slice(1)}`];
-                    return [<><span>{Number.isFinite(Number(v))?Number(Number(v).toFixed(1)):"—"} ms</span>{loss == null ? <small className="tooltip-loss"> · {tr("丢")} —</small> : loss > 0 ? <small className="tooltip-loss">{tr(" \u00B7 丢 {0}%",loss)}</small> : null}</>, name];
+                    return [<><span>{Number.isFinite(Number(v))?Number(Number(v).toFixed(1)):"—"} ms</span>{loss == null ? <small className="tooltip-loss"> · {tr("丢")} —</small> : <small className="tooltip-loss">{tr(" \u00B7 丢 {0}%",loss)}</small>}</>, name];
                 }} contentStyle={{ fontSize: 12 }}/>
                     {/* Behind the line, the range that bucket's answers
                     spanned -- Smokeping's "smoke". At the day window a
@@ -313,7 +314,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
                   </ComposedChart>
                 </ResponsiveContainer>)}
             </div>
-
+            {shownProbes.length>0&&pingRows.length>0&&<LossTrack key={`${node.id}:${hours}`} series={shownProbes} preferred={defaultProbe} start={pingRows[Math.min(zoom?.[0]??0,pingRows.length-1)].ts} end={pingRows[Math.min(zoom?.[1]??pingRows.length-1,pingRows.length-1)].ts}/>}
           </div>)) : (data.metrics ?? []).length === 0 ? (<HistoryState message={tr("这段时间没有历史数据")}/>) : (<ResourceHistory compact={compact} rows={metricRows} node={node} hours={hours} metric={resourceMetric}/>)}
       </div></section>
 

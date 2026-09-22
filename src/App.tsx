@@ -63,7 +63,9 @@ function useNodeRoute() {
         const main=document.querySelector('main');if(main)observer.observe(main);
         const stop=()=>{stopped=true;observer.disconnect();};
         for(const event of ['wheel','touchstart','pointerdown','keydown'])addEventListener(event,stop,{passive:true,once:true});
-        const frame=requestAnimationFrame(restore),timer=setTimeout(stop,500);
+        // Cached and newly loaded cards can exchange height without resizing main.
+        let frame=0;const settle=()=>{restore();if(!stopped)frame=requestAnimationFrame(settle);};
+        frame=requestAnimationFrame(settle);const timer=setTimeout(()=>{restore();stop();},500);
         return()=>{stop();cancelAnimationFrame(frame);clearTimeout(timer);for(const event of ['wheel','touchstart','pointerdown','keydown'])removeEventListener(event,stop);};
     },[id]);
     return [id,(next:number|null,section?:string,query='')=>{
