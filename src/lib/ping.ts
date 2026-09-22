@@ -25,7 +25,8 @@ export function probeCatalog(data: PingHistory) {
     const value = [...ids].sort((a,b)=>a-b).map(id=>({id, name: typeof data.probes?.[id] === 'string' ? data.probes[id] : tr("探测 {0}", id)}));
     catalogs.set(data,{language:getLanguage(),value}); return value;
 }
-type Summary = { id:number; name:string; latest:PingPoint; loss:number|null; jitter:number|null; rows:PingPoint[] };
+export type PingWindow = 1 | 6 | 24;
+type Summary = { id:number; name:string; latest:PingPoint; loss:number|null; jitter:number|null; rows:PingPoint[]; allRows:PingPoint[] };
 const summaries = new WeakMap<PingHistory, {language:string; value:Summary[]}>();
 export function summarizePing(data: PingHistory) {
     if (!Array.isArray(data?.ping))
@@ -52,10 +53,17 @@ export function summarizePing(data: PingHistory) {
         // Window loss must come from the server; bucket percentages cannot be averaged.
         const loss = windowLoss(data, id);
         const name = data.probes?.[String(id)];
-        return { id, name: typeof name === 'string' ? name : tr("\u63A2\u6D4B {0}", id), latest: rows.at(-1)!, loss, jitter: pairs ? changes / pairs : null, rows: rows.slice(-40) };
+        return { id, name: typeof name === 'string' ? name : tr("\u63A2\u6D4B {0}", id), latest: rows.at(-1)!, loss, jitter: pairs ? changes / pairs : null, rows: rows.slice(-40), allRows: rows };
     });
     summaries.set(data, {language:getLanguage(), value});
     return value;
+}
+export function recentPingRows(rows: PingPoint[], hours: PingWindow) {
+    const end = rows.at(-1)?.ts;
+    if (end === undefined)
+        return [];
+    const start = end - hours * 3600;
+    return rows.filter(row => row.ts >= start);
 }
 // At most two history scans at once, including pages with many nodes.
 let active = 0;
@@ -116,8 +124,8 @@ export function loadPing(id: number, force = false): Promise<PingHistory> {
         return saved.request;
     const entry = { expires: Infinity, request: null as unknown as Promise<PingHistory> };
     entry.request = limited(async () => {
-        // 40 display bars must not become 24-minute server buckets. Preserve minute
-        // resolution and the server's full-window loss, then draw the latest 40 rows.
+        // Preserve minute resolution and the server's full-window loss. The homepage
+        // selects its display window from this 24-hour response; detail charts reuse it.
         const response = await fetch(`/api/nodes/${id}/metrics?hours=24&points=1440&series=ping`, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
         if (!response.ok)
             throw new Error(tr("\u5EF6\u8FDF\u6570\u636E\u6682\u4E0D\u53EF\u7528"));

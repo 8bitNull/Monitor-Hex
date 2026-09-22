@@ -18,6 +18,7 @@ export type Preferences = {
     probe: string;
     homeRoutes: number;
     latencyScale: 200 | 500;
+    latencyWindow: 1 | 6 | 24;
     latencyWarn: number;
     latencyHigh: number;
     skin: 'lumina' | 'original';
@@ -46,7 +47,7 @@ export const defaults: Preferences = {
     infoDensity: 'overview',
     detailInfoMode: 'auto',
     cardInfo: {...defaultCardInfo}, mobileCardInfo: null, mobileInfoMode: 'follow', desktopColumns: 'auto',
-    probe: 'auto', homeRoutes: 1, latencyScale:200, latencyWarn:80, latencyHigh:160, skin: 'lumina', mobileLayout: 'inherit', designVersion: 1, schemaVersion: 3, palette: 'default', graph: 'bar', layout: 'comfortable', cardLayout: 'classic', appearance: 'system', map: false,
+    probe: 'auto', homeRoutes: 1, latencyScale:200, latencyWindow:1, latencyWarn:80, latencyHigh:160, skin: 'lumina', mobileLayout: 'inherit', designVersion: 1, schemaVersion: 3, palette: 'default', graph: 'bar', layout: 'comfortable', cardLayout: 'classic', appearance: 'system', map: false,
     showTotals: true, icons: true, backgroundUrl: '', backgroundBlur: 0, backgroundMask: 45, backgroundType: 'soft', glass: false, cardOpacity: 88, cardBlur: 12, speedStyle: 'spark',
     modules: { online: true, busiest: true, traffic: true, speed: true, regions: false, clock: false, map: false },
 };
@@ -82,6 +83,7 @@ export function normalizePreferences(input: unknown, base: Preferences = default
     return {
         infoDensity:choose(v.infoDensity,['overview','full'],base.infoDensity),
         latencyScale:v.latencyScale===200||v.latencyScale===500?v.latencyScale:base.latencyScale,
+        latencyWindow:v.latencyWindow===1||v.latencyWindow===6||v.latencyWindow===24?v.latencyWindow:base.latencyWindow,
         latencyWarn:warn<high?warn:base.latencyWarn,
         latencyHigh:warn<high?high:base.latencyHigh,
         detailInfoMode: choose(v.detailInfoMode, ['auto','expanded','collapsed'],base.detailInfoMode),
@@ -131,7 +133,7 @@ export function parsePreferences(text: string, base: Preferences = defaults): Pr
     return normalizePreferences({...data,...(!Object.hasOwn(data,"infoDensity")&&data.schemaVersion!==3?{infoDensity:"full"}:{})}, base);
 }
 export function restoreAppearance(current: Preferences, site: Preferences): Preferences {
-    return { ...site, infoDensity:current.infoDensity, detailInfoMode:current.detailInfoMode, cardInfo:current.cardInfo,mobileCardInfo:current.mobileCardInfo,mobileInfoMode:current.mobileInfoMode,desktopColumns:current.desktopColumns, probe:current.probe, homeRoutes:current.homeRoutes, latencyScale:current.latencyScale, latencyWarn:current.latencyWarn, latencyHigh:current.latencyHigh, map: current.map, modules: { ...current.modules } };
+    return { ...site, infoDensity:current.infoDensity, detailInfoMode:current.detailInfoMode, cardInfo:current.cardInfo,mobileCardInfo:current.mobileCardInfo,mobileInfoMode:current.mobileInfoMode,desktopColumns:current.desktopColumns, probe:current.probe, homeRoutes:current.homeRoutes, latencyScale:current.latencyScale, latencyWindow:current.latencyWindow, latencyWarn:current.latencyWarn, latencyHigh:current.latencyHigh, map: current.map, modules: { ...current.modules } };
 }
 
 /** Store only differing fields; nested module choices inherit independently. */

@@ -32,9 +32,19 @@ test('home route count shows the latency indicator for every selected route',asy
  await setup(page);await page.goto('/');const card=page.locator('.node-card')
  for(const count of ['1','2','3']){
  await toggleSettings(page);await (await setting(page,'首页线路数量',{exact:true})).selectOption(count);await toggleSettings(page)
-  await expect(card.locator('.ping-probe')).toHaveCount(Number(count));await expect(card.locator('.latency-bars')).toHaveCount(Number(count));await expect(card.locator('.latency-trend-caption')).toHaveCount(count==='1'?1:0)
+ await expect(card.locator('.ping-probe')).toHaveCount(Number(count));await expect(card.locator('.latency-bars')).toHaveCount(Number(count));await expect(card.locator('.latency-trend-caption')).toHaveCount(0)
   const reading=card.locator('.ping-probe').first().locator('.latency-reading');expect(await reading.evaluate(el=>[...el.children].map(child=>child.className||child.tagName))).toEqual(['SPAN','latency-bars','latency-link'])
  }
+})
+test('home latency window defaults to one hour and can show six or twenty-four hours',async({page})=>{
+ await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[nodes()[0]]}}))
+ await page.route('**/api/nodes/*/metrics?*',r=>{const d=metrics(),ts=Math.floor(Date.now()/1000);return r.fulfill({json:{...d,probes:{1:'Primary'},loss:{1:0},ping:[86400,21600,3600,60,0].map((offset,i)=>({task_id:1,ts:ts-offset,latency:20+i}))}})})
+ await page.goto('/');const card=page.locator('.node-card'),matrix=card.locator('.route-matrix'),bars=card.locator('.latency-bars g')
+ await expect(matrix).toHaveAttribute('data-latency-window','1');await expect(bars).toHaveCount(3);await expect(card.locator('.latency-trend-caption')).toHaveCount(0)
+ await toggleSettings(page);await settingsCategory(page,'network');await (await setting(page,'首页延迟窗口',{exact:true})).selectOption('6');await toggleSettings(page)
+ await expect(matrix).toHaveAttribute('data-latency-window','6');await expect(bars).toHaveCount(4)
+ await toggleSettings(page);await settingsCategory(page,'network');await (await setting(page,'首页延迟窗口',{exact:true})).selectOption('24');await toggleSettings(page)
+ await expect(matrix).toHaveAttribute('data-latency-window','24');await expect(bars).toHaveCount(5)
 })
 test('loss timeline preserves zero, unknown and timeout and follows selected routes',async({page})=>{
  await setup(page);await page.goto('/node/1?routes=1,2,3#latency')

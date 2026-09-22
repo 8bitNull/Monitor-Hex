@@ -46,7 +46,7 @@ export function NodeCard({ node, onOpen, onOpenRoutes, probe = 'auto', prefs, in
       <div className="resources"><ResourceMetric label="CPU" value={m?.cpu ?? null} foot={tr("{0} 核", node.cpu_cores)}/><ResourceMetric label={tr("内存")} value={m ? percent(m.mem_used, m.mem_total) : null} foot={m ? (prefs.showTotals ? pair(m.mem_used, m.mem_total) : bytes(m.mem_used)) : tr("容量 {0}", bytes(node.mem_total))}/><ResourceMetric label={tr("硬盘")} value={m ? percent(m.disk_used, m.disk_total) : null} foot={m ? (prefs.showTotals ? pair(m.disk_used, m.disk_total) : bytes(m.disk_used)) : tr("容量 {0}", bytes(node.disk_total))}/><ResourceMetric label={tr("负载")} value={m && node.cpu_cores > 0 ? m.load[0] / node.cpu_cores * 100 : null} displayValue={m ? m.load[0].toFixed(2) : "—"} foot={tr("1 分钟 · {0} 核",node.cpu_cores)}/></div>
       <SpeedIndicators key={node.id} node={node}/>
     </button>
-      <PingStats scale={prefs.latencyScale} warn={prefs.latencyWarn} high={prefs.latencyHigh} count={prefs.homeRoutes} online={node.online} id={node.id} probe={probe} onOpenRoutes={onOpenRoutes}/>
+      <PingStats scale={prefs.latencyScale} latencyWindow={prefs.latencyWindow} warn={prefs.latencyWarn} high={prefs.latencyHigh} count={prefs.homeRoutes} online={node.online} id={node.id} probe={probe} onOpenRoutes={onOpenRoutes}/>
       {hasSecondary && (mobile && !overview ? <details className="node-secondary-disclosure"><summary><span>{tr("更多信息")}</span><ChevronDown size={16}/></summary>{secondary}</details> : secondary)}
       {overview&&(info.connections||info.uptime||notes.length>0)&&<button className="card-auxiliary-toggle" aria-expanded={expanded} onClick={()=>setExpanded(v=>!v)}>{tr(expanded?"收起资料":"更多资料")}<ChevronDown size={14}/></button>}
   </article>;

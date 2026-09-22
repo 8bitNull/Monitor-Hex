@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { summarizePing, loadPing } from './ping.ts'
+import { recentPingRows, summarizePing, loadPing } from './ping.ts'
 const data = { ping: [{ task_id: 1, ts: 3, latency: null, loss: 100 }, { task_id: 1, ts: 1, latency: 100 }, { task_id: 1, ts: 2, latency: 120, loss: 50 }, { task_id: 2, ts: 1, latency: 40 }], probes: { '1': 'Tokyo' }, loss: { '1': 4.2 } }
 const result = summarizePing(data)
 assert.equal(result[0].loss, 4.2) // Not (0 + 50 + 100) / 3.
@@ -11,6 +11,10 @@ assert.equal(result[1].jitter, null)
 assert.equal(summarizePing({ ping: data.ping })[0].loss, null)
 assert.deepEqual(summarizePing({ ping: [] }), [])
 assert.throws(() => summarizePing({} as never))
+const windowRows=[0,3600,64800,82800,86400].map((ts,i)=>({task_id:1,ts,latency:i}))
+assert.equal(recentPingRows(windowRows,1).length,2)
+assert.equal(recentPingRows(windowRows,6).length,3)
+assert.equal(recentPingRows(windowRows,24).length,5)
 let running = 0, maxRunning = 0, calls = 0
 globalThis.fetch = (async () => {
   running++; calls++; maxRunning = Math.max(running, maxRunning)

@@ -12,7 +12,7 @@
 .micro-empty {position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted-foreground);font-size:12px;background:var(--card)}
 .speed-trend {grid-column:1/-1;min-width:0}
 .speed-trend .micro-trend {height:40px;color:inherit}
-.speed-trend-caption,.latency-trend-caption {display:block;font-size:12px;color:var(--muted-foreground);margin:4px 0 0;line-height:1.4}
+.speed-trend-caption {display:block;font-size:12px;color:var(--muted-foreground);margin:4px 0 0;line-height:1.4}
 .detail-live .detail-speed .speed-track,.detail-live .detail-speed .speed-columns,.detail-live .detail-speed .speed-ring {display:none}
 .node-card .latency-link[data-tone=good] {color:var(--foreground)}
 .node-card .latency-link[data-tone=fair] {color:var(--warn)}
@@ -28,7 +28,7 @@
 .node-card .loss-stat[data-tone=fair] b {color:var(--warn)}
 .node-card .loss-stat[data-tone=bad] b {color:var(--destructive)}
 .node-card .ping-probe>.micro-trend {margin-top:5px}
-.node-card .latency-reading {display:grid;grid-template-columns:minmax(0,1fr) minmax(56px,1fr) auto;align-items:center;gap:6px;min-height:44px}
+.node-card .latency-reading {display:grid;grid-template-columns:minmax(0,1fr) minmax(64px,100px) auto;align-items:center;gap:6px;min-height:44px}
 .node-card .latency-reading .latency-bars {width:100%;min-width:0;margin-top:0}
 .node-card .latency-reading .latency-link {justify-self:end}
 .detail-chart-toolbar .detail-probe-legend .probe-options {width:min(430px,calc(100vw - 32px))}
@@ -56,10 +56,15 @@
 .node-card .loss-stat .loss-reading small {display:inline}
 .node-card .latency-reading {margin-bottom:0}
 .node-card .latency-link {flex-shrink:0}
-.node-card[data-indicator=minimal] .route-matrix[data-route-count="1"] .latency-reading {grid-template-columns:minmax(56px,1fr) auto}
-.node-card .route-matrix {min-height:154px}
+.node-card[data-indicator=minimal] .route-matrix[data-route-count="1"] .latency-reading {grid-template-columns:minmax(64px,100px) auto}
+.node-card .route-matrix {min-height:88px}
 .node-card .route-matrix[data-requested-count="2"],.node-card .route-matrix[data-requested-count="3"] {min-height:0}
 .node-card .route-matrix[data-route-count="2"] .ping-probe+.ping-probe,.node-card .route-matrix[data-route-count="3"] .ping-probe+.ping-probe {margin-top:4px}
+@media(max-width:360px){
+ .node-card .latency-reading {grid-template-columns:minmax(0,1fr) 48px auto}
+ .node-card .latency-link {font-size:13px}
+ .node-card .latency-link small {font-size:11px}
+}
 
 .node-card[data-indicator] .speed-indicators strong {flex-direction:row;flex-wrap:nowrap}
 .node-card .route-matrix .loss-stat {align-self:center}
@@ -101,11 +106,6 @@
 .route-chips button b {font-weight:500;font-variant-numeric:tabular-nums}
 .loss-track-note {margin:8px 0;color:var(--muted-foreground);font-size:12px}
 @media(max-width:720px){.route-chips {padding:12px 10px 4px;gap:6px}.route-chips button {min-height:44px;flex:1 1 140px;padding-inline:8px;gap:6px}.route-chips button svg {width:16px}.route-chips button b {margin-left:auto}}
-
-@media(min-width:721px){
- .node-card[data-density=overview] .route-matrix {min-height:130px}
- .node-card[data-density=overview] .route-matrix[data-requested-count="2"],.node-card[data-density=overview] .route-matrix[data-requested-count="3"] {min-height:0}
-}
 
 /* Keep the brush interaction bounds; reduce only its visible track. */
 .latency-brush>rect:first-child {stroke:transparent}
