@@ -9,7 +9,7 @@ async function setup(page:any) {
  await page.goto('/node/1#latency')
  await expect(page.locator('.probe-options button[aria-pressed]')).toHaveCount(3);await page.locator('.detail-probe-legend>summary').click()
 }
-test('detail defaults to home route, supports comparison without changing home selection and keeps height stable',async({page})=>{
+test('detail route picker keeps the home route, supports comparison and keeps height stable',async({page})=>{
  await setup(page)
  const a=page.locator('.probe-options button[aria-label="Route A"]'),b=page.locator('.probe-options button[aria-label="Route B"]')
  await expect(a).toHaveAttribute('aria-pressed','false');await expect(b).toHaveAttribute('aria-pressed','true')
@@ -20,14 +20,13 @@ test('detail defaults to home route, supports comparison without changing home s
  expect((await frame.boundingBox())!.height).toBe(height)
  await page.getByLabel('平滑显示').check()
  expect((await frame.boundingBox())!.height).toBe(height)
- await page.locator('.detail-probe-legend>summary').click();await page.getByRole('button',{name:'隐藏全部线路'}).click()
- await expect(frame).toContainText('没有选中任何探测')
+ await page.locator('.detail-probe-legend>summary').click();await expect(page.locator('.probe-bulk-actions,.route-search,.probe-solo,.probe-restore')).toHaveCount(0)
+ const empty=page.locator('.probe-options button[aria-label="Empty route"]');await empty.click();await expect(empty).toHaveAttribute('aria-pressed','true')
  expect((await frame.boundingBox())!.height).toBe(height)
- await page.getByRole('button',{name:'首页线路',exact:true}).click()
- await expect(a).toHaveAttribute('aria-pressed','false');await expect(b).toHaveAttribute('aria-pressed','true')
+ await page.keyboard.press('Escape');await expect(page.locator('.detail-probe-legend>summary')).toBeFocused()
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('monitor-next-node-probes-v1')!)['1'])).toBe('2')
  await page.getByRole('button',{name:'1 小时',exact:true}).click()
- await expect(b).toHaveAttribute('title','丢包统计范围：1 小时')
+ await page.locator('.detail-probe-legend>summary').click();await expect(b.locator('.probe-loss')).toHaveAttribute('title','丢包统计范围：1 小时')
  await expect(b).toHaveAttribute('aria-pressed','true')
 })
 test('detail prioritizes charts, renders complete facts and compact controls at all widths',async({page})=>{
@@ -58,6 +57,6 @@ test('missing home route stays empty, offline live metrics are unknown, long nam
   await page.setViewportSize({width,height:900})
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
  }
- await page.locator('.detail-probe-legend>summary').click();await page.getByRole('button',{name:'显示全部线路'}).click()
+ await page.locator('.detail-probe-legend>summary').click();const options=page.locator('.probe-options .probe-select');expect(await options.count()).toBeGreaterThan(0);await expect(page.locator('.probe-bulk-actions,.route-search,.probe-solo,.probe-restore')).toHaveCount(0);await page.locator('.probe-options .probe-select[aria-pressed="false"]').first().click()
  await expect(page.locator('.detail-chart-frame .recharts-wrapper')).toBeVisible()
 })

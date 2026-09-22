@@ -1,12 +1,12 @@
 # Monitor HEX
 
-HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.1.0**，主题短名 **hex**。
+HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.1.1**，主题短名 **hex**。
 
-本版本聚焦首页搜索、移动端阅读和详情页信息层级：桌面搜索靠近主题设置，手机使用图标入口并在屏幕中央打开搜索框；详情资料按功能分组，移动端图表时间范围保持完整同组排列。验收入口见 `ACCEPTANCE.md`。
+本版本统一详情页历史图表工具栏，将资源指标、平滑显示和线路选择集中在图表顶部；修复图标按钮的可访问名称和线路多选滚动跳动，移动端时间范围保持完整同组排列。验收入口见 `ACCEPTANCE.md`。
 
 ## 安装
 
-从 [最新 Release](https://github.com/8bitNull/Monitor-Hex/releases/latest) 下载 **[theme.tar.gz](https://github.com/8bitNull/Monitor-Hex/releases/latest/download/theme.tar.gz)**。
+从 [最新 Release](https://github.com/8bitNull/monitor-theme-hex/releases/latest) 下载 **[theme.tar.gz](https://github.com/8bitNull/monitor-theme-hex/releases/latest/download/theme.tar.gz)**。
 
 在后台主题管理上传 `theme.tar.gz`，然后选择 **Monitor HEX**。请勿上传源码 ZIP。安装包根目录包含 theme.json、dist、preview.png 和许可证。
 
@@ -53,7 +53,7 @@ HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.1.0**，主题
 
 ## 开发与验收
 
-`npm install`、`npm run build`、`npm run lint`、`npm test`。`npm run demo` 启动演示数据页面；`npm run package` 生成 theme.tar.gz。浏览器测试按功能组织，运行 `npm run test:e2e` 检查当前版本的 148 项交互用例（需已安装 Chrome）；设置 `TEST_BROWSER=msedge` 可改用 Edge。测试前先执行 `npm run build`。
+`npm install`、`npm run build`、`npm run lint`、`npm test`。`npm run demo` 启动演示数据页面；`npm run package` 生成 theme.tar.gz。浏览器测试按功能组织，运行 `npm run test:e2e` 检查当前版本的 153 项交互用例（需已安装 Chrome）；设置 `TEST_BROWSER=msedge` 可改用 Edge。测试前先执行 `npm run build`。
 
 截图由当前生产构建配合本地演示数据生成，不代表已部署至用户线上站点。许可和参考来源见 NOTICE.md、LICENSE、LICENSE.komari-next。
 
@@ -62,18 +62,18 @@ HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.1.0**，主题
 详情页按设备资料、实时状态、历史图表阅读。桌面资料区按硬件与系统、网络与流量、费用与到期组成三列网格，实时状态独立为全宽模块，历史图表位于最下方；手机资料按三组折叠后依次展示实时状态和历史图表。PC 端不重复显示设备资料标题，CPU 保持纯文本展示，IPv4 和 IPv6 等适合复制的资料保留复制按钮。
 
 - 资源主图可切换四项指标，手机点按数据点查看提示；图表提示支持关闭、点外部关闭和内部滚动。
-- 延迟线路超过 6 条时支持名称搜索；批量显示、隐藏和恢复首页线路始终作用于完整线路集合。
+- 延迟工具栏提供平滑显示和线路多选菜单；线路可逐项显示或隐藏，菜单展示延迟和丢包率。资源指标在桌面直接切换，手机通过指标菜单选择。
 - 打开线路面板时已选项优先，多选期间保持顺序；Escape 关闭面板并返回入口焦点。
 - 线路使用固定颜色与有限虚实线组合，切换范围或隐藏后恢复时样式稳定，图例与曲线保持对应。
 - 失败刷新保留同范围的上次成功记录，并直接展示上次成功时间；切换范围不会沿用其他范围的时间。
 - 超长名称默认最多两行，可独立展开；长备注使用自然换行；复制成功提示短暂显示，失败可重试。
-- 手机资源和延迟工具栏将 `1h`、`6h`、`24h`、`7d` 作为同一组排列。常规手机宽度下四项同排；极窄屏只会把整组移到下一行，不会让 `7d` 单独掉行，也不会遮挡刷新按钮。
+- 历史工具栏保持单行：资源时间范围为 `1h`、`6h`、`24h`、`7d`，延迟时间范围为 `1h`、`6h`、`24h`。手机收起标签文字并使用紧凑控件，时间组不会拆分或遮挡刷新按钮。
 
 设置 → **详情页 → 设备资料展开方式**提供自动、展开、折叠。自动模式在 900px 以下折叠、900px 及以上展开；手动展开或折叠会记住选择。可在设置中恢复自动。偏好支持导入导出，“恢复默认外观”保留该选择，“重置全部偏好”恢复站点默认。资料按硬件与系统、网络与流量、费用与到期分组。CPU、内存、硬盘组成主要读数组；负载与 TCP/UDP 作为辅助信息，离线时显示未知值。长名称展开入口在标题下方，长备注展开后使用自然换行的轻量文本。可复制的长资料与按钮分列，完整原值仍可复制。
 
 ## 本地开发与 GitHub 同步
 
-源码仓库：https://github.com/8bitNull/Monitor-Hex
+源码仓库：https://github.com/8bitNull/monitor-theme-hex
 
 使用 Node.js 24 与 npm。首次准备开发环境：
 
@@ -90,7 +90,7 @@ npm test
 npm run package
 ```
 
-生成的 `theme.tar.gz` 用于后台安装。依赖、构建文件和安装包不提交到源码仓库；安装包通过 [GitHub Releases](https://github.com/8bitNull/Monitor-Hex/releases) 发布。
+生成的 `theme.tar.gz` 用于后台安装。依赖、构建文件和安装包不提交到源码仓库；安装包通过 [GitHub Releases](https://github.com/8bitNull/monitor-theme-hex/releases) 发布。
 
 每次开发前，在工作区没有未提交修改时运行 `git pull --ff-only` 获取远端更新。修改完成后检查并上传：
 

@@ -1,4 +1,4 @@
-import {Eye,EyeOff,Focus,Home,Waves} from 'lucide-react'
+import {ChevronDown} from 'lucide-react'
 import {ChartTooltip,useChartTooltip} from './ChartTooltip'
 import type {Preferences} from '@/lib/appearance'
 import {DetailIdentity,DetailLiveOverview} from './DetailOverview'
@@ -110,7 +110,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
     const [ranges, setRanges] = useState({ resources:eventStart?eventRange:([1,6,24,168].includes(Number(params.get("rh")))?Number(params.get("rh")):6), latency:[1,6,24].includes(Number(params.get("lh")))?Number(params.get("lh")):6 });
     const hours = ranges[tab];
     const {frame:tooltipFrame,dismiss:tooltipDismiss,onChartClick:tooltipClick,onChartPointerMove:tooltipMove,onChartKeyDown:tooltipKey}=useChartTooltip(`${node.id}:${hours}:${tab}`,compact);
-    const legend=useRef<HTMLDetailsElement>(null),[routeQuery,setRouteQuery]=useState(''),[routeOrder,setRouteOrder]=useState<number[]>([]);
+    const legend=useRef<HTMLDetailsElement>(null),[routeOrder,setRouteOrder]=useState<number[]>([]);
     useEffect(()=>{const outside=(e:PointerEvent)=>{if(legend.current&&!legend.current.contains(e.target as globalThis.Node))legend.current.open=false};document.addEventListener('pointerdown',outside);return()=>document.removeEventListener('pointerdown',outside)},[]);
     const [retry, setRetry] = useState(0);
     const [smooth, setSmooth] = useState(false);
@@ -119,7 +119,6 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
     // as the axis rescales to what remains.
     const choice = useNodeProbe(node.id,probe);
     const [highlightProbe, setHighlightProbe] = useState<number | null>(null);
-    const [soloRestore,setSoloRestore]=useState<{selection:number[]|null}|null>(null);
     const [selectedProbes, setSelectedProbes] = useState<number[] | null>(()=>params.has("routes")?params.get("routes")!.split(",").map(Number).filter(n=>Number.isInteger(n)&&n>0):null);
     const [data, setData] = useState<{
         metrics: Point[];
@@ -255,34 +254,32 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
         minTickGap: hours > 24 ? 72 : 40,
         ...AXIS,
     });
+    const latencyControls = tab === "latency" ? <details ref={legend} className="detail-probe-legend" onToggle={e=>{if(e.currentTarget.open)setRouteOrder([...visibleIds])}} onKeyDown={e=>{if(e.key==='Escape'){e.currentTarget.open=false;e.currentTarget.querySelector('summary')?.focus()}}}>
+      <summary aria-label={tr("选择线路")}><span>{tr("线路")}</span><ChevronDown size={13} aria-hidden="true"/></summary>
+      <div className="probe-options">
+        {[...pingSeries].sort((a,b)=>Number(routeOrder.includes(b.id))-Number(routeOrder.includes(a.id))).map(s=>{
+          const shown=visibleIds.includes(s.id), latest=s.points.at(-1);
+          return <button className="probe-select" key={s.id} aria-label={s.name} title={s.name} aria-pressed={shown} onMouseEnter={()=>setHighlightProbe(s.id)} onMouseLeave={()=>setHighlightProbe(null)} onFocus={()=>setHighlightProbe(s.id)} onBlur={()=>setHighlightProbe(null)} onClick={()=>setSelectedProbes(shown ? visibleIds.filter(id=>id!==s.id) : [...visibleIds,s.id])}>
+            <span className="probe-check" aria-hidden="true">{shown?'✓':''}</span>
+            <svg width="16" height="6" aria-hidden="true"><line x1="0" y1="3" x2="16" y2="3" stroke={style(s.id).stroke} strokeDasharray={style(s.id).dash} strokeWidth="2"/></svg>
+            <span className="probe-label">{s.name}</span>
+            <b style={{color:style(s.id).stroke}}>{!latest ? tr("暂无探测记录") : latest.latency === null ? tr("超时") : `${Math.round(latest.latency)} ms`}</b>
+            <span className="probe-loss" title={tr("丢包统计范围：{0} 小时",hours)}>{tr("丢包")} {s.loss===null || !latest ? '—' : `${s.loss.toFixed(1)}%`}</span>
+          </button>;
+        })}
+      </div>
+    </details> : null;
     return (<div className="node-detail">
       <DetailIdentity node={node} nodes={nodes} onSwitch={onSwitch}/>
       <div className="detail-workspace">
       <DetailLiveOverview node={node}/>
       <section className="detail-history" aria-label={tr("历史图表")}>
-       <DetailToolbar busy={loading} updated={updated} failed={!!failed} tab={tab} hours={hours} onTab={setTab} onHours={value=>setRanges(all=>({...all,[tab]:value}))} onRefresh={refresh}/>
+       <DetailToolbar busy={loading} updated={updated} failed={!!failed} tab={tab} hours={hours} onTab={setTab} onHours={value=>setRanges(all=>({...all,[tab]:value}))} onRefresh={refresh} resourceMetric={resourceMetric} onResourceMetric={setResourceMetric} smooth={smooth} onSmooth={setSmooth} latencyControls={latencyControls}/>
       {eventStart>0&&<p className="event-context">{tr('告警时段：{0} — {1}',new Date(eventStart).toLocaleString(locale()),new Date(eventEnd).toLocaleString(locale()))}{age>168||hours<age?<span>{tr('当前历史范围无法覆盖完整告警时段。')}</span>:data&&!(data.metrics??[]).some(p=>p.ts*1000>=eventStart&&p.ts*1000<=eventEnd)?<span>{tr('此告警时段没有返回历史样本。')}</span>:null}</p>}
       {failed && <div className="history-notice" role="alert"><span>{data && (data.metrics?.length || data.ping?.length)?tr("更新失败，保留上次历史记录。"):tr("读取历史数据失败：")}{failed}{updated!==null && data && (data.metrics?.length || data.ping?.length)?<small className="history-retained-time">{tr("上次成功更新：{0}",new Date(updated).toLocaleString(locale()))}</small>:null}</span><button disabled={loading} onClick={refresh}>{tr("重试")}</button></div>}
       <div className="detail-history-body" data-history={tab}>
       {!data ? (<HistoryState loading message={tr("正在读取历史数据")}/>) : failed && !data.metrics?.length && !data.ping?.length ? (<HistoryState failed message={tr("暂无可用历史数据")}/>) : tab === "latency" ? (pingSeries.length === 0 ? (<HistoryState message={tr("这段时间没有延迟数据")}/>) : (
          <div className="latency-view">
-            <div className="latency-chart-tools" aria-label={tr("延迟图表选项")}>
-              <label className="detail-smooth" title={tr("平滑仅改变图线显示，不修改原始数据。")}><input type="checkbox" aria-label={tr("平滑显示")} checked={smooth} onChange={e=>setSmooth(e.target.checked)}/><Waves size={16} aria-hidden="true"/>{tr("平滑")}</label>
-              <details ref={legend} className="detail-probe-legend" onToggle={e=>{if(e.currentTarget.open){setRouteQuery('');setRouteOrder([...visibleIds])}}} onKeyDown={e=>{if(e.key==='Escape'){e.currentTarget.open=false;e.currentTarget.querySelector('summary')?.focus()}}}>
-              <summary>{tr("选择线路")}<span>{tr("已选 {0} / {1}",shownProbes.length,pingSeries.length)}</span><small className="selected-route-summary" title={shownProbes.map(s=>s.name).join(' · ')}>{shownProbes.length?shownProbes.slice(0,2).map(s=>s.name).join(' · '):tr("没有选中任何探测")}{shownProbes.length>2?` +${shownProbes.length-2}`:''}</small></summary>
-
-              <div className="probe-options">{soloRestore&&<button className="probe-restore" onClick={()=>{setSelectedProbes(soloRestore.selection);setSoloRestore(null);setHighlightProbe(null);if(legend.current){legend.current.open=false;legend.current.querySelector('summary')?.focus()}}}>{tr("恢复之前选择")}</button>}{pingSeries.length>0&&<div className="probe-bulk-actions" role="group" aria-label={tr("批量线路操作")}><button aria-label={tr("首页线路")} title={tr("首页线路")} onClick={()=>{setSoloRestore(null);setHighlightProbe(null);setSelectedProbes(null)}}><Home size={16}/></button><button aria-label={tr("显示全部线路")} title={tr("显示全部线路")} onClick={()=>{setSoloRestore(null);setHighlightProbe(null);setSelectedProbes(pingSeries.map(s=>s.id))}}><Eye size={16}/></button><button aria-label={tr("隐藏全部线路")} title={tr("隐藏全部线路")} onClick={()=>{setSoloRestore(null);setHighlightProbe(null);setSelectedProbes([])}}><EyeOff size={16}/></button></div>}{pingSeries.length>6&&<label className="route-search"><span>{tr("搜索线路")}</span><input aria-label={tr("搜索线路")} placeholder={tr("按名称搜索")} value={routeQuery} onChange={e=>setRouteQuery(e.target.value)}/></label>}{!pingSeries.some(s=>s.name.toLocaleLowerCase().includes(routeQuery.trim().toLocaleLowerCase()))&&<p>{tr("没有匹配的线路")}</p>}{[...pingSeries].filter(s=>s.name.toLocaleLowerCase().includes(routeQuery.trim().toLocaleLowerCase())).sort((a,b)=>Number(routeOrder.includes(b.id))-Number(routeOrder.includes(a.id))).map(s=>{
-                const shown=visibleIds.includes(s.id), latest=s.points.at(-1);
-                return <div className="probe-option-row" key={s.id}><button className="probe-select" aria-label={s.name} title={tr("丢包统计范围：{0} 小时",hours)} aria-pressed={shown} onMouseEnter={()=>setHighlightProbe(s.id)} onMouseLeave={()=>setHighlightProbe(null)} onFocus={()=>setHighlightProbe(s.id)} onBlur={()=>setHighlightProbe(null)} onClick={()=>{setSoloRestore(null);setSelectedProbes(shown ? visibleIds.filter(id=>id!==s.id) : [...visibleIds,s.id])}}>
-                  <svg width="16" height="6" aria-hidden="true"><line x1="0" y1="3" x2="16" y2="3" stroke={style(s.id).stroke} strokeDasharray={style(s.id).dash} strokeWidth="2"/></svg>
-                  <span className="probe-label">{s.name}</span>
-                  <b style={{color:style(s.id).stroke}}>{!latest ? tr("暂无探测记录") : latest.latency === null ? tr("超时") : `${Math.round(latest.latency)} ms`}</b>
-                  <span title={tr("丢包统计范围：{0} 小时",hours)} aria-label={tr("丢")}>{tr("丢包")} {s.loss===null || !latest ? '—' : `${s.loss.toFixed(1)}%`}</span>{latest && Date.now()/1000-latest.ts>7200 && <span className="ping-stale">{tr("较旧记录")}</span>}
-                </button><button className="probe-solo" aria-label={tr("仅看：{0}",s.name)} title={tr("仅看此线路")} onClick={()=>{if(!soloRestore)setSoloRestore({selection:selectedProbes===null?null:[...selectedProbes]});setSelectedProbes([s.id]);setHighlightProbe(null)}}><Focus size={16} aria-hidden="true"/></button></div>;
-              })}</div>
-              </details>
-            </div>
-
             <div className="detail-chart-frame text-muted-foreground" ref={tooltipFrame} onClickCapture={tooltipClick} onPointerMove={tooltipMove} onKeyDownCapture={tooltipKey}>
               {shownProbes.length === 0 ? (<HistoryState message={(selectedProbes?.length || selectedProbes === null && choice.probe !== "auto") ? tr("无该线路记录") : tr("没有选中任何探测")}/>) : !shownProbes.some(s=>s.points.length) ? <HistoryState message={tr("这段时间没有延迟数据")}/> : (<ResponsiveContainer>
                   <ComposedChart data={pingRows}>
@@ -317,7 +314,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
                 </ResponsiveContainer>)}
             </div>
 
-          </div>)) : (data.metrics ?? []).length === 0 ? (<HistoryState message={tr("这段时间没有历史数据")}/>) : (<ResourceHistory compact={compact} rows={metricRows} node={node} hours={hours} metric={resourceMetric} onMetric={setResourceMetric}/>)}
+          </div>)) : (data.metrics ?? []).length === 0 ? (<HistoryState message={tr("这段时间没有历史数据")}/>) : (<ResourceHistory compact={compact} rows={metricRows} node={node} hours={hours} metric={resourceMetric}/>)}
       </div></section>
 
       <DetailFacts node={node} compact={compact} mode={detailInfoMode} onMode={onDetailInfoMode}/>

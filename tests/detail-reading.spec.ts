@@ -6,15 +6,17 @@ async function setup(page:any,count=3){
  await page.route('**/api/nodes/*/metrics?*',(r:any)=>{const d=metrics();return r.fulfill({json:{...d,probes:Object.fromEntries(Array.from({length:count},(_,i)=>[i+1,`Route ${i+1}`])),ping:d.ping.flatMap(p=>Array.from({length:count},(_,i)=>({...p,task_id:i+1,latency:p.latency+i*10})))}})})
  await page.goto('/node/1');await expect(page.locator('.detail-resource-charts')).toBeVisible()
 }
-test('latency controls float at the chart top-right with a soft route border',async({page})=>{
+test('latency controls stay in the unified toolbar with a quiet route trigger',async({page})=>{
  await setup(page);await page.getByRole('button',{name:'网络延迟',exact:true}).click()
- const tools=page.locator('.latency-chart-tools'),frame=page.locator('.detail-chart-frame'),summary=page.locator('.detail-probe-legend>summary')
- await expect(tools.locator('.detail-smooth')).toBeVisible();await expect(summary).toBeVisible()
- const toolBox=await tools.boundingBox(),frameBox=await frame.boundingBox();expect(toolBox).not.toBeNull();expect(frameBox).not.toBeNull()
- expect(toolBox!.x+toolBox!.width).toBeLessThanOrEqual(frameBox!.x+frameBox!.width+1);expect(toolBox!.y).toBeGreaterThanOrEqual(frameBox!.y-1);expect(toolBox!.y).toBeLessThan(frameBox!.y+80)
- const border=await summary.evaluate((element)=>getComputedStyle(element).borderColor),foreground=await summary.evaluate((element)=>getComputedStyle(element).color)
- expect(border).not.toBe(foreground)
+ const toolbar=page.locator('.detail-chart-toolbar'),frame=page.locator('.detail-chart-frame'),summary=page.locator('.detail-probe-legend>summary')
+ await expect(toolbar).toBeVisible();await expect(toolbar.locator('.latency-chart-tools')).toHaveCount(0)
+ await expect(toolbar.locator('.detail-smooth')).toBeVisible();await expect(summary).toBeVisible();await expect(toolbar.locator('.detail-submenu-divider')).toHaveCount(2)
+ const toolbarBox=(await toolbar.boundingBox())!,frameBox=(await frame.boundingBox())!
+ expect(toolbarBox.y+toolbarBox.height).toBeLessThanOrEqual(frameBox.y+1)
+ const borderStyle=await summary.evaluate((element)=>getComputedStyle(element).borderStyle)
+ expect(borderStyle).toBe('none')
  await summary.click();await expect(page.locator('.probe-options')).toBeVisible()
+ await expect(page.locator('.probe-bulk-actions,.route-search,.probe-solo,.probe-restore')).toHaveCount(0)
 })
 for(const width of [320,390,430,720,899,900,1024,1440,1920])test(`detail reading and toolbar geometry at ${width}`,async({page})=>{
  test.setTimeout(90000);await page.setViewportSize({width,height:844})
@@ -28,11 +30,16 @@ for(const width of [320,390,430,720,899,900,1024,1440,1920])test(`detail reading
   }
   for(const tab of ['resources','latency']){
    await page.getByRole('button',{name:language==='zh'?(tab==='resources'?'资源':'网络延迟'):(tab==='resources'?'Resources':'Network latency'),exact:true}).click()
-   const tabs=(await page.locator('.detail-tabs').boundingBox())!,ranges=(await page.locator('.detail-ranges').boundingBox())!,refresh=(await page.locator('.detail-refresh').boundingBox())!
-   if(width<=600){if(width<=360)expect(ranges.y).toBeGreaterThan(tabs.y);else expect(Math.abs(tabs.y-ranges.y)).toBeLessThanOrEqual(2);const all=await page.locator('.detail-ranges button').evaluateAll(buttons=>buttons.map(button=>button.getBoundingClientRect().top));expect(new Set(all.map(top=>Math.round(top))).size).toBe(1);if(tab==='resources')expect(Math.abs(all[3]-all[2])).toBeLessThanOrEqual(1)}
-   else if(width<1200){expect(ranges.y).toBeGreaterThan(tabs.y);expect(Math.abs(refresh.y+refresh.height/2-ranges.y-ranges.height/2)).toBeLessThan(2)}
-   else expect(Math.abs(tabs.y-ranges.y)).toBeLessThan(2)
-   for(const b of await page.locator('.detail-chart-toolbar button').all()){const box=(await b.boundingBox())!;expect(box.height).toBeGreaterThanOrEqual(44);expect(box.width).toBeGreaterThanOrEqual(44)}
+   const toolbar=page.locator('.detail-chart-toolbar'),tabs=(await page.locator('.detail-tabs').boundingBox())!,ranges=(await page.locator('.detail-ranges').boundingBox())!,refresh=(await page.locator('.detail-refresh').boundingBox())!
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+   const centers=await toolbar.evaluate((element)=>Array.from(element.children).map(child=>{const box=child.getBoundingClientRect();return box.width?box.y+box.height/2:null}).filter((center):center is number=>center!==null))
+   expect(Math.max(...centers)-Math.min(...centers)).toBeLessThanOrEqual(2)
+   const all=await page.locator('.detail-ranges button').evaluateAll(buttons=>buttons.map(button=>{const box=button.getBoundingClientRect();return {top:box.top,x:box.x,right:box.right}}));expect(new Set(all.map(box=>Math.round(box.top))).size).toBe(1)
+   expect(all.length).toBe(tab==='resources'?4:3);if(tab==='resources')expect(all[3].x).toBeGreaterThan(all[2].x)
+   expect(refresh.x+refresh.width).toBeLessThanOrEqual(width+1)
+   if(width<=600){await expect(page.locator('.detail-tabs button>span')).toHaveCount(2);for(const span of await page.locator('.detail-tabs button>span').all())await expect(span).toBeHidden();if(tab==='resources'){await expect(page.locator('.detail-resource-metric-mobile')).toBeVisible();await expect(page.locator('.detail-resource-metric-desktop')).toBeHidden()}}
+   else if(tab==='resources')await expect(page.locator('.detail-resource-metric-desktop')).toBeVisible()
+   expect(Math.abs(tabs.y+tabs.height/2-(ranges.y+ranges.height/2))).toBeLessThanOrEqual(2)
    expect(await page.locator('.detail-history').evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy()
   }
   if(width<900)await expect(page.locator('.detail-facts-toggle')).toHaveAttribute('aria-expanded','false')
@@ -63,11 +70,12 @@ test('loading empty failure and success share the same history canvas',async({pa
 for(const count of [1,3,20])test(`route selector handles ${count} routes without moving the plot`,async({page})=>{
  await page.setViewportSize({width:390,height:844});await setup(page,count);await page.getByRole('button',{name:'网络延迟',exact:true}).click()
  const selector=page.locator('.detail-probe-legend'),plot=page.locator('.detail-chart-frame');await expect(selector).not.toHaveAttribute('open','')
- const height=(await plot.boundingBox())!.height;await selector.locator('summary').click();await expect(page.locator('.probe-options button[aria-pressed]')).toHaveCount(count)
- await page.locator('.probe-options button[aria-pressed]').last().click();expect((await plot.boundingBox())!.height).toBe(height)
+ const height=(await plot.boundingBox())!.height;await selector.locator('summary').click();await expect(page.locator('.probe-options .probe-select')).toHaveCount(count)
+ await expect(page.locator('.probe-bulk-actions,.route-search,.probe-solo,.probe-restore')).toHaveCount(0)
+ const hidden=page.locator('.probe-options .probe-select[aria-pressed="false"]');if(await hidden.count()){await hidden.first().click();await expect(page.locator('.probe-select[aria-pressed="true"]')).toHaveCount(Math.min(count,2))}
+ expect((await plot.boundingBox())!.height).toBe(height);await expect(page.locator('.probe-select[aria-pressed="true"] .probe-check').first()).toHaveText('✓')
+ await expect(page.locator('.probe-label').first()).toHaveCSS('text-overflow','ellipsis')
  await page.keyboard.press('Escape');await expect(selector).not.toHaveAttribute('open','');await expect(selector.locator('summary')).toBeFocused()
- await selector.locator('summary').click();await page.getByRole('button',{name:'显示全部线路',exact:true}).click();await expect(selector.locator('summary')).toContainText(`已选 ${count} / ${count}`)
- await page.getByRole('button',{name:'隐藏全部线路',exact:true}).click();await expect(plot).toContainText('没有选中任何探测')
 })
 test('long identity notes expand and copy feedback does not move facts',async({page,context})=>{
  await context.grantPermissions(['clipboard-read','clipboard-write']);await setup(page)

@@ -33,12 +33,12 @@ test('responsive composition and stable hover with many routes in light and dark
    if(width>=900){expect(facts.y).toBeLessThan(live.y);expect(history.y).toBeGreaterThan(live.y+live.height)}else{expect(facts.y).toBeLessThan(live.y);expect(history.y).toBeGreaterThan(live.y+live.height)}
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
   }
-  await page.getByRole('button',{name:'网络延迟',exact:true}).click();await page.locator('.detail-probe-legend>summary').click();await page.getByRole('button',{name:'显示全部线路',exact:true}).click();await page.keyboard.press('Escape')
+  await page.getByRole('button',{name:'网络延迟',exact:true}).click();await page.locator('.detail-probe-legend>summary').click();const hidden=page.locator('.probe-options .probe-select[aria-pressed="false"]');while(await hidden.count())await hidden.first().click();await page.keyboard.press('Escape')
   await expect(page.locator('.probe-options button[aria-pressed]')).toHaveCount(18)
   const frame=page.locator('.detail-chart-frame'),before=(await frame.boundingBox())!
   await frame.hover({position:{x:100,y:100}});expect((await frame.boundingBox())!.height).toBe(before.height)
   await page.getByLabel('平滑显示').check();expect((await frame.boundingBox())!.height).toBe(before.height)
-  await page.locator('.detail-probe-legend>summary').click();await page.getByRole('button',{name:'隐藏全部线路'}).click();await expect(frame).toContainText('没有选中任何探测');expect((await frame.boundingBox())!.height).toBe(before.height)
+  await page.locator('.detail-probe-legend>summary').click();const selected=page.locator('.probe-options .probe-select[aria-pressed="true"]');while(await selected.count())await selected.first().click();await expect(frame).toContainText('没有选中任何探测');expect((await frame.boundingBox())!.height).toBe(before.height)
   await page.getByRole('button',{name:'资源',exact:true}).click()
  }
 })
@@ -80,4 +80,18 @@ test('missing samples and long time gaps break curves without hiding zero',async
  await page.getByRole('button',{name:'网络延迟',exact:true}).click()
  const line=page.locator('.detail-chart-frame .recharts-line-curve')
  await expect(line).toBeVisible();expect((await line.getAttribute('d'))!.match(/M/g)?.length).toBe(2)
+})
+
+for(const width of [601,900,1199])for(const language of ['zh','en'])test(`icon resource controls retain names and switch metrics at ${width} ${language}`,async({page})=>{
+ await page.setViewportSize({width,height:900})
+ await page.addInitScript(language=>localStorage.setItem('monitor-next-language',language),language)
+ await setup(page)
+ const group=page.locator('.detail-resource-metric-desktop')
+ const labels=language==='zh'?['CPU','内存','硬盘','网速']:['CPU','Memory','Disk','Network']
+ const keys=['cpu','mem_used','disk_used','network']
+ for(const [index,label] of labels.entries()){
+  const button=group.getByRole('button',{name:label,exact:true})
+  await expect(button).toBeVisible();await expect(button.locator('span')).toBeHidden();await expect(button).toHaveAttribute('title',label)
+  await button.click();await expect(button).toHaveAttribute('aria-pressed','true');await expect(page.locator('.detail-resource-charts')).toHaveAttribute('data-metric',keys[index])
+ }
 })

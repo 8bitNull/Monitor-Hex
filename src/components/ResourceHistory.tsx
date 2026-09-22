@@ -8,17 +8,17 @@ import {axisBytes,axisTop,bytes,clockFor,quarters,rate,timeTicks} from '@/lib/fo
 type Row={ts:number;cpu:number;mem_used:number;disk_used:number;net_rx:number;net_tx:number}
 const AXIS={stroke:'currentColor',fontSize:11,tickLine:false,axisLine:false}
 const SERIES={dot:false as const,strokeWidth:1.7,isAnimationActive:false,connectNulls:false}
-const options=[{key:'cpu',label:'CPU',Icon:Cpu},{key:'mem_used',label:'内存',Icon:MemoryStick},{key:'disk_used',label:'硬盘',Icon:HardDrive},{key:'network',label:'网速',Icon:ArrowDownUp}] as const
-export type ResourceMetricKey=(typeof options)[number]['key']
-export function ResourceHistory({rows,node,hours,metric,onMetric:setMetric,compact}:{compact:boolean;rows:Row[];node:Node;hours:number;metric:ResourceMetricKey;onMetric:(key:ResourceMetricKey)=>void}){
+export const resourceOptions=[{key:'cpu',label:'CPU',Icon:Cpu},{key:'mem_used',label:'内存',Icon:MemoryStick},{key:'disk_used',label:'硬盘',Icon:HardDrive},{key:'network',label:'网速',Icon:ArrowDownUp}] as const
+export type ResourceMetricKey=(typeof resourceOptions)[number]['key']
+export function ResourceHistory({rows,node,hours,metric,compact}:{compact:boolean;rows:Row[];node:Node;hours:number;metric:ResourceMetricKey}){
  const {frame:tooltipFrame,dismiss:tooltipDismiss,onChartClick:tooltipClick,onChartPointerMove:tooltipMove,onChartKeyDown:tooltipKey}=useChartTooltip(`${node.id}:${hours}:${metric}`,compact)
  const network=metric==='network'
  const top=useMemo(()=>metric==='mem_used'?node.mem_total:metric==='disk_used'?node.disk_total:metric==='cpu'?axisTop(Math.max(0,...rows.map(r=>r.cpu??0)),4,10,100):axisTop(Math.max(0,...rows.flatMap(r=>[r.net_rx??0,r.net_tx??0])),1024,1024),[metric,node.mem_total,node.disk_total,rows])
  const color=metric==='mem_used'?'var(--color-chart-3)':metric==='disk_used'?'var(--color-chart-4)':'var(--color-chart-1)'
  const data=useMemo(()=>rows.flatMap((r,i)=>i && r.ts-rows[i-1].ts>7200000?[{ts:(r.ts+rows[i-1].ts)/2,cpu:null,mem_used:null,disk_used:null,net_rx:null,net_tx:null},r]:[r]),[rows])
- const label=options.find(o=>o.key===metric)!.label
+ const label=resourceOptions.find(o=>o.key===metric)!.label
  return <div className="detail-resource-charts" data-metric={metric}>
-  <div className="resource-chart-controls"><div className="resource-chart-tabs" role="group" aria-label={tr('资源指标')}>{options.map(({key,label,Icon})=><button key={key} aria-pressed={metric===key} onClick={()=>setMetric(key)}><Icon size={14}/>{tr(label)}</button>)}</div>
+  <div className="resource-chart-controls">
    <span className="resource-chart-unit">{network?<><span className="upload">↑ {tr('上行')}</span><span className="download">↓ {tr('下行')}</span></>:metric==='cpu'?'%':bytes(top)}</span>
   </div>
   <div className="resource-chart-panel" aria-label={tr(label)}><div className="detail-chart-frame" ref={tooltipFrame} onClickCapture={tooltipClick} onPointerMove={tooltipMove} onKeyDownCapture={tooltipKey}>
