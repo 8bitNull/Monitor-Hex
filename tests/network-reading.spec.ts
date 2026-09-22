@@ -39,7 +39,7 @@ test('home route count shows the latency indicator for every selected route',asy
 test('latency indicator stays close to the route label',async({page})=>{
  await page.setViewportSize({width:428,height:900});await setup(page);await page.goto('/')
  const reading=page.locator('.node-card .ping-probe').first().locator('.latency-reading');const label=reading.locator(':scope > span');const bars=reading.locator(':scope > .latency-bars')
- const labelBox=(await label.boundingBox())!,barsBox=(await bars.boundingBox())!;expect(barsBox.x-(labelBox.x+labelBox.width)).toBeLessThanOrEqual(12)
+ const labelBox=(await label.boundingBox())!,barsBox=(await bars.boundingBox())!;expect(barsBox.x-(labelBox.x+labelBox.width)).toBeLessThanOrEqual(12);expect(barsBox.width).toBeGreaterThanOrEqual(120)
 })
 test('home latency window defaults to one hour and can show six or twenty-four hours',async({page})=>{
  await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[nodes()[0]]}}))
