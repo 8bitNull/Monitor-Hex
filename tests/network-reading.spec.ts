@@ -34,12 +34,14 @@ test('home route count shows the latency indicator for every selected route',asy
  await toggleSettings(page);await (await setting(page,'首页线路数量',{exact:true})).selectOption(count);await toggleSettings(page)
  await expect(card.locator('.ping-probe')).toHaveCount(Number(count));await expect(card.locator('.latency-bars')).toHaveCount(Number(count));await expect(card.locator('.latency-trend-caption')).toHaveCount(0)
   const reading=card.locator('.ping-probe').first().locator('.latency-reading');expect(await reading.evaluate(el=>[...el.children].map(child=>child.className||child.tagName))).toEqual(['SPAN','latency-bars','latency-link'])
+  if(count==='3'){const rows=await card.locator('.ping-probe .latency-reading').evaluateAll(els=>els.map(el=>el.getBoundingClientRect().y));expect(rows[1]-rows[0]).toBeLessThanOrEqual(45);expect(rows[2]-rows[1]).toBeLessThanOrEqual(45)}
 }
 })
 test('latency indicator stays close to the route label',async({page})=>{
  await page.setViewportSize({width:428,height:900});await setup(page);await page.goto('/')
  const reading=page.locator('.node-card .ping-probe').first().locator('.latency-reading');const label=reading.locator(':scope > span');const bars=reading.locator(':scope > .latency-bars')
- const labelBox=(await label.boundingBox())!,barsBox=(await bars.boundingBox())!;expect(barsBox.x-(labelBox.x+labelBox.width)).toBeLessThanOrEqual(12);expect(barsBox.width).toBeGreaterThanOrEqual(120)
+ const labelBox=(await label.boundingBox())!,barsBox=(await bars.boundingBox())!;expect(barsBox.x-(labelBox.x+labelBox.width)).toBeLessThanOrEqual(12);expect(barsBox.width).toBeGreaterThanOrEqual(140)
+ await page.setViewportSize({width:1440,height:900});await page.reload();const desktopBars=page.locator('.node-card .ping-probe').first().locator('.latency-bars');expect((await desktopBars.boundingBox())!.width).toBeGreaterThan(180);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
 })
 test('home latency window defaults to one hour and can show six or twenty-four hours',async({page})=>{
  await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[nodes()[0]]}}))

@@ -28,7 +28,7 @@
 .node-card .loss-stat[data-tone=fair] b {color:var(--warn)}
 .node-card .loss-stat[data-tone=bad] b {color:var(--destructive)}
 .node-card .ping-probe>.micro-trend {margin-top:5px}
-.node-card .latency-reading {display:grid;grid-template-columns:auto minmax(88px,140px) auto;align-items:center;gap:6px;min-height:44px}
+.node-card .latency-reading {display:grid;grid-template-columns:auto minmax(104px,180px) auto;align-items:center;gap:6px;min-height:44px}
 .node-card .latency-reading .latency-bars {width:100%;min-width:0;margin-top:0}
 .node-card .latency-reading .latency-link {justify-self:end}
 .node-card .latency-reading>span {max-width:8ch}
@@ -57,15 +57,20 @@
 .node-card .loss-stat .loss-reading small {display:inline}
 .node-card .latency-reading {margin-bottom:0}
 .node-card .latency-link {flex-shrink:0}
-.node-card[data-indicator=minimal] .route-matrix[data-route-count="1"] .latency-reading {grid-template-columns:minmax(88px,140px) auto}
+.node-card[data-indicator=minimal] .route-matrix[data-route-count="1"] .latency-reading {grid-template-columns:minmax(104px,180px) auto}
 .node-card .route-matrix {min-height:88px}
 .node-card .route-matrix[data-requested-count="2"],.node-card .route-matrix[data-requested-count="3"] {min-height:0}
-.node-card .route-matrix[data-route-count="2"] .ping-probe+.ping-probe,.node-card .route-matrix[data-route-count="3"] .ping-probe+.ping-probe {margin-top:4px}
+.node-card .route-matrix[data-route-count="2"] .matrix-values,.node-card .route-matrix[data-route-count="3"] .matrix-values {margin-block:0}
+.node-card .route-matrix[data-route-count="2"] .ping-probe+.ping-probe,.node-card .route-matrix[data-route-count="3"] .ping-probe+.ping-probe {margin-top:0}
 @media(max-width:360px){
  .node-card .latency-reading {grid-template-columns:fit-content(10ch) 48px auto}
  .node-card[data-indicator=minimal] .route-matrix[data-route-count="1"] .latency-reading {grid-template-columns:48px auto}
  .node-card .latency-link {font-size:13px}
  .node-card .latency-link small {font-size:11px}
+}
+@media(min-width:721px){
+ .node-card .latency-reading {grid-template-columns:auto minmax(120px,220px) auto}
+ .node-card[data-indicator=minimal] .route-matrix[data-route-count="1"] .latency-reading {grid-template-columns:minmax(120px,220px) auto}
 }
 
 .node-card[data-indicator] .speed-indicators strong {flex-direction:row;flex-wrap:nowrap}

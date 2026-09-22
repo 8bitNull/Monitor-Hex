@@ -39,21 +39,24 @@ test('each card layout fits its indicator, keeps data visible and persists selec
  await page.reload();await expect(card).toHaveAttribute('data-indicator','minimal')
  await expect(card.locator('.latency-columns')).toBeHidden()
  })
-test('unselected settings controls keep neutral borders',async({page})=>{
+test('settings option borders stay neutral while selection remains visible',async({page})=>{
  await page.goto('/');await toggleSettings(page)
  const colors=await page.locator('.settings-drawer').evaluate(drawer=>{
   const styles=getComputedStyle(drawer),read=(name:string)=>{const probe=document.createElement('span');probe.style.color=styles.getPropertyValue(name).trim();document.body.append(probe);const color=getComputedStyle(probe).color;probe.remove();return color}
-  return {border:read('--border')}
+  return {border:read('--border'),foreground:read('--foreground')}
  })
+ const assertBorder=async(selector:string,color=colors.border)=>{const button=page.locator(selector).first();await button.hover();await expect(button).toHaveCSS('border-top-color',color)}
  await settingsCategory(page,'cards')
- for(const selector of ['.info-presets button[aria-pressed=false]']){
-  const button=page.locator(selector).first();await button.hover();await expect(button).toHaveCSS('border-top-color',colors.border)
- }
+ await assertBorder('.info-presets button[aria-pressed=false]',colors.border)
+ await assertBorder('.info-presets button[aria-pressed=true]',colors.border)
  await settingsCategory(page,'appearance')
- for(const selector of ['.graph-options button[aria-pressed=false]','.density-options button[aria-pressed=false]']){
-  const button=page.locator(selector).first();await button.hover();await expect(button).toHaveCSS('border-top-color',colors.border)
- }
- await settingsCategory(page,'appearance');const swatch=page.locator('.palette-options button[aria-pressed=false]').first();await swatch.hover();await expect(swatch).toHaveCSS('border-top-color','rgba(0, 0, 0, 0)')
+ for(const selector of ['.graph-options button[aria-pressed=false]','.graph-options button[aria-pressed=true]','.density-options button[aria-pressed=false]','.density-options button[aria-pressed=true]'])await assertBorder(selector,colors.border)
+ const swatch=page.locator('.palette-options button[aria-pressed=false]').first();await swatch.hover();await expect(swatch).toHaveCSS('border-top-color','rgba(0, 0, 0, 0)')
+ await assertBorder('.palette-options button[aria-pressed=true]',colors.border)
+ const focused=page.locator('.graph-options button[aria-pressed=true]').first();await page.keyboard.press('Tab');await focused.focus();await expect(focused).toHaveCSS('outline-color',colors.foreground)
+ await settingsCategory(page,'network')
+ await assertBorder('.latency-presets button[aria-pressed=false]',colors.border)
+ await assertBorder('.latency-presets button[aria-pressed=true]',colors.border)
 })
 test('settings categories keep related controls together',async({page})=>{
  await page.goto('/');await toggleSettings(page);await settingsCategory(page,'appearance');const drawer=page.locator('dialog.settings-drawer')
