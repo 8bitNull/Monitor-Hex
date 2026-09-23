@@ -77,7 +77,7 @@ test('live trends accumulate real reports and clear on offline state',async({pag
  await page.goto('/node/1');const speed=page.locator('.detail-speed');await expect(speed.locator('.micro-empty')).toHaveCount(2)
  count++;await page.clock.runFor(5100);await expect(speed.locator('.micro-empty')).toHaveCount(0);await expect(speed.locator('.upload .speed-amount')).toHaveText('0')
  expect(await speed.locator('.upload .micro-trend path').first().getAttribute('d')).toContain('L')
- offline=true;await page.clock.runFor(5100);await expect(speed.locator('.speed-amount').first()).toHaveText('—');await expect(speed.locator('.micro-trend circle')).toHaveCount(0)
+ offline=true;await page.clock.runFor(5100);await expect(page.locator('.overview-unavailable')).toBeVisible();await expect(speed).toHaveCount(0)
 })
 
 
@@ -97,7 +97,7 @@ test('network visuals remain fixed across resource styles and latency preference
  await page.getByRole('button',{name:'应用延迟阈值',exact:true}).click();await toggleSettings(page);await page.reload()
  await expect(card.locator('.latency-bars svg')).toHaveAttribute('aria-label',/0–500 ms.*100.*250/)
  await toggleSettings(page);await (await settingsButton(page,'恢复默认外观',{exact:true})).click();await settingsCategory(page,'network');await page.locator('.latency-presets').getByRole('button',{name:'自定义',exact:true}).click();await expect((await setting(page,'延迟统一刻度',{exact:true}))).toHaveAttribute('data-value','500')
- await (await settingsButton(page,'重置全部偏好',{exact:true})).click();await settingsCategory(page,'network');await page.locator('.latency-presets').getByRole('button',{name:'自定义',exact:true}).click();await expect((await setting(page,'延迟统一刻度',{exact:true}))).toHaveAttribute('data-value','200')
+ await (await settingsButton(page,'重置全部偏好',{exact:true})).click();await page.getByRole('button',{name:'确认重置'}).click();await settingsCategory(page,'network');await page.locator('.latency-presets').getByRole('button',{name:'自定义',exact:true}).click();await expect((await setting(page,'延迟统一刻度',{exact:true}))).toHaveAttribute('data-value','200')
 })
 
 test('live activity distinguishes zero, slow, missing, stale and offline readings',async({page})=>{
@@ -106,9 +106,10 @@ test('live activity distinguishes zero, slow, missing, stale and offline reading
  await page.goto('/');const speed=page.locator('.node-card .speed-indicators')
  await expect(speed.locator('.upload .speed-amount')).toHaveText('0');await expect(speed.locator('.download .speed-amount')).toHaveText('<0.001')
  await expect(speed.locator('.micro-empty')).toHaveCount(2)
- for(state of ['missing','stale','offline']){
+ for(state of ['missing','stale']){
   await page.clock.runFor(5100);await expect(speed.locator('.speed-amount')).toHaveText(['—','—']);await expect(speed.locator('.micro-trend circle')).toHaveCount(0);await expect(speed).toHaveAttribute('data-state',state)
  }
+ state='offline';await page.clock.runFor(5100);await expect(speed).toHaveCount(0);await expect(page.locator('.node-card .offline-last-report')).toBeVisible()
 })
 
 test('latency bars preserve timestamp gaps, threshold colors and capped actual values',async({page})=>{

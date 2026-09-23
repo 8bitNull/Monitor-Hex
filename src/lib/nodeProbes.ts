@@ -10,4 +10,6 @@ export const resolveProbe=(id:number,fallback:string)=>selections[id]||fallback
 export function selectNodeProbe(id:number,value:string) { if(!Number.isSafeInteger(id)||id<1)return; if(value==='auto')delete selections[id];else if(/^[1-9]\d*$/.test(value)&&Number.isSafeInteger(Number(value)))selections[id]=value;else return;save() }
 function save(){try{localStorage.setItem(key,JSON.stringify(selections))}catch{/* Optional storage. */}revision++;listeners.forEach(f=>f())}
 export function clearNodeProbes(){selections={};save()}
+export function getNodeProbeSelections(){return {...selections}}
+export function replaceNodeProbes(next:Record<string,string>){selections={...next};save()}
 export function useNodeProbe(id:number,fallback:string){useSyncExternalStore(subscribeProbes,probeRevision);return {probe:resolveProbe(id,fallback),selected:selections[id]||'auto',select:(value:string)=>selectNodeProbe(id,value)}}

@@ -1,35 +1,62 @@
 import type {Node} from '@/lib/api'
-import {liveMetrics} from '@/lib/freshness'
+import {liveMetrics,nodeState} from '@/lib/freshness'
 import {tr,locale} from '@/lib/i18n'
 import {percent,osName,uptime,bytes,pair,daysUntil,money,CYCLES,FOREVER} from '@/lib/format'
-import {Activity,Clock,Monitor,Network,MapPin} from 'lucide-react'
+import {Activity,Clock,Monitor,Network,MapPin,ArrowRight} from 'lucide-react'
 import {useState} from 'react'
+import {usePing} from '@/lib/usePing'
+import {useNodeProbe} from '@/lib/nodeProbes'
+import {primaryPing} from '@/lib/browse'
+import {isRecentPingSample} from '@/lib/pingRecency'
 import {NodePicker} from './NodePicker'
 import {Status} from './NodeIdentity'
 import {RemarkTags} from './RemarkTags'
 import {ResourceMetric} from './ResourceMetric'
 import {SpeedIndicators} from './SpeedIndicators'
 import {trafficUsage,trafficPeriodLabel} from '@/lib/traffic'
-export function DetailIdentity({node,nodes,onSwitch}:{node:Node;nodes:Node[];onSwitch:(id:number)=>void}){
+export function DetailIdentity({node,nodes,probe,onSwitch,onLatency,showNetworkReading=true}:{node:Node;nodes:Node[];probe:string;onSwitch:(id:number)=>void;onLatency:()=>void;showNetworkReading?:boolean}){
  let country=node.country;try{country=new Intl.DisplayNames([locale()],{type:'region'}).of(node.country.toUpperCase()) || node.country}catch{/* Preserve unknown country text. */}
+ const state=nodeState(node),lastSeen=node.last_seen>0?new Date(node.last_seen*1000):null
+ const reported=lastSeen&&Number.isFinite(lastSeen.getTime())?lastSeen:null
  return (      <div className="detail-identity">
         <div className="detail-title-row"><div className="detail-title"><NodePicker node={node} nodes={nodes} onSwitch={onSwitch}/></div><div className="node-status-group"><div className="node-ip-tags" aria-label={tr("IP 协议")}>{(node.ipv4 || node.ipv4_pin) && <span className="tag">V4</span>}{(node.ipv6 || node.ipv6_pin) && <span className="tag">V6</span>}</div><Status node={node}/></div></div>
+        {state!=='live'&&<p className="detail-last-seen"><Clock size={13}/>{reported?<time dateTime={reported.toISOString()}>{tr("上次上报：{0}",reported.toLocaleString(locale()))}</time>:tr("上次上报时间未知")}</p>}
         <div className="detail-subtitle">{country&&<span><MapPin size={14}/>{country}</span>}<span title={tr("系统")}><Monitor size={14}/>{osName(node.os)}</span></div>
-
+        {showNetworkReading&&<DetailNetworkReading node={node} probe={probe} onLatency={onLatency}/>}
       </div>
 )
 }
+function DetailNetworkReading({node,probe,onLatency}:{node:Node;probe:string;onLatency:()=>void}){
+ const {ref,snapshot,retry}=usePing(node.id)
+ useNodeProbe(node.id,probe)
+ const ping=snapshot?.data?primaryPing(node.id,probe):undefined
+ const fresh=!!ping&&isRecentPingSample(ping.latest.ts)&&!snapshot?.failed
+ const reading=!snapshot?.data?(snapshot?.failed?tr("读取失败"):tr("读取中…")):!ping?tr("暂无探测记录"):ping.latest.latency===null?tr("超时"):`${Math.round(ping.latest.latency)} ms`
+ const sampled=ping?new Date(ping.latest.ts*1000):null
+ return <div ref={ref} className="detail-network-reading" data-fresh={fresh}>
+  <button type="button" onClick={onLatency} title={tr("查看延迟统计与历史")}>
+   <span className="detail-network-route">{ping?.name??tr("所选线路延迟")}</span>
+   <strong>{reading}</strong>
+   {ping&&<span>{tr("24h 丢包")} {ping.loss===null?'—':`${ping.loss.toFixed(1)}%`}</span>}
+   <small>{ping?(isRecentPingSample(ping.latest.ts)?tr("采样：{0}",sampled!.toLocaleString(locale())):tr("较旧记录 · 采样：{0}",sampled!.toLocaleString(locale()))):''}</small>
+   {snapshot?.failed&&ping&&<small>{tr("更新失败 · 上次数据")}</small>}
+   <ArrowRight size={14} aria-hidden="true"/>
+  </button>
+  {snapshot?.failed&&<button type="button" className="detail-network-retry" onClick={retry}>{tr("重试")}</button>}
+ </div>
+}
 export function DetailLiveOverview({node}:{node:Node}){
  const m=liveMetrics(node)
+ const state=nodeState(node)
  const remarkTags=(node.remark??'').split(/[;；]/).map(text=>text.trim()).filter(Boolean)
  const [expanded,setExpanded]=useState(false)
  const crowded=remarkTags.length>3 || remarkTags.some(text=>Array.from(text).length>48)
  const traffic=trafficUsage(node),days=daysUntil(node.expires_at)
  const expiry=days===null?tr('未设到期'):days<0?tr('已过期 {0} 天',-days):tr('{0} 天后到期',days)
  return <section className="detail-live" aria-label={tr("实时指标")}>
-  <div className="detail-module-heading"><h2><Activity size={15}/>{tr("节点概览")}</h2><small>{tr("当前数据")}</small></div>
-  <div className="detail-overview-grid">
-   <section className="overview-resources"><h3>{tr("资源使用")}</h3><div className="detail-resources">
+  <div className="detail-module-heading"><h2><Activity size={15}/>{tr("节点概览")}</h2><small>{m?tr("当前数据"):state==='offline'?tr("离线"):state==='stale'?tr("数据已过期"):tr("等待数据")}</small></div>
+  <div className="detail-overview-grid" data-live={!!m}>
+   {m?<><section className="overview-resources"><h3>{tr("资源使用")}</h3><div className="detail-resources">
     <ResourceMetric label="CPU" value={m?.cpu??null} foot={tr("{0} 核",node.cpu_cores)}/>
     <ResourceMetric label={tr("内存")} value={m?percent(m.mem_used,m.mem_total):null} foot={m?pair(m.mem_used,m.mem_total):tr("容量 {0}",bytes(node.mem_total))}/>
     <ResourceMetric label={tr("硬盘")} value={m?percent(m.disk_used,m.disk_total):null} foot={m?pair(m.disk_used,m.disk_total):tr("容量 {0}",bytes(node.disk_total))}/>
@@ -38,7 +65,7 @@ export function DetailLiveOverview({node}:{node:Node}){
    <section className="overview-network"><div className="overview-group-heading"><h3>{tr("实时网速")}</h3><small>{tr("最近 60 秒")}</small></div>
     <SpeedIndicators key={node.id} node={node} detail compact/>
     <div className="detail-connections">{([['TCP',m?.tcp],['UDP',m?.udp]] as const).map(([label,value])=><div key={label}><span><Network size={13}/>{label}</span><strong>{value===undefined?'—':value.toLocaleString()}</strong></div>)}</div>
-   </section>
+   </section></>:<section className="overview-unavailable" role="status"><h3>{state==='offline'?tr("离线"):state==='stale'?tr("数据已过期"):tr("等待数据")}</h3><p>{tr("实时资源与网速暂不可用")}</p></section>}
    <section className="overview-account"><h3>{tr("用量与账期")}</h3>
     <div className="overview-billing">
      <div className="overview-usage" title={tr("流量周期：每月 {0} 日重置，本周期自 {1} 起",traffic.resetDay,traffic.periodKey)}><span>{tr(trafficPeriodLabel(node))}</span><b>{bytes(traffic.value)} <small>/ {node.traffic_limit>0?bytes(node.traffic_limit):FOREVER}</small></b>{node.traffic_limit>0&&<progress aria-label={tr(trafficPeriodLabel(node))} max={node.traffic_limit} value={Math.min(node.traffic_limit,Math.max(0,traffic.value))}/>}</div>

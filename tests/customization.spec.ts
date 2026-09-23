@@ -40,7 +40,7 @@ test('mobile follows, copies once, remembers independent choices and respects 72
  await toggleSettings(page);await chooseOption((await setting(page,'手机显示',{exact:true})),'follow');await toggleSettings(page);await openMore();await expect(page.locator('.node-price')).toBeVisible()
  await page.reload();await toggleSettings(page);await chooseOption((await setting(page,'手机显示',{exact:true})),'custom');await expect(mobile.getByLabel('价格',{exact:true})).not.toBeChecked()
  await (await settingsButton(page,'恢复默认外观',{exact:true})).click();await expect((await setting(page,'手机显示',{exact:true}))).toHaveAttribute('data-value','custom');await expect(mobile.getByLabel('价格',{exact:true})).not.toBeChecked()
- await (await settingsButton(page,'重置全部偏好',{exact:true})).click();await expect((await setting(page,'手机显示',{exact:true}))).toHaveAttribute('data-value','follow');await expect(general.getByLabel('TCP／UDP',{exact:true})).toBeChecked()
+ await (await settingsButton(page,'重置全部偏好',{exact:true})).click();await page.getByRole('button',{name:'确认重置'}).click();await expect((await setting(page,'手机显示',{exact:true}))).toHaveAttribute('data-value','follow');await expect(general.getByLabel('TCP／UDP',{exact:true})).toBeChecked()
 })
 test('explicit equal-default display choices survive site changes, unrelated changes, export and import',async({page})=>{
  let config:any={cardInfo:all,desktopColumns:'auto'};await page.route('**/theme-config.json',r=>r.fulfill({json:config}));await setup(page);await toggleSettings(page)
@@ -49,9 +49,9 @@ test('explicit equal-default display choices survive site changes, unrelated cha
  await chooseOption((await setting(page,'桌面列数',{exact:true})),'2');await chooseOption((await setting(page,'桌面列数',{exact:true})),'auto')
  await chooseOption((await setting(page,'明暗模式',{exact:true})),'dark');await toggleSettings(page)
  config={cardInfo:{...all,price:false,uptime:false},desktopColumns:'4'};await page.reload();await expect(page.locator('.node-price')).toBeVisible();await expect(page.locator('.card-uptime')).toHaveCount(0);await expect(page.locator('.node-grid')).toHaveAttribute('data-columns','auto')
- await toggleSettings(page);const downloadPromise=page.waitForEvent('download');await (await settingsButton(page,'导出外观偏好',{exact:true})).click();const download=await downloadPromise;const exported=JSON.parse(await readFile((await download.path())!,'utf8'));expect(exported.cardInfo.price).toBe(true);expect(exported.cardInfo.uptime).toBe(false)
- await (await settingsButton(page,'重置全部偏好',{exact:true})).click();await settingsCategory(page,'cards');await expect(group.getByLabel('价格',{exact:true})).not.toBeChecked()
- await (await setting(page,'导入外观偏好',{exact:true})).setInputFiles({name:'prefs.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(exported))});await settingsCategory(page,'cards');await expect(group.getByLabel('价格',{exact:true})).toBeChecked();await expect((await setting(page,'桌面列数',{exact:true}))).toHaveAttribute('data-value','auto')
+ await toggleSettings(page);const downloadPromise=page.waitForEvent('download');await (await settingsButton(page,'导出主题配置',{exact:true})).click();const download=await downloadPromise;const exported=JSON.parse(await readFile((await download.path())!,'utf8'));expect(exported.preferences.cardInfo.price).toBe(true);expect(exported.preferences.cardInfo.uptime).toBe(false)
+ await (await settingsButton(page,'重置全部偏好',{exact:true})).click();await page.getByRole('button',{name:'确认重置'}).click();await settingsCategory(page,'cards');await expect(group.getByLabel('价格',{exact:true})).not.toBeChecked()
+ await (await setting(page,'导入主题配置',{exact:true})).setInputFiles({name:'prefs.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(exported))});await settingsCategory(page,'cards');await expect(group.getByLabel('价格',{exact:true})).toBeChecked();await expect((await setting(page,'桌面列数',{exact:true}))).toHaveAttribute('data-value','auto')
  await page.reload();await expect(page.locator('.node-price')).toBeVisible()
 })
 for(const width of [320,390,430,720,721,1024,1440,1920])test('column safety and customization layout at '+width,async({page})=>{

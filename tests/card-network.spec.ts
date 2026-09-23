@@ -22,7 +22,7 @@ test('compact card keeps billing above latency and three equal columns and remar
  }
 })
 
-test('home speed curves use new reports and disappear when the node goes offline',async({page})=>{
+test('home speed curves use new reports and offline cards retain durable facts and routes',async({page})=>{
  await page.clock.install()
  let step=0,online=true
  const ts=Math.floor(Date.now()/1000)
@@ -36,7 +36,9 @@ test('home speed curves use new reports and disappear when the node goes offline
  await expect(card.locator('.upload .speed-amount')).toHaveText('0')
  expect(await card.locator('.download .micro-trend path').getAttribute('d')).toContain('L')
  online=false;await page.clock.runFor(5100)
- await expect(card.locator('.speed-amount').first()).toHaveText('—')
- await expect(card.locator('.speed-pair circle')).toHaveCount(0)
- await expect(card.locator('.node-footer .node-price')).toBeVisible();await expect(card.locator('.card-uptime b')).toHaveText('—')
+ await expect(card.locator('.offline-last-report time')).toHaveAttribute('datetime',/T/)
+ await expect(card.locator('.resources,.card-network,.speed-pair,.node-connections,.card-uptime')).toHaveCount(0)
+ await expect(card.locator('.card-billing .traffic-summary')).toBeVisible()
+ await expect(card.locator('.route-matrix')).toBeVisible()
+ await expect(card.locator('.node-footer .node-price')).toBeVisible()
 })

@@ -9,6 +9,12 @@ assert.deepEqual(browseNodes(nodes, { ...defaultBrowse, sort: 'cpu', direction: 
 assert.equal(browseNodes(nodes, { ...defaultBrowse, query: '日本' }).length, 3)
 assert.deepEqual(browseNodes(nodes, { ...defaultBrowse, sort: 'expiry', direction: 'desc' }).map(n => n.id), [1,2,3])
 assert.deepEqual(browseNodes([create(2,20),create(1,20)], { ...defaultBrowse, sort:'cpu' }).map(n=>n.id), [1,2])
+const {setLanguage}=await import('./i18n.ts')
+const localeNodes=[{...create(1,20),name:'Aster'},{...create(2,20),name:'阿尔法'}]
+setLanguage('en')
+assert.deepEqual(browseNodes(localeNodes,{...defaultBrowse,sort:'name'}).map(n=>n.id),[1,2])
+setLanguage('zh')
+assert.deepEqual(browseNodes(localeNodes,{...defaultBrowse,sort:'name'}).map(n=>n.id),[2,1])
 console.log('sorting, null-last, default order, ties and region search passed')
 
 assert.deepEqual(tableColumns(defaultBrowse.columns,true,false),['name','cpu','memory','disk','speed','latency','loss','probe','traffic','expiry'])
@@ -32,7 +38,7 @@ await Promise.all([91,92,93,94].map(id=>loadPing(id)))
 const qualityNodes=[91,92,93,94].map(id=>create(id,20))
 assert.deepEqual(browseNodes(qualityNodes,{...defaultBrowse,sort:'loss',direction:'desc'}).map(n=>n.id),[91,92,93,94])
 assert.deepEqual(browseNodes(qualityNodes,{...defaultBrowse,sort:'loss',direction:'asc'}).map(n=>n.id),[92,91,93,94])
-assert.equal(sortValue({...qualityNodes[0],online:false},'loss','auto'),null)
+assert.equal(sortValue({...qualityNodes[0],online:false},'loss','auto'),10)
 assert.equal(sortValue(qualityNodes[0],'latency','auto'),null)
 console.log('table grouping, independent presets, legacy columns, missing loss, stale and offline sorting passed')
 

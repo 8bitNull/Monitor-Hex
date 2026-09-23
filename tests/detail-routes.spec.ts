@@ -47,13 +47,15 @@ test('detail prioritizes charts, renders complete facts and compact controls at 
  await page.getByRole('button',{name:'网络延迟',exact:true}).click()
  await expect(page).toHaveURL(/#latency$/)
 })
-test('missing home route stays empty, offline live metrics are unknown, long names do not overflow',async({page})=>{
+test('missing home route stays empty while offline detail keeps durable facts and fits long names',async({page})=>{
  await page.addInitScript(()=>localStorage.setItem('monitor-next',JSON.stringify({designVersion:1,probe:'99'})))
  const node={...nodes()[0],online:false,name:'Very long node name '.repeat(12),cpu_name:'Long CPU description '.repeat(15)}
  await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[node]}}))
  await page.goto('/node/1#latency')
  await expect(page.locator('.detail-chart-frame')).toContainText('无该线路记录')
- await expect(page.locator('.detail-live .bar-number')).toHaveText(['—','—','—','—'])
+ await expect(page.locator('.overview-unavailable')).toContainText('离线')
+ await expect(page.locator('.detail-resources,.detail-connections')).toHaveCount(0)
+ await expect(page.locator('.overview-account')).toBeVisible()
  for(const width of [320,390]) {
   await page.setViewportSize({width,height:900})
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()

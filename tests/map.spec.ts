@@ -1,6 +1,25 @@
 import {test,expect} from '@playwright/test'
 test.beforeEach(async({page})=>{await page.addInitScript(()=>{if(!localStorage.getItem('monitor-next'))localStorage.setItem('monitor-next',JSON.stringify({schemaVersion:3,infoDensity:'full',modules:{map:true}}))})})
 
+test('compact map expands, persists and resets with all preferences',async({page})=>{
+ await page.setViewportSize({width:1280,height:900})
+ await page.goto('/')
+ const map=page.locator('.map-frame'),height=()=>map.locator('.explorer-map').evaluate(element=>element.getBoundingClientRect().height)
+ await expect(map.getByRole('button',{name:'展开地图'})).toBeVisible()
+ expect(await height()).toBe(216)
+ await map.getByRole('button',{name:'展开地图'}).click()
+ expect(await height()).toBe(310)
+ await page.reload()
+ await expect(map.getByRole('button',{name:'收起地图'})).toBeVisible()
+ expect(await height()).toBe(310)
+ await page.getByRole('button',{name:'显示与偏好'}).click()
+ await page.getByRole('navigation',{name:'设置分类'}).getByRole('button',{name:'偏好'}).click()
+ await page.getByRole('button',{name:'重置全部偏好'}).click()
+ await page.getByRole('button',{name:'确认重置'}).click()
+ await expect(map.getByRole('button',{name:'展开地图'})).toBeVisible()
+ expect(await height()).toBe(216)
+})
+
 test('map supports zoom, pan, fit, filtering and fullscreen without stealing page scroll',async({page})=>{
  await page.goto('/')
  const map=page.locator('.explorer-map'),svg=map.locator('.explorer-stage>svg')

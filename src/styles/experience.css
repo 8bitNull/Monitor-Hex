@@ -317,6 +317,13 @@
 .settings-drawer .preference-action-group+.preference-action-group {margin-top:10px}
 .settings-drawer .preference-action-group>button,.settings-drawer .preference-action-group>.import-control {min-width:0}
 .settings-drawer .preference-action-group:last-child>button:last-child {border-color:color-mix(in srgb,var(--destructive) 55%,var(--border));color:var(--destructive)}
+.settings-drawer .settings-reset-confirm {position:fixed;inset:0;margin:auto;width:min(400px,calc(100vw - 32px));max-height:calc(100dvh - 32px);padding:20px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--foreground);box-shadow:0 16px 48px #0003}
+.settings-drawer .settings-reset-confirm::backdrop {background:#0006}
+.settings-reset-confirm h3 {font-size:16px;font-weight:600}
+.settings-reset-confirm p {margin:12px 0 20px;font-size:13px;line-height:1.65;color:var(--muted-foreground)}
+.settings-reset-confirm>div {display:flex;justify-content:flex-end;gap:8px}
+.settings-reset-confirm button {min-width:96px;min-height:44px;padding:8px 12px;border:1px solid var(--border);border-radius:6px}
+.settings-reset-confirm .confirm-destructive {border-color:var(--destructive);background:color-mix(in srgb,var(--destructive) 12%,var(--card));color:var(--destructive)}
 .settings-drawer :is(button,input):focus-visible {outline:2px solid var(--foreground);outline-offset:2px}
 .settings-drawer :is(select,[data-slot="select"]):focus {outline:2px solid var(--border);outline-offset:2px;box-shadow:none}
 @media(max-width:600px){

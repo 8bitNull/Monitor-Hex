@@ -5,7 +5,7 @@ import {RegionPicker} from './components/RegionPicker';
 import themeManifest from '../theme.json';
 import {useLoadAlerts} from './lib/useLoadAlerts';
 import {Flag} from './components/NodeIcons';
-import {probeRevision,subscribeProbes,clearNodeProbes} from './lib/nodeProbes';
+import {probeRevision,subscribeProbes,clearNodeProbes,getNodeProbeSelections,replaceNodeProbes} from './lib/nodeProbes';
 import { tr, locale, getLanguage, subscribeLanguage, setLanguage } from './lib/i18n.ts'
 import { readCollection } from '@/lib/collection';
 import { groupRegions, systemKey, UNKNOWN_REGION } from '@/lib/groups';
@@ -16,6 +16,7 @@ import { usePreferences, useAppearance } from '@/lib/preferences';
 import { type Preferences as ThemePreferences, defaults, restoreAppearance } from '@/lib/appearance';
 import { Background, useBackground } from '@/components/Background';
 import { readBrowse, browseNodes, defaultBrowse, type Browse, type SortKey } from '@/lib/browse';
+import {createSettingsBackup,parseSettingsBackup,tableSettings} from '@/lib/settingsBackup';
 import { getPing, watchPing, pingRevision, subscribePing, probeCatalog } from '@/lib/ping';
 import { NodeTable } from '@/components/NodeTable';
 import { NodeCard } from "@/components/NodeCard";
@@ -99,6 +100,7 @@ export default function App({ siteDefaults = defaults }: {
     const toggleTheme = () => setPrefs(prev => ({ ...prev, appearance: dark ? 'light' : 'dark' }));
     const background = useBackground(prefs);
     const [settings, setSettings] = useState(false);
+    const [mapHeightReset, setMapHeightReset] = useState(0);
     const [system, setSystem] = useState(() => readCollection().system);
     useEffect(() => { try { sessionStorage.setItem('monitor-next-collection-v1', JSON.stringify({ system })) } catch { /* Optional storage. */ } }, [system]);
     const [browseState, setBrowse] = useState<Browse>(() => {const old=readBrowse();return {...old,status:"all",query:"",sort:old.view === "table" ? old.sort : "default",direction:old.view === "table" ? old.direction : "asc"}});
@@ -130,6 +132,30 @@ export default function App({ siteDefaults = defaults }: {
     const { status, region } = browse;
     const shownColumns=compactViewport?browse.mobileColumns:browse.columns;
     const patchBrowse = (patch: Partial<Browse>) => setBrowse(prev => ({ ...prev, ...patch }));
+    const exportSettings=()=>{
+        let mapHeight:'compact'|'expanded'='compact';
+        try {if(localStorage.getItem('monitor-next-map-height-v1')==='expanded')mapHeight='expanded'} catch {/* Optional storage. */}
+        return createSettingsBackup({preferences:prefs,table:tableSettings(browse),language,nodeProbes:getNodeProbeSelections(),mapHeight});
+    };
+    const importSettings=(text:string):'legacy'|'bundle'=>{
+        const parsed=parseSettingsBackup(text,siteDefaults);
+        const imported=parsed.kind==='legacy'?parsed.preferences:parsed.settings.preferences;
+        setPrefs(imported,true,true);
+        selectGraph(imported.graph);
+        selectDisplay({infoDensity:imported.infoDensity,cardInfo:imported.cardInfo,mobileCardInfo:imported.mobileCardInfo,mobileInfoMode:imported.mobileInfoMode,desktopColumns:imported.desktopColumns,detailInfoMode:imported.detailInfoMode});
+        if(parsed.kind==='bundle'){
+            const {table,language:nextLanguage,nodeProbes,mapHeight}=parsed.settings;
+            setBrowse(previous=>({...previous,...table}));
+            try {
+                localStorage.setItem('monitor-next-table-columns-v1',JSON.stringify(table));
+                localStorage.setItem('monitor-next-map-height-v1',mapHeight);
+            } catch {/* Optional storage. */}
+            setMapHeightReset(value=>value+1);
+            replaceNodeProbes(nodeProbes);
+            setLanguage(nextLanguage);
+        }
+        return parsed.kind;
+    };
     const setQuery = (query: string) => patchBrowse({ query });
     const setStatus = (status: string) => patchBrowse({ status });
     const setRegion = useCallback((region:string)=>setBrowse(prev=>({...prev,region})),[]);
@@ -229,7 +255,7 @@ export default function App({ siteDefaults = defaults }: {
       </header>
       {compactViewport && mobileSearchOpen && <MobileSearch count={filtered.length} onClear={()=>setQuery('')} onResults={()=>{setMobileSearchOpen(false);requestAnimationFrame(()=>{const results=document.getElementById('node-results');results?.focus({preventScroll:true});results?.scrollIntoView({block:'start'})})}} onClose={()=>setMobileSearchOpen(false)}>{searchField()}</MobileSearch>}
 
-        {settings && <Preferences browse={browse} onTableChange={patch=>{const next={...browse,...patch};setBrowse(next);try{localStorage.setItem("monitor-next-table-columns-v1",JSON.stringify({columns:next.columns,mobileColumns:next.mobileColumns,tableLayout:next.tableLayout,mobileTableLayout:next.mobileTableLayout,columnsVersion:next.columnsVersion}))}catch{/* Optional storage. */}}} onClose={()=>setSettings(false)} probes={probes} value={prefs} onChange={setPrefs} onGraphChange={selectGraph} onDisplayChange={selectDisplay} siteDefaults={siteDefaults} backgroundError={background.error} onReset={scope => {
+        {settings && <Preferences browse={browse} onTableChange={patch=>{const next={...browse,...patch};setBrowse(next);try{localStorage.setItem("monitor-next-table-columns-v1",JSON.stringify(tableSettings(next)))}catch{/* Optional storage. */}}} onClose={()=>setSettings(false)} probes={probes} value={prefs} onChange={setPrefs} onGraphChange={selectGraph} onDisplayChange={selectDisplay} onExport={exportSettings} onImport={importSettings} backgroundError={background.error} onReset={scope => {
                 setPrefs(scope === 'all' ? { ...siteDefaults, modules: { ...siteDefaults.modules } } : restoreAppearance(prefs, siteDefaults), true, scope === 'all');
                 if (scope === 'all') {
                     clearNodeProbes(); setLanguage('zh');
@@ -239,9 +265,11 @@ export default function App({ siteDefaults = defaults }: {
                         localStorage.removeItem('monitor-next-rates-v1');
                         localStorage.removeItem('monitor-next-table-columns-v1');
                         localStorage.removeItem('monitor-next-mode');
+                        localStorage.removeItem('monitor-next-map-height-v1');
                         sessionStorage.removeItem('monitor-next-browse-v1');
                     }
                     catch { /* Optional storage. */ }
+                    setMapHeightReset(value => value + 1);
                 }
             }}/>}
 
@@ -254,7 +282,7 @@ export default function App({ siteDefaults = defaults }: {
         {open !== null ? (!nodes ? (<Skeleton className="h-96"/>) : selected ? (<Suspense fallback={<Skeleton className="h-96"/>}>
               <NodeDetail detailInfoMode={prefs.detailInfoMode} onDetailInfoMode={detailInfoMode=>selectDisplay({detailInfoMode})} key={selected.id} node={selected} probe={prefs.probe} nodes={sorted} onSwitch={id=>{const q=new URLSearchParams(location.search);q.delete("eventStart");q.delete("eventEnd");go(id,location.hash.slice(1),q.size?"?"+q:"")}}/>
             </Suspense>) : (<p className="py-16 text-center text-sm text-muted-foreground">{tr("节点不存在或未公开。")}<button className="underline" onClick={() => go(null)}>{tr("返回列表")}</button>
-            </p>)) : !nodes ? (<>{mapVisible&&<MapPanel viewSwitch={viewSwitch} nodeSnapshot={mapKey} region={region} onRegion={setRegion} pendingNodes/>}<div className="node-grid home-loading" aria-label={tr("正在加载节点")} aria-busy="true">
+            </p>)) : !nodes ? (<>{mapVisible&&<MapPanel key={mapHeightReset} viewSwitch={viewSwitch} nodeSnapshot={mapKey} region={region} onRegion={setRegion} pendingNodes/>}<div className="node-grid home-loading" aria-label={tr("正在加载节点")} aria-busy="true">
             {[0, 1, 2].map((i) => (<div key={i} className="loading-card" aria-hidden="true"><Skeleton className="loading-title"/><div className="loading-metrics">{[0,1,2,3].map(n=><Skeleton key={n}/>)}</div><Skeleton className="loading-speed"/><Skeleton className="loading-route"/></div>))}
           </div></>) : (<>
             <section className="overview-heading"><div className="page-heading"><h1>{tr("服务器总览")}</h1><span className={`live-label connection-${connection}`} role="status" title={[{connecting:tr("正在连接"),realtime:tr("实时连接"),polling:tr("轮询更新"),disconnected:tr("连接中断 \u00B7 数据可能已过期")}[connection],lastUpdated ? new Date(lastUpdated).toLocaleString(locale()) : tr("等待首次数据")].join(" · ")}><Radio size={14}/><span>{{ connecting: tr("正在连接"), realtime: tr("实时连接"), polling: tr("轮询更新"), disconnected: tr("连接中断 \u00B7 数据可能已过期") }[connection]}</span></span></div>
@@ -276,7 +304,7 @@ export default function App({ siteDefaults = defaults }: {
 
 
              {browse.view === 'table' && ['latency','loss'].includes(browse.sort) && <p className="sort-note">{tr("延迟和丢包按所选线路比较；无效或旧数据排在末尾。已读取")}{sorted.filter(n => getPing(n.id)?.data).length}/{sorted.length}{tr("个节点。")}{tr("各节点所选线路可能不同，延迟比较请注意探测目标。")}</p>}
-            {mapVisible && <MapPanel viewSwitch={viewSwitch} nodeSnapshot={mapKey} region={region} onRegion={setRegion}/>}
+            {mapVisible && <MapPanel key={mapHeightReset} viewSwitch={viewSwitch} nodeSnapshot={mapKey} region={region} onRegion={setRegion}/>}
 
             <div id="node-results" tabIndex={-1}>{sorted.length === 0 ? (<p className="py-16 text-center text-sm text-muted-foreground">{tr("还没有节点")}</p>) : filtered.length === 0 ? (<div className="empty-state"><p>{tr("没有符合条件的节点")}</p><Button variant="outline" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); }}>{tr("清除筛选")}</Button></div>) : browse.view === "table" ? (<NodeTable page={page} onPageChange={page=>setTablePage({key:pageKey,page})} nodes={filtered} browse={{...browse,columns:shownColumns}} onSort={sortBy} onSortChange={(sort,direction)=>patchBrowse({sort,direction})} mobile={compactViewport} warn={prefs.latencyWarn} high={prefs.latencyHigh} onOpen={id => go(id)}/>) : (<div className="node-grid" data-columns={prefs.desktopColumns}>{filtered.map(n=><NodeCard key={n.id} node={n} mobile={mobileCards} prefs={prefs} info={mobileCards && prefs.mobileInfoMode==='custom' ? prefs.mobileCardInfo || prefs.cardInfo : prefs.cardInfo} probe={prefs.probe} onOpen={()=>go(n.id)} onOpenRoutes={route=>go(n.id,"latency",`?routes=${route.kind==="all"?"all":route.id}`)}/>)}</div>)}</div>
           </>)}

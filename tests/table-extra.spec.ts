@@ -20,14 +20,29 @@ test('all extra metrics preserve zero, offline and missing values',async({page})
 
 test('mobile can show only packet loss or only the probe route and retains selection',async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.addInitScript(()=>{if(!sessionStorage.getItem('monitor-next-browse-v1'))sessionStorage.setItem('monitor-next-browse-v1',JSON.stringify({columnsVersion:5,mobileColumns:['loss'],view:'table',mobileTableLayout:'grouped'}))})
- await page.route('**/api/nodes/*/metrics?*',r=>r.fulfill({json:{...metrics(),loss:{1:0}}}));await page.goto('/');await expect(page.locator('thead th')).toHaveCount(3);await expect(page.locator('td[data-column=loss]').first()).toContainText('0.0%')
+ await page.route('**/api/nodes/*/metrics?*',r=>r.fulfill({json:{...metrics(),loss:{1:0}}}));await page.goto('/');await expect(page.locator('thead th')).toHaveCount(2);await expect(page.locator('td[data-column=loss]').first()).toContainText('0.0%')
  await toggleSettings(page);await settingsCategory(page,'cards');const group=page.getByRole('group',{name:'手机表格',exact:true});await expect(group.getByRole('checkbox')).toHaveCount(20);await group.getByLabel('丢包率',{exact:true}).uncheck();await group.getByLabel('探测线路',{exact:true}).check();await toggleSettings(page)
- await expect(page.locator('thead [data-column=loss]')).toHaveCount(0);await expect(page.locator('td[data-column=probe]').first()).toContainText('Tokyo gateway');await expect(page.locator('thead th')).toHaveCount(3)
+ await expect(page.locator('thead [data-column=loss]')).toHaveCount(0);await expect(page.locator('td[data-column=probe]').first()).toContainText('Tokyo gateway');await expect(page.locator('thead th')).toHaveCount(2)
  await page.reload();await expect(page.locator('thead [data-column=probe]')).toHaveCount(1);await expect(page.locator('thead [data-column=latency]')).toHaveCount(0)
+})
+
+test('mobile hides an empty remark column and keeps remark details when current results contain one',async({page})=>{
+ await page.setViewportSize({width:390,height:844})
+ await page.addInitScript(()=>sessionStorage.setItem('monitor-next-browse-v1',JSON.stringify({columnsVersion:5,mobileColumns:['cpu','latency'],view:'table',mobileTableLayout:'grouped'})))
+ await page.route('**/api/nodes',route=>{const node=nodes()[0];return route.fulfill({json:{nodes:[{...node,remark:''},{...node,id:2,name:'With note',remark:'first detail；second detail'}]}})})
+ await page.goto('/')
+ await expect(page.locator('thead [data-column=remark]')).toHaveCount(1)
+ await page.getByLabel('查看备注：With note').click()
+ await expect(page.getByRole('dialog')).toContainText('first detail；second detail')
+ await page.getByRole('dialog').getByRole('button',{name:'关闭'}).click()
+ await page.route('**/api/nodes',route=>{const node=nodes()[0];return route.fulfill({json:{nodes:[{...node,remark:''},{...node,id:2,name:'Still empty',remark:'   '}]}})})
+ await page.reload()
+ await expect(page.locator('thead [data-column=remark]')).toHaveCount(0)
+ await expect(page.locator('.table-scroll')).toHaveAttribute('aria-label','节点表格，可横向滚动')
 })
 
 test('legacy network columns expand without restoring hidden metrics',async({page})=>{
  await page.addInitScript(()=>localStorage.setItem('monitor-next-table-columns-v1',JSON.stringify({columnsVersion:4,columns:['latency'],mobileColumns:['cpu','latency'],tableLayout:'grouped',mobileTableLayout:'grouped'})))
  await page.goto('/');await page.getByLabel('表格视图',{exact:true}).click();await expect(page.locator('thead th')).toHaveCount(5);await expect(page.locator('thead [data-column=loss]')).toHaveCount(1);await expect(page.locator('thead [data-column=cpu]')).toHaveCount(0)
- await page.setViewportSize({width:390,height:844});await expect(page.locator('thead th')).toHaveCount(4);await expect(page.locator('thead [data-column=loss]')).toHaveCount(0)
+ await page.setViewportSize({width:390,height:844});await expect(page.locator('thead th')).toHaveCount(3);await expect(page.locator('thead [data-column=loss]')).toHaveCount(0)
 })

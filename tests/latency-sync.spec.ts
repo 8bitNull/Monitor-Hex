@@ -21,7 +21,7 @@ test('automatic latency updates preserve selected timestamps and settings, retai
 })
 test('latency polling pauses in background, refreshes on return and stops outside latency',async({page})=>{
  await setup(page);let calls=0,pending:any,hold=false
- await page.route('**/api/nodes/*/metrics?*',r=>{if(r.request().url().includes('series=ping')){calls++;if(hold){pending=r;return}}return r.fulfill({json:data()})})
+ await page.route('**/api/nodes/*/metrics?*',r=>{const params=new URL(r.request().url()).searchParams;if(params.get('series')==='ping'&&params.get('hours')==='6'){calls++;if(hold){pending=r;return}}return r.fulfill({json:data()})})
  await page.goto('/node/1?routes=1#latency');await expect(page.locator('.latency-summary')).toBeVisible();await expect(page.getByRole('button',{name:'刷新历史',exact:true})).toBeEnabled()
  await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'))})
  await page.clock.fastForward(90000);expect(calls).toBe(1)

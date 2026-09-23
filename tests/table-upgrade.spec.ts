@@ -73,12 +73,12 @@ test('visible rows load lazily and explicit quality sorting reads the complete f
  await expect(page.locator('tbody tr')).toHaveCount(20);await expect(page.locator('.sort-note')).toContainText('30/30')
  expect(requests).toBe(30)
 })
-test('custom thresholds, stale history and very small actual rates keep their meanings',async({page})=>{
+test('custom thresholds, offline ping and very small actual rates keep their meanings',async({page})=>{
  await setup(page);await page.addInitScript(()=>localStorage.setItem('monitor-next',JSON.stringify({schemaVersion:3,latencyWarn:100,latencyHigh:200})))
  await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:Array.from({length:6},(_,i)=>({...nodes()[0],id:i+1,name:`Node ${i+1}`,online:i!==4,last_seen:Date.now()/1000,metrics:{...nodes()[0].metrics,net_tx:i===0?0:i===1?1:1000000}}))}}))
  await table(page);await expect(page.locator('.table-ping').nth(1)).toHaveAttribute('data-tone','good');await expect(page.locator('.table-ping').nth(3)).toHaveAttribute('data-tone','fair')
  await expect(page.locator('.table-speed').nth(1)).toContainText('<0.001Mbps');await expect(page.locator('.table-speed').nth(4)).toContainText('—')
- await expect(page.locator('.table-ping').nth(4)).toContainText('历史数据');await expect(page.locator('.table-ping').nth(4)).not.toHaveAttribute('data-tone',/good|fair|bad|timeout/)
+ await expect(page.locator('.table-ping').nth(4)).toContainText('超时');await expect(page.locator('.table-ping').nth(4)).toHaveAttribute('data-tone','timeout')
 })
 test('scaled layout and remark disclosure remain operable with keyboard',async({page})=>{
  await setup(page);await table(page);await page.evaluate(()=>document.documentElement.style.zoom='2')

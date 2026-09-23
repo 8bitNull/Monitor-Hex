@@ -14,9 +14,9 @@ test('offline filter composes with search and compact summary survives reload',a
 })
 for(const width of [320,360,390,430])test(`default mobile table fits ${width}px and keeps status`,async({page})=>{
  await page.setViewportSize({width,height:844});await setup(page);await page.goto('/');await page.getByRole('button',{name:'表格视图',exact:true}).click()
- await expect(page.locator('thead th')).toHaveCount(4);await expect(page.locator('tbody .status-pill')).toHaveCount(6)
+ await expect(page.locator('thead th')).toHaveCount(3);await expect(page.locator('tbody .status-pill')).toHaveCount(6)
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
- await expect(page.locator('thead th').last()).toHaveText('备注')
+ await expect(page.locator('thead th').last()).toHaveText('延迟');await expect(page.locator('thead [data-column=remark]')).toHaveCount(0)
  await expect(page.locator('.table-sort-toolbar,.column-options')).toHaveCount(0)
 })
 test('all routes have legends, summary follows loss route, keyboard zoom has readable dates',async({page})=>{
@@ -27,7 +27,7 @@ test('all routes have legends, summary follows loss route, keyboard zoom has rea
 })
 test('empty history offers recovery and a failed first request never remains loading',async({page})=>{
  await setup(page);await page.route('**/api/nodes/*/metrics?*',r=>r.fulfill({status:503}));await page.goto('/node/1#latency');await expect(page.locator('.history-empty')).toBeVisible();await expect(page.locator('.history-loading')).toHaveCount(0)
- await page.route('**/api/nodes/*/metrics?*',r=>r.fulfill({json:{metrics:[],ping:[],probes:{}}}));await page.getByRole('button',{name:'重试',exact:true}).click();await page.getByRole('button',{name:'调整时间范围',exact:true}).click();await expect(page.getByRole('button',{name:'1 小时',exact:true})).toBeFocused()
+ await page.route('**/api/nodes/*/metrics?*',r=>r.fulfill({json:{metrics:[],ping:[],probes:{}}}));await page.locator('.detail-history').getByRole('button',{name:'重试',exact:true}).click();await page.getByRole('button',{name:'调整时间范围',exact:true}).click();await expect(page.getByRole('button',{name:'1 小时',exact:true})).toBeFocused()
 })
 test('resource toolbar text and desktop-only settings are explicit on mobile',async({page})=>{
  await page.setViewportSize({width:320,height:844});await setup(page);await page.goto('/node/1');await expect(page.locator('.detail-tabs').getByText('资源',{exact:true})).toBeVisible();await expect(page.locator('.detail-resource-metric-mobile summary')).toContainText('CPU')

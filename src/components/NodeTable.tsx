@@ -11,20 +11,22 @@ import {bytes,daysUntil,FOREVER,rate} from '@/lib/format'
 import {latencyBand} from '@/lib/trends'
 import {countryName} from '@/lib/regionNames'
 import {nodeState} from '@/lib/freshness'
+import {isRecentPingSample} from '@/lib/pingRecency'
 import {Status} from './NodeIdentity'
 import {RemarkTags} from './RemarkTags'
 function NetworkCell({node,probe,warn,high,field}:{node:Node;probe:string;warn:number;high:number;field:string}) {
  useNodeProbe(node.id,probe)
  const {ref,snapshot,retry}=usePing(node.id),ping=primaryPing(node.id,probe)
- const old=ping&&(Date.now()/1000-ping.latest.ts>7200||!snapshot?.updatedAt||Date.now()-snapshot.updatedAt>=120000)
- const historical=!node.online||old,tone=field==='latency'&&ping&&!historical?latencyBand(ping.latest.latency,warn,high):undefined
+ const old=ping&&!isRecentPingSample(ping.latest.ts)
+ const tone=field==='latency'&&ping&&!old&&!snapshot?.failed?latencyBand(ping.latest.latency,warn,high):undefined
  const level=tone==='good'?1:tone==='fair'?2:tone==='bad'?3:0
  return <div ref={ref} className={field==='latency'?'table-ping':'table-network-cell'} data-tone={tone}>
   <div className="table-ping-value" title={ping?`${tr('采样')}: ${new Date(ping.latest.ts*1000).toLocaleString(locale())}`:undefined}>
-   {snapshot?.failed?<button onClick={retry}>{tr('读取失败 · 重试')}</button>:!snapshot?.data?tr('读取中…'):!ping?tr('无该线路记录'):field==='probe'?<span className="table-route" title={ping.name}>{ping.name}</span>:field==='loss'?<span data-loss={ping.loss!==null&&ping.loss>0}>{ping.loss===null?'—':`${ping.loss.toFixed(1)}%`}</span>:<><strong>{ping.latest.latency===null?tr('超时'):`${Math.round(ping.latest.latency)} ms`}</strong>{level>0&&<span className="table-latency-grade" data-level={level}><span className="table-grade-bars" aria-hidden="true"/>{tr(level===1?'低':level===2?'中':'高')}</span>}</>}
+   {snapshot?.failed&&!ping?<button onClick={retry}>{tr('读取失败 · 重试')}</button>:!snapshot?.data?tr('读取中…'):!ping?tr('无该线路记录'):field==='probe'?<span className="table-route" title={ping.name}>{ping.name}</span>:field==='loss'?<span data-loss={ping.loss!==null&&ping.loss>0}>{ping.loss===null?'—':`${ping.loss.toFixed(1)}%`}</span>:<><strong>{ping.latest.latency===null?tr('超时'):`${Math.round(ping.latest.latency)} ms`}</strong>{level>0&&<span className="table-latency-grade" data-level={level}><span className="table-grade-bars" aria-hidden="true"/>{tr(level===1?'低':level===2?'中':'高')}</span>}</>}
   </div>
   {ping&&field==='loss'&&<small className="table-network-meta">{tr('24h 丢包')}</small>}
-  {ping&&historical&&<small className="table-history-note">{!node.online?tr('历史数据'):tr('较旧记录')}</small>}
+  {ping&&old&&<small className="table-history-note">{tr('较旧记录')}</small>}
+  {ping&&snapshot?.failed&&<button type="button" className="table-history-note" onClick={retry}>{tr('读取失败 · 重试')}</button>}
  </div>
 }
 function Expiry({date}:{date:string|null}) {
@@ -51,7 +53,10 @@ const TableRow=memo(function TableRow({n,keys,directions,grouped,mobile,probe,wa
 export function NodeTable({nodes,page,onPageChange,browse,onSort,onSortChange,onOpen,mobile=false,warn=80,high=160}:{nodes:Node[];page:number;onPageChange:(page:number)=>void;browse:Browse;onSort:(key:SortKey)=>void;onSortChange:(sort:SortKey,direction:'asc'|'desc')=>void;onOpen:(id:number)=>void;mobile?:boolean;warn?:number;high?:number}) {
  const [clock,tick]=useState(0),[info,setInfo]=useState<Node|null>(null),ref=useRef<HTMLDivElement>(null),[edges,setEdges]=useState({left:false,right:false})
  useEffect(()=>{const timer=setInterval(()=>tick(value=>value+1),60000);return()=>clearInterval(timer)},[])
- const grouped=(mobile?browse.mobileTableLayout:browse.tableLayout)==='grouped',keys=useMemo(()=>[...tableColumns(browse.columns,grouped,mobile),'remark'],[browse.columns,grouped,mobile]),directions=useMemo(()=>browse.columns.filter(k=>k==='upload'||k==='download'),[browse.columns])
+ const grouped=(mobile?browse.mobileTableLayout:browse.tableLayout)==='grouped'
+ const showRemarkColumn=!mobile||nodes.some(node=>(node.remark??'').trim().length>0)
+ const keys=useMemo(()=>[...tableColumns(browse.columns,grouped,mobile),...(showRemarkColumn?['remark']:[])],[browse.columns,grouped,mobile,showRemarkColumn])
+ const directions=useMemo(()=>browse.columns.filter(k=>k==='upload'||k==='download'),[browse.columns])
  const [scrollHint,setScrollHint]=useState(()=>{try{return sessionStorage.getItem('monitor-table-scrolled')!=='1'}catch{return true}});
  const openRef=useRef(onOpen);useLayoutEffect(()=>{openRef.current=onOpen},[onOpen])
  const openNode=useCallback((id:number)=>openRef.current(id),[])

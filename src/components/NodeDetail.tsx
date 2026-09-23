@@ -291,7 +291,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
     const percentile=values.length?values[Math.ceil(values.length*.95)-1]:null;
     const reading=(value:number|null)=>value===null?'—':`${value.toFixed(1)} ms`;
     return (<div className="node-detail">
-      <DetailIdentity node={node} nodes={nodes} onSwitch={onSwitch}/>
+      <DetailIdentity node={node} nodes={nodes} probe={probe} onSwitch={onSwitch} showNetworkReading={tab!=='latency'} onLatency={()=>{setTab('latency');requestAnimationFrame(()=>document.getElementById('latency')?.scrollIntoView({block:'start'}))}}/>
       <div className="detail-workspace">
       <DetailLiveOverview node={node}/>
       <section className="detail-history" aria-label={tr("历史图表")}>

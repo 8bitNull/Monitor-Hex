@@ -4,7 +4,7 @@ import {Select} from '@/components/ui/select'
 import { tr, getLanguage, subscribeLanguage, setLanguage } from '../lib/i18n.ts'
 import {X, Check, Circle, Minus, BarChart3, Hash, Rows2, Rows3} from 'lucide-react';
 import { useState, useRef, useEffect, useSyncExternalStore } from 'react';
-import { palettes, graphStyles, moduleLabels, cardInfoLabels, type CardInfo, defaultCardInfo, type DisplayPatch, parsePreferences, safeBackground, type Preferences as Prefs } from '@/lib/appearance';
+import { palettes, graphStyles, moduleLabels, cardInfoLabels, type CardInfo, defaultCardInfo, type DisplayPatch, safeBackground, type Preferences as Prefs } from '@/lib/appearance';
 const slimCardInfo: CardInfo = {...defaultCardInfo,connections:false,uptime:false};
 function InfoPresets({value,onChange,mobile=false}:{value:CardInfo;onChange:(next:CardInfo)=>void;mobile?:boolean}) {
     const matches=(preset:CardInfo)=>Object.keys(defaultCardInfo).every(key=>value[key as keyof CardInfo]===preset[key as keyof CardInfo]);
@@ -49,7 +49,12 @@ function LatencySettings({value,onChange}:{value:Prefs;onChange:(next:Partial<Pr
     {profile==='custom'&&!valid&&<p role="alert" className="preferences-note">{tr("阈值须满足：1 ≤ 黄色 < 红色 ≤ 5000 ms")}</p>}
     <p className="preferences-note">{tr("所有首页卡片共用刻度。超出刻度的采样封顶标红，实际数值保留；叉号代表超时，空隙代表缺失。")}</p></div>;
 }
-export function Preferences({ browse, onTableChange, onClose, value, onChange, onGraphChange, onDisplayChange, onReset, siteDefaults, backgroundError, probes }: {
+function ResetConfirmation({onCancel,onConfirm}:{onCancel:()=>void;onConfirm:()=>void}) {
+    const ref=useRef<HTMLDialogElement>(null);
+    useEffect(()=>{const trigger=document.activeElement as HTMLElement|null,element=ref.current!;element.showModal();return()=>{element.close();trigger?.focus({preventScroll:true})}},[]);
+    return <dialog ref={ref} className="settings-reset-confirm" aria-labelledby="reset-confirm-title" onCancel={event=>{event.preventDefault();onCancel()}}><h3 id="reset-confirm-title">{tr("重置全部偏好？")}</h3><p>{tr("将恢复站点默认外观与显示设置，并清除表格列、语言、线路偏好和浏览筛选。此操作无法撤销。")}</p><div><button autoFocus onClick={onCancel}>{tr("取消")}</button><button className="confirm-destructive" onClick={onConfirm}>{tr("确认重置")}</button></div></dialog>;
+}
+export function Preferences({ browse, onTableChange, onClose, value, onChange, onGraphChange, onDisplayChange, onReset, onExport, onImport, backgroundError, probes }: {
     browse:Browse;
     onTableChange:(patch:Partial<Browse>)=>void;
     onClose:()=>void;
@@ -59,7 +64,8 @@ export function Preferences({ browse, onTableChange, onClose, value, onChange, o
     onGraphChange: (graph: Prefs['graph']) => void;
     onDisplayChange: (patch: DisplayPatch) => void;
     onReset: (scope: 'appearance' | 'all') => void;
-    siteDefaults: Prefs;
+    onExport: () => string;
+    onImport: (text:string) => 'legacy'|'bundle';
     backgroundError: boolean;
 }) {
     const language = useSyncExternalStore(subscribeLanguage, getLanguage);
@@ -73,6 +79,7 @@ export function Preferences({ browse, onTableChange, onClose, value, onChange, o
     },[]);
     const [category,setCategory]=useState('appearance');
     const [message, setMessage] = useState('');
+    const [confirmReset,setConfirmReset]=useState(false);
     const patch = (next: Partial<Prefs>) => onChange({ ...value, ...next });
     const range = (label: string, key: 'backgroundBlur' | 'backgroundMask' | 'cardOpacity' | 'cardBlur', min: number, max: number, unit: string) => <label className="range-control">{label}<output>{value[key]}{unit}</output><input type="range" aria-label={label} min={min} max={max} value={value[key]} onChange={e => patch({ [key]: Number(e.target.value) })}/></label>;
     return <dialog ref={dialog} className="settings-drawer" aria-label={tr("显示与偏好")} onCancel={onClose}><section className="preferences" data-category={category} aria-label={tr("显示与偏好")}>
@@ -107,22 +114,20 @@ export function Preferences({ browse, onTableChange, onClose, value, onChange, o
         {range(tr("卡片不透明度"), 'cardOpacity', 55, 100, '%')}{range(tr("卡片模糊"), 'cardBlur', 0, 24, 'px')}
       </div><p className="preferences-note">{tr("手机端会降低模糊强度。外部背景图片仅在设置后加载。")}</p>
     </fieldset></details>
-    <div hidden={category!=='other'} className="settings-reset"><h3>{tr("偏好管理")}</h3><p className="preferences-note">{tr("恢复外观保留显示内容与详情展开方式；全部重置将恢复站点默认并清空线路偏好和筛选。")}</p>
+    <div hidden={category!=='other'} className="settings-reset"><h3>{tr("偏好管理")}</h3><p className="preferences-note">{tr("恢复外观保留显示内容与详情展开方式；全部重置将恢复站点默认并清空线路偏好和筛选。")}</p><p className="preferences-note">{tr("主题配置包含外观、显示、网络、表格列、语言、节点线路偏好与地图高度；不包含账号、节点数据或临时筛选。")}</p>
     <div className="preference-actions">
       <div className="preference-action-group">
-      <button onClick={() => { const url = URL.createObjectURL(new Blob([JSON.stringify(Object.fromEntries(Object.entries(value).filter(([key])=>!["skin","cardLayout","mobileLayout"].includes(key))), null, 2)], { type: 'application/json' })); const a = document.createElement('a'); a.href = url; a.download = 'monitor-hex-preferences.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); setMessage(tr("外观偏好已导出，不包含节点或账号信息")); }}>{tr("导出外观偏好")}</button>
-      <label className="import-control">{tr("导入外观偏好")}<input type="file" accept="application/json,.json" aria-label={tr("导入外观偏好")} onChange={async (e) => {
+      <button onClick={() => { try { const url = URL.createObjectURL(new Blob([onExport()], { type: 'application/json' })); const a = document.createElement('a'); a.href = url; a.download = 'monitor-hex-settings.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); setMessage(tr("主题配置已导出")); } catch (error) { setMessage(error instanceof Error?error.message:tr("导出失败")); } }}>{tr("导出主题配置")}</button>
+      <label className="import-control">{tr("导入主题配置")}<input type="file" accept="application/json,.json" aria-label={tr("导入主题配置")} onChange={async (e) => {
             const file = e.target.files?.[0];
             e.target.value = '';
             if (!file)
                 return;
             try {
-                if (file.size > 65536)
-                    throw new Error(tr("配置文件不能超过 64 KB"));
-                const imported=parsePreferences(await file.text(), siteDefaults);
-                onChange(imported);
-                onDisplayChange({infoDensity:imported.infoDensity,cardInfo:imported.cardInfo,mobileCardInfo:imported.mobileCardInfo,mobileInfoMode:imported.mobileInfoMode,desktopColumns:imported.desktopColumns,detailInfoMode:imported.detailInfoMode});
-                setMessage(tr("外观偏好已导入"));
+                if (file.size > 262144)
+                    throw new Error(tr("配置文件不能超过 256 KB"));
+                const kind=onImport(await file.text());
+                setMessage(tr(kind==='legacy'?"旧版外观偏好已导入":"主题配置已导入"));
             }
             catch (error) {
                 setMessage(error instanceof Error ? error.message : tr("导入失败"));
@@ -131,9 +136,9 @@ export function Preferences({ browse, onTableChange, onClose, value, onChange, o
       </div>
       <div className="preference-action-group">
       <button onClick={() => { onReset('appearance'); setMessage(tr("外观已恢复站点默认，首页模块和筛选已保留")); }}>{tr("恢复默认外观")}</button>
-      <button onClick={() => { onReset('all'); setMessage(tr("全部本地偏好已恢复，浏览筛选已清空")); }}>{tr("重置全部偏好")}</button>
+      <button onClick={() => setConfirmReset(true)}>{tr("重置全部偏好")}</button>
       </div>
     </div>
     </div>{message && <p role="status" className="preferences-note">{message}</p>}
-  </section></dialog>;
+  </section>{confirmReset&&<ResetConfirmation onCancel={()=>setConfirmReset(false)} onConfirm={()=>{onReset('all');setConfirmReset(false);setMessage(tr("全部本地偏好已恢复，浏览筛选已清空"))}}/>}</dialog>;
 }

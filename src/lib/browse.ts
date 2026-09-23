@@ -3,7 +3,9 @@ import {resolveProbe} from './nodeProbes.ts'
 import { regionKey } from './groups.ts'
 import type { Node } from './api.ts'
 import { getPing, summarizePing } from './ping.ts'
+import { isRecentPingSample } from './pingRecency.ts'
 import { trafficUsed } from './traffic.ts'
+import { locale } from './i18n.ts'
 export const sortLabels = { default: '后台默认', name: '名称', status: '在线状态', cpu: 'CPU', memory: '内存', disk: '硬盘', upload: '上传速度', download: '下载速度', traffic: '流量用量 / 总额度', latency: '所选线路延迟', loss: '24h 丢包', expiry: '到期时间' }
 export const tableColumnLabels:Record<string,string>={cpu:'CPU',memory:'内存',disk:'硬盘',upload:'上传速度',download:'下载速度',latency:'延迟',loss:'丢包率',probe:'探测线路',traffic:'流量用量 / 总额度',expiry:'到期时间',connections:'TCP／UDP 连接数',uptime:'在线时长',system:'系统信息',country:'地区',billing:'费用与账期',todayTraffic:'今日流量',load:'系统负载',swap:'Swap 使用率',processes:'进程数',lastSeen:'最近上报时间'}
 export const availableTableColumns=Object.keys(tableColumnLabels)
@@ -68,7 +70,7 @@ export function sortValue(n: Node, key: SortKey, probe: string): number | string
     case 'latency':
     case 'loss': {
       const snapshot = getPing(n.id), ping = primaryPing(n.id, probe)
-      return n.online && !snapshot?.failed && snapshot?.updatedAt && Date.now() - snapshot.updatedAt < 120000 && ping && Date.now() / 1000 - ping.latest.ts < 7200 ? key==='loss'?ping.loss:ping.latest.latency : null
+      return !snapshot?.failed && snapshot?.updatedAt && Date.now() - snapshot.updatedAt < 120000 && ping && isRecentPingSample(ping.latest.ts) ? key==='loss'?ping.loss:ping.latest.latency : null
     }
     default: return n.sort
   }
@@ -81,7 +83,7 @@ export function browseNodes(nodes: Node[], options: Browse): Node[] {
     if (options.sort === 'default') return fallback
     const av = keys.get(a.id)!, bv = keys.get(b.id)!
     if (av === null || bv === null) return av === bv ? fallback : av === null ? 1 : -1
-    const diff = typeof av === 'string' && typeof bv === 'string' ? av.localeCompare(bv, 'zh-CN', { numeric: true }) : Number(av) - Number(bv)
+    const diff = typeof av === 'string' && typeof bv === 'string' ? av.localeCompare(bv, locale(), { numeric: true }) : Number(av) - Number(bv)
     return (options.direction === 'asc' ? diff : -diff) || fallback
   })
 }

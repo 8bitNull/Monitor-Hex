@@ -80,7 +80,7 @@ test('initial loading and request timeout stay distinct from empty data',async({
  await page.clock.fastForward(16000);await expect(page.locator('.history-notice')).toBeVisible()
  await expect(page.locator('.history-empty')).toContainText('暂无可用历史数据')
  await page.unroute('**/api/nodes/*/metrics?*');await page.route('**/api/nodes/*/metrics?*',r=>r.fulfill({json:{metrics:[],ping:[],probes:{}}}))
- await page.getByRole('button',{name:'重试',exact:true}).click();await expect(page.locator('.history-notice')).toHaveCount(0)
+ await page.getByRole('region',{name:'历史图表'}).getByRole('button',{name:'重试',exact:true}).click();await expect(page.locator('.history-notice')).toHaveCount(0)
  await expect(page.locator('.detail-history')).toContainText('这段时间没有历史数据')
 })
 
