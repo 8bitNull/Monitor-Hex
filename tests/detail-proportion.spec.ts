@@ -8,10 +8,15 @@ async function setup(page:any,count=3){
 for(const width of [899,900,1024,1199,1200,1440,1920])test(`detail proportions and billing flow at ${width}`,async({page})=>{
  await page.setViewportSize({width,height:900});await setup(page)
  if(width<900)await page.locator('.detail-facts-toggle').click()
- const groups=page.locator('.detail-fact-groups'),sections=groups.locator('section'),hardware=(await sections.nth(0).boundingBox())!,network=(await sections.nth(1).boundingBox())!,billing=(await sections.nth(2).boundingBox())!
- if(width>=1200){expect(hardware.width).toBeGreaterThan(network.width);expect(network.width).toBeGreaterThan(billing.width);expect(Math.abs(billing.height-hardware.height)).toBeLessThanOrEqual(1);expect(Math.abs(hardware.y-billing.y)).toBeLessThanOrEqual(1)}
- if(width>=900&&width<1200){expect(Math.abs(billing.y-hardware.y)).toBeLessThanOrEqual(1);expect(billing.width).toBeLessThan(hardware.width);expect(billing.width).toBeLessThan(network.width)}
- if(width===1440){const first=(await sections.first().locator("dl>div").first().boundingBox())!;expect(first.y+first.height).toBeLessThanOrEqual(900);expect((await page.locator('.detail-chart-frame').boundingBox())!.height).toBeGreaterThanOrEqual(360)}
+ const groups=page.locator('.detail-fact-groups'),sections=groups.locator('section'),hardware=(await sections.nth(0).boundingBox())!,network=(await sections.nth(1).boundingBox())!,billing=(await page.locator('.overview-account').boundingBox())!
+ const resources=(await page.locator('.overview-resources').boundingBox())!,live=(await page.locator('.detail-live').boundingBox())!,history=(await page.locator('.detail-history').boundingBox())!
+ await expect(sections).toHaveCount(2)
+ if(width>=900){expect(Math.abs(hardware.width-network.width)).toBeLessThanOrEqual(1);expect(Math.abs(hardware.y-network.y)).toBeLessThanOrEqual(1)}
+ if(width>=1200)expect(Math.abs(billing.y-resources.y)).toBeLessThanOrEqual(1)
+ else expect(billing.y).toBeGreaterThan(resources.y+resources.height)
+ expect(history.y).toBeGreaterThan(live.y+live.height);expect(hardware.y).toBeGreaterThan(history.y+history.height)
+ expect(Math.abs(history.width-live.width)).toBeLessThanOrEqual(1)
+ if(width===1440)expect((await page.locator('.detail-chart-frame').boundingBox())!.height).toBeGreaterThanOrEqual(340)
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
 })
 for(const width of [320,390])test(`tooltip header, precision and scroll at ${width}`,async({page})=>{

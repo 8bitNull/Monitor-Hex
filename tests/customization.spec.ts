@@ -20,12 +20,12 @@ test('all 64 auxiliary combinations remove empty rows and preserve detail inform
   const mask=n^(n>>1);await toggleSettings(page)
   for(let i=0;i<6;i++)await group.getByLabel(labels[i],{exact:true}).setChecked(Boolean(mask&(1<<i)))
   await toggleSettings(page)
-  for(const [i,selector] of ['.traffic-summary','.node-connections','.node-timing>span[title]','.node-timing .expiring, .node-timing>span:not([title])','.node-remarks','.node-price'].entries())await expect(card.locator(selector)).toHaveCount(mask&(1<<i)?1:0)
-  await expect(card.locator('.node-timing')).toHaveCount(mask&12?1:0);await expect(card.locator('.node-footer')).toHaveCount(mask&48?1:0);await expect(card.locator('.node-secondary')).toHaveCount(mask?1:0)
+  for(const [i,selector] of ['.traffic-summary','.node-connections','.node-timing>span[title]','.card-expiry','.node-remarks','.node-price'].entries())await expect(card.locator(selector)).toHaveCount(mask&(1<<i)?1:0)
+  await expect(card.locator('.node-timing')).toHaveCount(mask&36?1:0);await expect(card.locator('.node-footer')).toHaveCount(mask&16?1:0);await expect(card.locator('.node-secondary')).toHaveCount(mask&52?1:0)
   expect(await card.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy()
  }
  await toggleSettings(page);for(const label of labels)await group.getByLabel(label,{exact:true}).uncheck();await toggleSettings(page)
- await card.locator('.node-open').click();await expect(page.locator('.detail-connections')).toBeVisible();await expect(page.locator('.detail-information')).toContainText('$5.00')
+ await card.locator('.node-open').click();await expect(page.locator('.detail-connections')).toBeVisible();await expect(page.locator('.overview-account')).toContainText('$5.00')
 })
 test('mobile follows, copies once, remembers independent choices and respects 720 boundary and resets',async({page})=>{
  await page.setViewportSize({width:390,height:1000});await setup(page);await toggleSettings(page)

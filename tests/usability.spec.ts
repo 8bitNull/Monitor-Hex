@@ -37,7 +37,7 @@ test('independent mobile preset does not change general switches and follows aga
  await page.setViewportSize({width:720,height:844});await expect(page.locator('.node-connections')).toHaveCount(0)
  await page.reload();await toggleSettings(page);await expect(page.getByRole('group',{name:'手机显示预设',exact:true}).getByRole('button',{name:/精简/})).toHaveAttribute('aria-pressed','true')
  await (await setting(page,'手机显示',{exact:true})).selectOption('follow');await expect(page.locator('.mobile-follow-note')).toBeVisible()
- await toggleSettings(page);await page.locator('.node-secondary-disclosure summary').first().click();await expect(page.locator('.node-connections')).toBeVisible()
+ await toggleSettings(page);await expect(page.locator('.node-connections')).toBeVisible()
 })
 for(const [width,height] of [[320,568],[390,844],[430,932],[844,390],[720,900],[721,900],[1440,1000]])test(`presets and settings fit ${width}x${height}`,async({page})=>{
  test.setTimeout(90000);await page.setViewportSize({width,height})

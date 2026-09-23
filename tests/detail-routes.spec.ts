@@ -34,7 +34,7 @@ test('detail prioritizes charts, renders complete facts and compact controls at 
  for(const width of [320,390,768,1440]) {
   await page.setViewportSize({width,height:1000})
   const live=await page.locator('.detail-live').boundingBox(),history=await page.locator('.detail-history').boundingBox(),facts=await page.locator('.detail-information').boundingBox()
-  if(width<900){expect(facts!.y).toBeLessThan(live!.y);expect(live!.y).toBeLessThan(history!.y)}else{expect(facts!.y).toBeLessThan(live!.y);expect(history!.y).toBeGreaterThan(live!.y+live!.height)}
+  if(width<900){expect(facts!.y).toBeGreaterThan(history!.y+history!.height);expect(live!.y).toBeLessThan(history!.y)}else{expect(facts!.y).toBeGreaterThan(history!.y+history!.height);expect(history!.y).toBeGreaterThan(live!.y+live!.height)}
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
   await expect(page.getByRole('button',{name:'刷新历史',exact:true})).toBeVisible()
  }
@@ -52,7 +52,7 @@ test('missing home route stays empty, offline live metrics are unknown, long nam
  await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[node]}}))
  await page.goto('/node/1#latency')
  await expect(page.locator('.detail-chart-frame')).toContainText('无该线路记录')
- await expect(page.locator('.detail-live .bar-number')).toHaveText(['—','—','—']);await expect(page.locator('.detail-load strong')).toHaveText('—')
+ await expect(page.locator('.detail-live .bar-number')).toHaveText(['—','—','—','—'])
  for(const width of [320,390]) {
   await page.setViewportSize({width,height:900})
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()

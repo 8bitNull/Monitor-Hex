@@ -13,16 +13,16 @@ test('detail page uses a light modular reading order',async({page})=>{
  const facts=(await page.locator('.detail-information').boundingBox())!
  const live=(await page.locator('.detail-live').boundingBox())!
  const history=(await page.locator('.detail-history').boundingBox())!
- expect(facts.y).toBeLessThan(live.y)
+ expect(facts.y).toBeGreaterThan(history.y+history.height)
  expect(history.y).toBeGreaterThan(live.y+live.height)
- expect(await page.locator('.detail-fact-groups>section')).toHaveCount(3)
- expect(await page.locator('.detail-fact-groups').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(3)
- expect(await page.locator('.detail-fact-groups h3 svg')).toHaveCount(3)
+ expect(await page.locator('.detail-fact-groups>section')).toHaveCount(2)
+ expect(await page.locator('.detail-fact-groups').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(2)
+ expect(await page.locator('.detail-fact-groups h3 svg')).toHaveCount(2)
  const factsFrame=await page.locator('.detail-information').evaluate(el=>({border:getComputedStyle(el).borderTopWidth,sections:[...el.querySelectorAll('.detail-fact-groups>section')].map(section=>getComputedStyle(section).borderLeftWidth)}))
- expect(factsFrame.border).toBe('1px');expect(factsFrame.sections).toEqual(['0px','1px','1px'])
+ expect(factsFrame.border).toBe('1px');expect(factsFrame.sections).toEqual(['0px','1px'])
  const backgrounds=await page.locator('.detail-live,.detail-history,.detail-fact-groups>section').evaluateAll(elements=>elements.map(el=>getComputedStyle(el).backgroundColor))
  expect(new Set(backgrounds)).toEqual(new Set(['rgb(255, 255, 255)']))
- await expect(page.locator('.detail-live')).toContainText('实时使用率')
+ await expect(page.locator('.detail-live')).toContainText('资源使用')
  await expect(page.locator('.detail-live')).not.toContainText('负载 1 / 5 / 15')
 })
 
@@ -31,7 +31,7 @@ for(const width of [320,390])test(`detail modules stay readable at ${width}px`,a
  const facts=(await page.locator('.detail-information').boundingBox())!
  const live=(await page.locator('.detail-live').boundingBox())!
  const history=(await page.locator('.detail-history').boundingBox())!
- expect(facts.y).toBeLessThan(live.y)
+ expect(facts.y).toBeGreaterThan(history.y+history.height)
  expect(history.y).toBeGreaterThan(live.y+live.height)
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
 })

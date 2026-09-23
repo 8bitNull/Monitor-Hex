@@ -1,4 +1,7 @@
 export const english: Record<string, string> = {
+"节点概览": "Node overview",
+"资源使用": "Resource usage",
+"用量与账期": "Usage and billing",
 "延迟和丢包按所选线路比较；无效或旧数据排在末尾。已读取":"Latency and loss compare selected routes; invalid or old data comes last. Loaded ",
 "已超额":"Over quota",
 "流量额度使用率":"Traffic quota usage",

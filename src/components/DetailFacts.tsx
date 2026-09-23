@@ -2,11 +2,11 @@ import type {Preferences} from '@/lib/appearance'
 import type {Node} from '@/lib/api'
 import {liveMetrics} from '@/lib/freshness'
 import {tr} from '@/lib/i18n'
-import {bytes,osName,money,CYCLES,FOREVER,daysUntil} from '@/lib/format'
+import {bytes,osName} from '@/lib/format'
 import {useEffect,useRef,useState} from 'react'
 import type {ComponentType,ReactNode} from 'react'
-import {Database,Copy,Check,ChevronDown, Cpu, Network, WalletCards} from 'lucide-react'
-import {trafficPeriodLabel, trafficUsage} from '@/lib/traffic'
+import {Database,Copy,Check,ChevronDown, Cpu, Network} from 'lucide-react'
+
 function Fact({ label, value, warning=false,copy=false }: {
     label: string;
     warning?:boolean;
@@ -30,14 +30,6 @@ function FactSection({label,Icon,children}:{label:string;Icon:ComponentType<{siz
 export function DetailFacts({node,mode,compact,onMode}:{node:Node;mode:Preferences['detailInfoMode'];compact:boolean;onMode:(mode:Preferences['detailInfoMode'])=>void}){
  const expanded=!compact || mode==='expanded';
  const m=liveMetrics(node)
- const traffic=trafficUsage(node)
- const monthly=traffic.value
- const trafficLabel=tr(trafficPeriodLabel(node))
- const trafficHint=tr('流量周期：每月 {0} 日重置，本周期自 {1} 起',traffic.resetDay,traffic.periodKey)
- const days=daysUntil(node.expires_at)
- const expiryLabel=days===null?tr('未设到期'):days<0?tr('已过期 {0} 天',-days):tr('{0} 天后到期',days)
- const billingState=days===null?'unknown':days<0?'expired':days<=7?'soon':'normal';
- const billingLabel=billingState==='unknown'?tr('未设到期'):billingState==='expired'?tr('已过期'):billingState==='soon'?tr('即将到期'):tr('正常');
  return <div className="detail-information">{compact&&<button className="detail-facts-toggle" aria-expanded={expanded} aria-controls="detail-fact-groups" onClick={()=>onMode(expanded?'collapsed':'expanded')}><span className="detail-facts-title"><Database size={15}/>{tr("设备资料")}</span><ChevronDown size={16}/></button>}<div id="detail-fact-groups" className="detail-fact-groups" hidden={!expanded}>
    <FactSection label={tr("硬件与系统")} Icon={Cpu}>
      <dl className="detail-facts">
@@ -49,19 +41,12 @@ export function DetailFacts({node,mode,compact,onMode}:{node:Node;mode:Preferenc
      </dl>
    </FactSection>
    <FactSection label={tr("网络与流量")} Icon={Network}>
-     <div className="detail-quota" title={trafficHint}><div><Database size={15}/><span>{bytes(monthly)} / {node.traffic_limit > 0 ? bytes(node.traffic_limit) : FOREVER}</span></div>{node.traffic_limit > 0 && <progress aria-label={trafficLabel} max={node.traffic_limit} value={Math.min(Math.max(0,monthly),node.traffic_limit)}/>}</div>
+
      <dl className="detail-facts">
        <Fact copy label="IPv4" value={node.ipv4}/><Fact copy label="IPv6" value={node.ipv6}/><Fact label={tr("流量重置")} value={Number.isInteger(node.traffic_reset_day) && node.traffic_reset_day >= 1 && node.traffic_reset_day <= 31 ? tr("每月 {0} 日",node.traffic_reset_day) : tr("未知")}/>
        <Fact label={tr("累计流量")} value={`↑ ${bytes(node.total_tx)} · ↓ ${bytes(node.total_rx)}`}/>
        <Fact label={tr("今日流量")} value={`↓ ${bytes(node.day_rx)} · ↑ ${bytes(node.day_tx)}`}/>
      </dl>
-   </FactSection>
-   <FactSection label={tr("费用与到期")} Icon={WalletCards}>
-     <dl className="detail-facts">
-       <Fact label={tr("到期")} value={expiryLabel} warning={days!==null && days<=7}/>
-       <Fact label={tr("续费")} value={node.price > 0 ? `${money(node.price, node.currency)} / ${tr(Object.hasOwn(CYCLES, node.billing_cycle) ? CYCLES[node.billing_cycle] : node.billing_cycle)}` : node.price === 0 ? tr("免费 / 未填写") : tr("价格未知")}/>
-     </dl>
-     <div className={`billing-status billing-status-${billingState}`} data-state={billingState}><span className="billing-status-dot"/><strong>{billingLabel}</strong></div>
    </FactSection>
  </div></div>;
 }

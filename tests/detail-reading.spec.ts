@@ -28,7 +28,7 @@ for(const width of [320,390,430,720,899,900,1024,1440,1920])test(`detail reading
   for(const graph of ['bar','ring','columns','minimal']){
    await toggleSettings(page);await visualSelect(page,'graph',graph);await toggleSettings(page);await page.evaluate(()=>scrollTo(0,0))
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
-   if(width===390){const b=(await page.locator('.detail-chart-toolbar').boundingBox())!;expect(b.y+b.height).toBeLessThanOrEqual(844)}
+   if(width===390){const b=(await page.locator('.detail-chart-toolbar').boundingBox())!,live=(await page.locator('.detail-live').boundingBox())!;expect(b.y).toBeGreaterThan(live.y+live.height);expect(b.height).toBeLessThanOrEqual(64)}
   }
   for(const tab of ['resources','latency']){
    await page.getByRole('button',{name:language==='zh'?(tab==='resources'?'资源':'网络延迟'):(tab==='resources'?'Resources':'Network latency'),exact:true}).click()

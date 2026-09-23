@@ -30,7 +30,7 @@ test('responsive composition and stable hover with many routes in light and dark
   for(const width of [320,390,768,1024,1440]){
    await page.setViewportSize({width,height:1000});await page.evaluate(()=>scrollTo(0,0))
    const live=(await page.locator('.detail-live').boundingBox())!,history=(await page.locator('.detail-history').boundingBox())!,facts=(await page.locator('.detail-information').boundingBox())!
-   if(width>=900){expect(facts.y).toBeLessThan(live.y);expect(history.y).toBeGreaterThan(live.y+live.height)}else{expect(facts.y).toBeLessThan(live.y);expect(history.y).toBeGreaterThan(live.y+live.height)}
+   if(width>=900){expect(facts.y).toBeGreaterThan(history.y+history.height);expect(history.y).toBeGreaterThan(live.y+live.height)}else{expect(facts.y).toBeGreaterThan(history.y+history.height);expect(history.y).toBeGreaterThan(live.y+live.height)}
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
   }
   await page.getByRole('button',{name:'网络延迟',exact:true}).click();await page.locator('.detail-probe-legend>summary').click();const hidden=page.locator('.probe-options .probe-select[aria-pressed="false"]');while(await hidden.count())await hidden.first().click();await page.keyboard.press('Escape')
@@ -64,7 +64,7 @@ test('empty and failed requests remain distinct and retry recovers',async({page}
 test('unlimited quota, long facts and offline connections remain readable',async({page})=>{
  await setup(page)
  await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[{...nodes()[0],online:false,traffic_limit:0,name:'节点名称'.repeat(30),cpu_name:'Long processor model '.repeat(20),remark:'无分号长备注'.repeat(40)}]}}))
- await page.reload();await expect(page.locator('.detail-connections strong')).toHaveText(['—','—']);await expect(page.locator('.detail-quota progress')).toHaveCount(0)
+ await page.reload();await expect(page.locator('.detail-connections strong')).toHaveText(['—','—']);await expect(page.locator('.overview-usage progress')).toHaveCount(0)
  for(const width of [320,1024]){await page.setViewportSize({width,height:1000});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()}
  await page.getByRole('button',{name:'展开备注',exact:true}).click();await expect(page.locator('.detail-meta-tags')).toContainText('无分号长备注')
 })

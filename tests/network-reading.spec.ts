@@ -13,16 +13,16 @@ for(const width of [320,390,720,900,1440])test(`network readings fit in both lan
   await page.addInitScript(({language,appearance})=>{localStorage.setItem('monitor-next-language',language);const p=JSON.parse(localStorage.getItem('monitor-next')!);localStorage.setItem('monitor-next',JSON.stringify({...p,appearance}))},{language,appearance})
   await page.goto('/');const card=page.locator('.node-card');await expect(card.locator('.ping-probe')).toHaveCount(3)
   await expect(card.locator('.latency-bars')).toHaveCount(3);await expect(card.locator('.latency-timeout')).toHaveCount(3)
-  await expect(card.locator('.speed-direction')).toHaveText(language==='zh'?['实时上行','实时下行']:['Live upload','Live download'])
+  await expect(card.locator('.speed-direction')).toHaveText(language==='zh'?['上行','下行']:['Upload','Download'])
   const controls=card.locator('.latency-link');for(const button of await controls.all()){await button.scrollIntoViewIfNeeded();const b=(await button.boundingBox())!;expect(await button.evaluate((el,{x,y})=>el.contains(document.elementFromPoint(x,y)),{x:b.x+b.width/2,y:b.y+b.height/2})).toBeTruthy()}
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
   if(language==='zh'&&appearance==='light')await card.screenshot({path:`tests/artifacts/v013/home-${width}.png`})
   await page.goto('/node/1?routes=1,2,3#latency');await expect(page.locator('.loss-track')).toBeVisible();await expect(page.locator('.detail-speed .micro-trend')).toHaveCount(2)
   const select=page.locator('.loss-track select');await select.selectOption('2');await expect(select).toHaveValue('2')
   await page.locator('.detail-probe-legend>summary').click();await expect(page.locator('.probe-label').first()).toHaveCSS('text-overflow','ellipsis');await page.keyboard.press('Escape')
-  const billing=page.locator('.detail-fact-groups>section').nth(2)
+  const billing=page.locator('.overview-account')
   if(width<900){await page.locator('.detail-facts-toggle').click()}
-  const status=(await billing.locator('.billing-status').boundingBox())!,facts=(await billing.locator('dl').boundingBox())!;expect(status.y).toBeGreaterThan(facts.y+facts.height)
+  const status=(await billing.locator('.overview-account-footer').boundingBox())!,facts=(await billing.locator('.overview-billing').boundingBox())!;if(width>=900&&width<1200)expect(status.x).toBeGreaterThanOrEqual(facts.x+facts.width);else expect(status.y).toBeGreaterThanOrEqual(facts.y+facts.height-1)
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
   if(language==='zh'&&appearance==='light')await page.locator('.detail-history').screenshot({path:`tests/artifacts/v013/latency-${width}.png`})
  }
@@ -80,8 +80,8 @@ test('network visuals remain fixed across resource styles and latency preference
  await page.goto('/');const card=page.locator('.node-card');await expect(card.locator('.latency-bars')).toBeVisible()
  for(const graph of ['ring','bar','columns','minimal']){
   await toggleSettings(page);await visualSelect(page,'graph',graph);await toggleSettings(page)
-  await expect(card.locator('.speed-columns')).toHaveCount(2)
-  for(const bar of await card.locator('.speed-columns').all()){await expect(bar).toBeVisible();await expect(bar.locator(':scope>span')).toHaveCount(12)}
+  await expect(card.locator('.speed-trend')).toHaveCount(2)
+  for(const trend of await card.locator('.speed-trend').all()){await expect(trend).toBeVisible();await expect(trend.locator('svg')).toHaveCount(1)}
   await expect(card.locator('.latency-bars')).toBeVisible();await expect(card.locator('.speed-ring,.speed-track')).toHaveCount(0)
  }
  await toggleSettings(page);await settingsCategory(page,'network');const profiles=page.locator('.latency-presets');await expect(profiles.getByRole('button',{name:'原有分档 80/160ms',exact:true})).toHaveAttribute('aria-pressed','true');await profiles.getByRole('button',{name:'跨境参考 150/300ms',exact:true}).click();await expect(profiles.getByRole('button',{name:'跨境参考 150/300ms',exact:true})).toHaveAttribute('aria-pressed','true');await profiles.getByRole('button',{name:'自定义',exact:true}).click();await expect(profiles.getByRole('button',{name:'自定义',exact:true})).toHaveAttribute('aria-pressed','true');await (await setting(page,'延迟统一刻度',{exact:true})).selectOption('500')
@@ -99,9 +99,9 @@ test('live activity distinguishes zero, slow, missing, stale and offline reading
  await page.route('**/api/nodes',r=>{const n=nodes()[0];return r.fulfill({json:{nodes:[{...n,online:state!=='offline',last_seen:state==='stale'?now-120:now,metrics:state==='missing'?null:{...n.metrics,net_tx:0,net_rx:1}}]}})})
  await page.goto('/');const speed=page.locator('.node-card .speed-indicators')
  await expect(speed.locator('.upload .speed-amount')).toHaveText('0');await expect(speed.locator('.download .speed-amount')).toHaveText('<0.001')
- await expect(speed.locator('.upload [data-active=true]')).toHaveCount(0);await expect(speed.locator('.download [data-active=true]')).toHaveCount(12)
+ await expect(speed.locator('.micro-empty')).toHaveCount(2)
  for(state of ['missing','stale','offline']){
-  await page.clock.runFor(5100);await expect(speed.locator('.speed-amount')).toHaveText(['—','—']);await expect(speed.locator('[data-active=true]')).toHaveCount(0)
+  await page.clock.runFor(5100);await expect(speed.locator('.speed-amount')).toHaveText(['—','—']);await expect(speed.locator('.micro-trend circle')).toHaveCount(0);await expect(speed).toHaveAttribute('data-state',state)
  }
 })
 
