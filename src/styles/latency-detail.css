@@ -49,3 +49,65 @@
  .latency-summary b {margin:0;white-space:nowrap}
  .latency-view .latency-brush .recharts-brush-traveller rect {fill:var(--tone);fill-opacity:.12}
 }
+/* Desktop follows the proposal: routes and statistics share one heading row. */
+@media(min-width:900px){
+ .latency-view {grid-template-columns:minmax(0,1fr) auto;gap:8px 24px;align-items:center}
+ .latency-view>.route-chips {grid-column:1;grid-row:1;align-self:center;min-width:0;padding:0;gap:8px}
+ .latency-view>.latency-summary {grid-column:2;grid-row:1;display:grid;grid-template-columns:repeat(3,max-content) auto;gap:4px 18px;align-items:center;padding:0;border:0;justify-content:end}
+ .latency-summary-route {grid-column:1/4;max-width:240px;font-size:10px}
+ .latency-summary>span:nth-child(2),.latency-summary>span:nth-child(3),.latency-summary>span:nth-child(4) {grid-row:2;white-space:nowrap;font-size:11px}
+ .latency-summary b {font-size:17px;font-weight:500}
+ .latency-explanation {grid-column:4;grid-row:1/3;font-size:11px}
+ .latency-view>.latency-chart-caption,.latency-view>.detail-chart-frame,.latency-view>.latency-range-caption,.latency-view>.loss-track {grid-column:1/-1}
+ .latency-view>.latency-chart-caption {margin-top:8px;padding:0;min-height:24px}
+ .latency-view>.detail-chart-frame {height:340px;min-height:340px}
+ .latency-view .route-chips button {min-width:0;max-width:100%;padding:6px 9px;font-size:12px;min-height:40px}
+ .latency-view .route-chips button>span {max-width:10em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .latency-view .route-chips button>b,.latency-view .route-chips button>svg {flex-shrink:0;white-space:nowrap}
+ .latency-view .route-chips button[aria-pressed=true] {background:var(--tone-soft);border-color:color-mix(in srgb,var(--tone) 30%,var(--border))}
+ .latency-view>.latency-range-caption {min-height:32px;padding-block:0}
+ .latency-view>.latency-range-caption button {min-height:32px}
+ .latency-view .loss-track {padding-top:10px}
+}
+@media(min-width:900px) and (max-width:1199px){
+ .latency-view {column-gap:16px}
+ .latency-view>.latency-summary {column-gap:12px}
+ .latency-summary b {font-size:15px}
+ .latency-view .route-chips button>span {max-width:7em}
+}
+.latency-chart-key {display:flex;align-items:center;gap:7px}
+.latency-band-key {width:18px;height:9px;background:currentColor;opacity:.1;border-radius:2px}
+.latency-line-key {width:18px;border-top:2px solid;margin-left:12px}
+.loss-track-context,.loss-track-desktop-note {display:none}
+@media(min-width:900px){
+ .detail-chart-toolbar[data-history-tab=latency] .detail-tabs {order:0}
+ .detail-chart-toolbar[data-history-tab=latency] .detail-submenu-divider {order:1}
+ .detail-chart-toolbar[data-history-tab=latency] .detail-submenu-divider:nth-of-type(2) {display:none}
+ .detail-chart-toolbar[data-history-tab=latency] .detail-probe-legend {order:2}
+ .detail-chart-toolbar[data-history-tab=latency] .detail-smooth {order:3;margin-left:8px}
+ .detail-chart-toolbar[data-history-tab=latency] .detail-update {order:4}
+ .detail-chart-toolbar[data-history-tab=latency] .detail-ranges {order:5;margin-left:auto}
+ .detail-chart-toolbar[data-history-tab=latency] .detail-refresh {order:6}
+ .detail-chart-toolbar[data-history-tab=latency] .detail-update+.detail-ranges {margin-left:0}
+ .latency-view>.latency-summary {display:flex;flex-wrap:nowrap;gap:24px}
+ .latency-summary-route {display:none}
+ .latency-explanation summary {font-size:0;min-width:24px;justify-content:center}
+ .latency-explanation summary::after {content:'ⓘ';font-size:15px}
+ .latency-view .route-chips button[aria-pressed=false] {opacity:1;background:var(--card);color:var(--muted-foreground)}
+ .latency-view>.detail-chart-frame {position:relative;height:378px;min-height:378px}
+ .latency-range-heading {position:absolute;bottom:51px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted-foreground);min-height:28px}
+ .latency-range-heading b {margin-left:12px;font-weight:500;color:var(--foreground)}
+ .latency-range-heading button {min-height:28px;margin-right:12px;color:var(--tone)}
+ .latency-view .loss-track {position:relative;margin-top:8px;padding-top:12px;padding-bottom:8px}
+ .loss-track-desktop-note {display:inline}
+ .loss-track-context {display:flex;justify-content:space-between;gap:16px;font-size:11px;color:var(--muted-foreground);margin-top:4px}
+ .loss-track-scrubber {position:absolute;left:10px;top:51px;opacity:0;width:calc(100% - 62px);height:36px}
+ .loss-track-scrubber:focus-visible {opacity:1;outline:2px solid var(--tone);outline-offset:2px}
+ .loss-track-reading {font-size:10px;min-height:16px}
+}
+@media(min-width:900px) and (max-width:1199px){
+ .latency-view>.latency-summary {gap:12px}
+ .detail-chart-toolbar[data-history-tab=latency] .detail-ranges {margin-left:auto}
+ .loss-track-desktop-note {display:none}
+}
+@media(max-width:899px){.latency-chart-key {gap:4px}.latency-line-key {margin-left:4px;width:10px}.latency-band-key {width:10px}}

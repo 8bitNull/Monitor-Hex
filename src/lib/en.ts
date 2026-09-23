@@ -1,4 +1,11 @@
 export const english: Record<string, string> = {
+"采样范围（最小–最大）":"Sample range (min\u2013max)",
+"拖动两端缩放 · 双击恢复全范围":"Drag handles to zoom \u00b7 Double-click to reset",
+"与主图时间轴同步 · 未知留空，超时单独标记":"Same time axis \u00b7 Unknown left blank, timeouts marked separately",
+"当前线路：{0}":"Current route: {0}",
+"统计范围：{0}–{1}":"Range: {0}\u2013{1}",
+"主图、摘要与丢包轨道使用同一时间范围":"Chart, statistics and loss track share the same time range",
+
 "采样均值":"Sample mean",
 "统计说明":"About statistics",
 "均值和 P95 基于当前范围内各采样桶的中位值，不代表原始探测包统计。":"Mean and P95 use bucket medians in the visible range, not individual probe packets.",
