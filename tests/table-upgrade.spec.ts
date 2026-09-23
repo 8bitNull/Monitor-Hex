@@ -12,19 +12,16 @@ test('grouped table fits desktop and sorts each network metric independently',as
  await page.getByLabel('实时网速排序',{exact:true}).selectOption('upload:desc');await expect(page.locator('.table-node-name').first()).toContainText('Node 6')
  await page.getByLabel('网络质量排序',{exact:true}).selectOption('loss:desc');await expect(page.locator('.table-node-name').first()).toContainText('Node 2');await expect(page.locator('.table-node-name').last()).toContainText('Node 6')
  await page.getByLabel('网络质量排序',{exact:true}).selectOption('latency:desc');await expect(page.locator('.table-node-name').last()).toContainText('Node 5')
- await page.getByLabel('显示列',{exact:true}).click();await page.getByRole('button',{name:'恢复默认顺序',exact:true}).click();await expect(page.locator('.table-node-name').first()).toContainText('Node 1')
 })
-test('table toolbar only keeps view and column controls',async({page})=>{
+test('table toolbar only keeps view controls',async({page})=>{
  await setup(page);await table(page)
- const toolbar=page.locator('.view-toolbar');await expect(toolbar.locator('.table-sort-toolbar')).toHaveCount(0);await expect(toolbar.locator('.view-switch')).toHaveCount(1);await expect(toolbar.locator('.column-options')).toHaveCount(1)
+ const toolbar=page.locator('.view-toolbar');await expect(toolbar.locator('.table-sort-toolbar')).toHaveCount(0);await expect(toolbar.locator('.view-switch')).toHaveCount(1);await expect(toolbar.locator('.column-options')).toHaveCount(0)
  await expect(page.locator('.table-name-info,.table-presets')).toHaveCount(0)
 })
-test('legacy columns remain reversible and grouped mode never revives a hidden direction',async({page})=>{
- await setup(page);await page.addInitScript(()=>{if(!sessionStorage.getItem('monitor-next-browse-v1'))sessionStorage.setItem('monitor-next-browse-v1',JSON.stringify({columnsVersion:3,columns:['cpu','download','latency'],mobileColumns:[]}))})
- await table(page);await expect(page.locator('thead th')).toHaveCount(6)
- await page.getByLabel('显示列',{exact:true}).click();await page.getByLabel('列布局',{exact:true}).selectOption('grouped');await expect(page.locator('thead th')).toHaveCount(5)
+test('legacy grouped columns persist without reviving a hidden direction',async({page})=>{
+ await setup(page);await page.addInitScript(()=>{if(!sessionStorage.getItem('monitor-next-browse-v1'))sessionStorage.setItem('monitor-next-browse-v1',JSON.stringify({columnsVersion:3,tableLayout:'grouped',columns:['cpu','download','latency'],mobileColumns:[]}))})
+ await table(page);await expect(page.locator('thead th')).toHaveCount(5)
  await expect(page.locator('.table-speed [data-direction=upload]')).toHaveCount(0);await expect(page.locator('.table-speed [data-direction=download]')).toHaveCount(6)
- await page.keyboard.press('Escape');await expect(page.getByLabel('显示列',{exact:true})).toBeFocused()
  await page.reload();await expect(page.locator('thead th')).toHaveCount(5)
  expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('monitor-next-table-v3-backup')!).columns)).toEqual(['cpu','download','latency'])
  await page.setViewportSize({width:390,height:844});await expect(page.locator('thead th')).toHaveCount(2)
@@ -32,7 +29,6 @@ test('legacy columns remain reversible and grouped mode never revives a hidden d
 test('mobile custom columns, edge hints and remark disclosure preserve desktop columns',async({page})=>{
  await setup(page);await page.setViewportSize({width:390,height:844});await table(page)
  await expect(page.locator('thead th')).toHaveCount(4);await expect(page.locator('.table-shell')).toHaveAttribute('data-right','true')
- await page.getByLabel('显示列',{exact:true}).click();await page.getByLabel('上传速度',{exact:true}).check();await page.getByLabel('下载速度',{exact:true}).check();await expect(page.locator('thead th')).toHaveCount(5)
  await page.keyboard.press('Escape');await page.locator('.table-scroll').evaluate(el=>el.scrollLeft=el.scrollWidth)
  await expect(page.locator('.table-shell')).toHaveAttribute('data-right','false');await expect(page.locator('.table-shell')).toHaveAttribute('data-left','true')
  await page.locator('.table-remark').first().click();await expect(page.getByRole('dialog',{name:'备注',exact:true})).toContainText('备注 1 <script>文本内容</script>');await page.keyboard.press('Escape');await expect(page.locator('.table-remark').first()).toBeFocused()
@@ -83,12 +79,11 @@ test('custom thresholds, stale history and very small actual rates keep their me
  await expect(page.locator('.table-speed').nth(1)).toContainText('<0.001Mbps');await expect(page.locator('.table-speed').nth(4)).toContainText('—')
  await expect(page.locator('.table-ping').nth(4)).toContainText('历史数据');await expect(page.locator('.table-ping').nth(4)).not.toHaveAttribute('data-tone',/good|fair|bad|timeout/)
 })
-test('scaled layout and column menus remain operable with keyboard',async({page})=>{
+test('scaled layout and remark disclosure remain operable with keyboard',async({page})=>{
  await setup(page);await table(page);await page.evaluate(()=>document.documentElement.style.zoom='2')
- await page.getByLabel('显示列',{exact:true}).click();await expect(page.getByLabel('列布局',{exact:true})).toBeVisible()
- await page.getByRole('checkbox',{name:'CPU',exact:true}).uncheck();await page.keyboard.press('Escape');await expect(page.getByLabel('显示列',{exact:true})).toBeFocused()
+ const remark=page.locator('.table-remark').first();await remark.focus();await page.keyboard.press('Enter')
+ await expect(page.getByRole('dialog',{name:'备注',exact:true})).toBeVisible();await page.keyboard.press('Escape');await expect(remark).toBeFocused()
  await expect(page.locator('.table-traffic')).toHaveCount(6);await expect(page.locator('.table-expiry')).toHaveCount(6)
- const menu=page.locator('.column-options');await page.getByLabel('显示列',{exact:true}).click();await page.getByRole('heading',{name:'服务器总览'}).click();await expect(menu).not.toHaveAttribute('open','')
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
  await page.screenshot({path:'tests/artifacts/v015/table-200-percent.png'})
 })

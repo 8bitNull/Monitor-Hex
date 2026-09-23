@@ -1,4 +1,3 @@
-import {TableColumns} from './components/TableControls';
 import {MobileSearch} from './components/MobileSearch';
 import {countryName} from './lib/regionNames';
 import {RegionPicker} from './components/RegionPicker';
@@ -177,7 +176,7 @@ export default function App({ siteDefaults = defaults }: {
     const probes = new Map<number, string>();
     sorted.forEach(n => { const d = getPing(n.id)?.data; if (d)
         probeCatalog(d).forEach(p => probes.set(p.id, p.name)); });
-    const viewSwitch = <div className="view-toolbar"><div className="view-switch"><button className={browse.view === 'cards' ? 'active' : ''} onClick={() => patchBrowse({view:'cards'})} aria-label={tr("卡片视图")} aria-pressed={browse.view === 'cards'}><LayoutGrid size={17}/>{tr("卡片")}</button><button className={browse.view === 'table' ? 'active' : ''} onClick={() => patchBrowse({view:'table'})} aria-label={tr("表格视图")} aria-pressed={browse.view === 'table'}><Table2 size={17}/>{tr("表格")}</button></div>{browse.view === 'table' && <TableColumns browse={browse} mobile={compactViewport} onChange={patchBrowse}/>}</div>;
+    const viewSwitch = <div className="view-toolbar"><div className="view-switch"><button className={browse.view === 'cards' ? 'active' : ''} onClick={() => patchBrowse({view:'cards'})} aria-label={tr("卡片视图")} aria-pressed={browse.view === 'cards'}><LayoutGrid size={17}/>{tr("卡片")}</button><button className={browse.view === 'table' ? 'active' : ''} onClick={() => patchBrowse({view:'table'})} aria-label={tr("表格视图")} aria-pressed={browse.view === 'table'}><Table2 size={17}/>{tr("表格")}</button></div></div>;
     const searchField = (className = '') => <div className={`node-search-control ${className}`.trim()}>
       <Search size={16} aria-hidden="true"/>
       <input type="search" value={browse.query} onChange={event => setQuery(event.target.value)} onKeyDown={event=>{if(event.key==='Escape')setMobileSearchOpen(false)}} placeholder={tr("搜索名称、地区、操作系统…")} aria-label={tr("搜索节点")}/>

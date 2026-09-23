@@ -2,15 +2,18 @@
 .table-shell {position:relative;min-width:0}
 .table-scroll {max-width:100%;overflow:auto;border:1px solid var(--border);border-radius:var(--radius-panel);background:var(--card);scrollbar-width:none}
 .table-scroll:focus-visible {outline:2px solid var(--tone);outline-offset:3px}
-.node-table {table-layout:fixed;width:100%;border-collapse:separate;border-spacing:0;font-size:13px;text-align:left;font-variant-numeric:tabular-nums;white-space:nowrap}
-.node-table th,.node-table td {padding:8px 12px;border-bottom:1px solid var(--border);text-align:right;height:68px;vertical-align:middle}
+.node-table {table-layout:fixed;width:100%;border-collapse:separate;border-spacing:0;font-size:13px;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
+.node-table th,.node-table td {padding:8px 12px;border-bottom:1px solid var(--border);text-align:center;height:68px;vertical-align:middle}
 .node-table th {height:44px;padding-block:0;background:var(--muted);font-weight:500;color:var(--muted-foreground)}
 .node-table th button {width:100%;text-align:inherit;min-height:44px;background:none}
 .node-table th button span {color:var(--muted-foreground);font-size:11px}
-.node-table th select {min-width:0;width:100%;max-width:190px;min-height:44px;text-align:right;background:transparent;border:0;cursor:pointer}
+.node-table th select {min-width:0;width:auto;field-sizing:content;max-width:100%;min-height:28px;height:28px;padding:2px 4px;text-align:center;font-size:12px;line-height:20px;background:transparent;border:0;border-radius:4px;cursor:pointer;box-shadow:none}
+.node-table th select:focus {outline:none;box-shadow:none}
+.node-table th select:focus-visible:not([data-pointer-focus]) {outline:1px solid var(--muted-foreground);outline-offset:2px}
+@media(pointer:coarse) {.node-table th select {min-height:44px;height:44px}}
 .node-table th[aria-sort=ascending],.node-table th[aria-sort=descending] {color:var(--foreground);background:color-mix(in srgb,var(--tone) 9%,var(--card))}
 .node-table tbody tr:last-child td {border-bottom:0}
-.node-table td:first-child,.node-table th:first-child {position:sticky;left:0;z-index:2;background:var(--card);text-align:left;border-right:1px solid var(--border)}
+.node-table td:first-child,.node-table th:first-child {position:sticky;left:0;z-index:2;background:var(--card);text-align:center;border-right:1px solid var(--border)}
 .node-table th:first-child {background:var(--muted)}
 .node-table tr:is(:hover,:focus-within) td {background:color-mix(in srgb,var(--tone) 4%,var(--card))}
 .node-table [data-column=name] {min-width:220px;width:220px;max-width:240px}
@@ -22,26 +25,26 @@
 .node-table [data-column=expiry] {min-width:130px}
 .table-name-text {min-width:0;flex:1}
 .table-identity>div {display:flex;align-items:center;gap:2px}
-.table-node-name {min-width:0;max-width:170px;overflow:hidden;text-overflow:ellipsis;font-weight:600;white-space:nowrap;text-align:left;min-height:28px}
+.table-node-name {min-width:0;max-width:170px;overflow:hidden;text-overflow:ellipsis;font-weight:600;white-space:nowrap;text-align:center;min-height:28px}
 .table-name-text>small {display:block;max-width:188px;overflow:hidden;text-overflow:ellipsis;color:var(--muted-foreground);font-size:11px}
 .next-theme .table-name-info {flex-shrink:0;display:grid;place-items:center;width:44px;min-height:44px;color:var(--muted-foreground);background:none}
 .table-status-dot {display:inline-block;width:6px;height:6px;background:var(--download);border-radius:50%;margin-right:7px;vertical-align:middle}
 .node-table tr:not([data-state=live]) .table-status-dot {background:var(--muted-foreground)}
 .table-identity .status-pill {font-size:11px;min-height:18px;padding:0;background:none}
 .table-identity .status-pill .dot {display:none}
-.table-metric {display:grid;gap:6px;min-width:50px;text-align:right}
+.table-metric {display:grid;gap:6px;min-width:50px;text-align:center}
 .table-metric progress,.table-traffic progress {height:3px;width:100%;appearance:none;border:0;background:var(--muted);color:var(--tone);display:block;border-radius:2px}
 .table-metric progress::-webkit-progress-bar,.table-traffic progress::-webkit-progress-bar {background:var(--muted);border-radius:2px}
 .table-metric progress::-webkit-progress-value,.table-traffic progress::-webkit-progress-value {background:var(--tone);border-radius:2px}
 .table-metric progress::-moz-progress-bar,.table-traffic progress::-moz-progress-bar {background:var(--tone);border-radius:2px}
 .node-table [data-column=disk] progress {opacity:.6}
 .table-speed {display:grid;gap:4px}
-.table-speed>span {display:grid;grid-template-columns:14px minmax(48px,1fr) auto;align-items:baseline;gap:5px}
-.table-speed>span:before {content:'↑';color:var(--upload);text-align:left}
+.table-speed>span {display:flex;justify-content:center;align-items:baseline;gap:4px}
+.table-speed>span:before {content:'↑';color:var(--upload);text-align:center}
 .table-speed [data-direction=download]:before {content:'↓';color:var(--download)}
 .table-speed small {font-size:11px;color:var(--muted-foreground)}
-.table-ping {text-align:right;min-width:178px}
-.table-ping-value {display:flex;justify-content:flex-end;align-items:center;gap:8px;min-height:24px}
+.table-ping {text-align:center;min-width:178px}
+.table-ping-value {display:flex;justify-content:center;align-items:center;gap:8px;min-height:24px}
 .table-ping-value strong {font-size:13px;font-weight:600}
 .table-ping-value button {min-height:44px}
 .table-latency-grade {display:flex;gap:4px;align-items:center;font-size:11px;color:var(--muted-foreground)}
@@ -50,7 +53,7 @@
 .table-latency-grade[data-level="2"] {--grade-width:18px;--grade-color:var(--warn)}
 .table-latency-grade[data-level="3"] {--grade-width:28px;--grade-color:var(--destructive)}
 .table-ping:is([data-tone=bad],[data-tone=timeout]) strong {color:var(--destructive)}
-.table-network-meta {display:flex;gap:8px;justify-content:flex-end;color:var(--muted-foreground);font-size:11px;align-items:baseline}
+.table-network-meta {display:flex;gap:8px;justify-content:center;color:var(--muted-foreground);font-size:11px;align-items:baseline}
 .table-route {max-width:100px;overflow:hidden;text-overflow:ellipsis}
 .table-network-meta small {font-size:11px;white-space:nowrap}
 .table-network-meta [data-loss=true] {color:var(--warn)}
@@ -118,12 +121,13 @@
 .table-scroll::-webkit-scrollbar {display:none}
 .table-scroll {scroll-margin-top:80px}
 .table-node-name {max-width:100%;width:100%;white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.5}
-.table-name-text>small {max-width:100%}
+.table-name-text>small {max-width:100%;margin-inline:auto}
 .table-ping {min-width:0}
-.table-network-meta {gap:5px;flex-wrap:wrap}
-.table-speed>span {grid-template-columns:14px minmax(0,1fr) auto}
-.node-table [data-column=remark] {text-align:left}
-.node-table .table-remark {display:block;overflow:hidden;text-overflow:ellipsis;max-width:100%;width:100%;min-height:44px;white-space:nowrap;text-align:left;font-size:12px;font-weight:400;line-height:1.6;color:var(--muted-foreground);background:none}
+.table-network-meta {gap:5px;flex-wrap:wrap;align-items:center}
+.node-table [data-column=remark] {text-align:center}
+.node-table .table-remark {display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px;max-width:100%;width:100%;min-height:44px;white-space:normal;text-align:center;background:none;padding-block:4px}
+.node-table .table-remark .detail-remark-tag {max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;padding:3px 7px}
+.table-remark-more {font-size:11px;color:var(--muted-foreground);padding:3px 5px}
 .table-remark-full {white-space:pre-wrap}
 .table-order-reset {display:flex;align-items:center;gap:8px;min-height:44px;color:var(--tone);margin-top:8px}
 .table-order-reset:disabled {opacity:.45;cursor:default}

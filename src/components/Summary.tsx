@@ -10,15 +10,16 @@ import { Card } from "@/components/ui/card";
 import { speedHistory, type Node } from "@/lib/api";
 import { bytes, rate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-function Tile({ icon: Icon, label, children }: {
+function Tile({ icon: Icon, label, notice, children }: {
     icon: typeof Server;
     label: string;
+    notice?: string;
     children: React.ReactNode;
 }) {
     return (<Card className="gap-0 p-3">
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Icon className="size-3.5"/>
-        {label}
+      <div className="summary-tile-heading text-xs text-muted-foreground">
+        <span className="summary-tile-label"><Icon className="size-3.5"/>{label}</span>
+        {notice&&<small className="summary-tile-notice">{notice}</small>}
       </div>
       {children}
     </Card>);
@@ -104,7 +105,7 @@ export function Summary({ nodes, prefs, loadAlerts, onAlert, status, onStatus, o
         <Flow down={bytes(sum((n) => n.day_rx))} up={bytes(sum((n) => n.day_tx))} className="mt-1 text-sm font-semibold"/>
       </Tile>}
 
-      {prefs.modules.speed && <Tile icon={Gauge} label={tr("实时网速")}>
+      {prefs.modules.speed && <Tile icon={Gauge} label={tr("实时网速")} notice={unavailable>0?tr("{0} 个节点暂无实时数据",unavailable):undefined}>
         <strong className="summary-total">{fresh.length?rate(now.rx+now.tx):'—'}</strong>
         <Flow down={fresh.length?rate(now.rx):"—"} up={fresh.length?rate(now.tx):"—"} className="mt-1 text-sm font-semibold"/>
         {fresh.length>0 && <div className="mt-auto pt-1">
@@ -113,7 +114,6 @@ export function Summary({ nodes, prefs, loadAlerts, onAlert, status, onStatus, o
                     { values: speedHistory.map((s) => s.tx), className: "upload" },
                 ]}/>
         </div>}
-        {unavailable>0 && <small className="text-xs text-muted-foreground">{tr("{0} 个节点暂无实时数据",unavailable)}</small>}
       </Tile>}
       {prefs.modules.busiest && <LoadAlertTile {...loadAlerts} onOpen={onAlert} available={nodes.map(n=>n.id)}/>}
       {prefs.modules.regions && <Tile icon={Globe} label={tr("地区统计")}><div className="tnum mt-1 text-xl font-semibold">{regions.size}{tr("个地区")}</div><small className="text-muted-foreground">{nodes.filter(n => regionKey(n.country) === UNKNOWN_REGION).length}{tr("个节点未定位")}</small></Tile>}

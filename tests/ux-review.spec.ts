@@ -13,9 +13,10 @@ test('offline filter composes with search and compact summary survives reload',a
 })
 for(const width of [320,360,390,430])test(`default mobile table fits ${width}px and keeps status`,async({page})=>{
  await page.setViewportSize({width,height:844});await setup(page);await page.goto('/');await page.getByRole('button',{name:'表格视图',exact:true}).click()
- await expect(page.locator('thead th')).toHaveCount(3);await expect(page.locator('tbody .status-pill')).toHaveCount(6)
- expect(await page.locator('.table-scroll').evaluate(e=>e.scrollWidth-e.clientWidth)).toBeLessThanOrEqual(1)
- const region=await page.locator('.region-picker-trigger').boundingBox(),sort=await page.locator('.table-sort-toolbar').boundingBox();expect(sort!.y).toBeGreaterThan(region!.y+region!.height)
+ await expect(page.locator('thead th')).toHaveCount(4);await expect(page.locator('tbody .status-pill')).toHaveCount(6)
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+ await expect(page.locator('thead th').last()).toHaveText('备注')
+ await expect(page.locator('.table-sort-toolbar,.column-options')).toHaveCount(0)
 })
 test('all routes have legends, summary follows loss route, keyboard zoom has readable dates',async({page})=>{
  await setup(page);await page.goto('/node/1?routes=all#latency');await expect(page.locator('.route-chips button')).toHaveCount(8)

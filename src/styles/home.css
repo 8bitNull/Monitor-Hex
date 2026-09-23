@@ -264,3 +264,8 @@
  .summary-grid .summary-total,.summary-grid .text-xl {margin:5px 0 0}
  .summary-grid>div>.pt-1:has(svg.h-7) {display:none}
 }
+
+/* Keep availability notices in the heading, away from throughput readings. */
+.summary-tile-heading {display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:4px 8px;min-width:0}
+.summary-tile-label {display:inline-flex;align-items:center;gap:6px;flex-shrink:0}
+.summary-tile-notice {margin-left:auto;max-width:100%;font-size:11px;line-height:1.5;text-align:right;overflow-wrap:anywhere}

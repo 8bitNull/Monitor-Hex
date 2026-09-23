@@ -15,7 +15,7 @@ test('table traffic follows accounting mode, appears after download and hides pe
  await page.getByRole('button',{name:'流量用量 / 总额度 ↑',exact:true}).click()
  await expect(page.locator('.table-node-name').first()).toContainText('sum')
  await page.locator('.table-scroll').screenshot({path:'tests/artifacts/table.png'})
- await page.getByLabel('显示列',{exact:true}).click();await page.getByLabel('流量用量 / 总额度',{exact:true}).uncheck();await page.reload()
+ await page.evaluate(()=>{const key='monitor-next-browse-v1',saved=JSON.parse(sessionStorage.getItem(key)!);sessionStorage.setItem(key,JSON.stringify({...saved,columns:saved.columns.filter((key:string)=>key!=='traffic')}))});await page.reload()
  await expect(page.locator('.table-traffic')).toHaveCount(0)
 })
 

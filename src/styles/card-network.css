@@ -70,3 +70,17 @@
 .compact-network-card .card-billing .traffic-summary,.compact-network-card .card-expiry {grid-row:1/4;grid-template-rows:subgrid}
 .compact-network-card .card-billing .traffic-summary {grid-column:1}
 .compact-network-card .card-billing .traffic-summary b,.compact-network-card .card-expiry b {align-self:start}
+
+/* Center each direction's label and reading as a compact group. */
+@media(min-width:361px) {
+ .compact-network-card[data-indicator] .speed-indicators>div {grid-template-columns:minmax(0,1fr) 12px auto auto minmax(0,1fr);column-gap:4px}
+ .compact-network-card[data-indicator] .speed-indicators>div>svg:first-child {grid-column:2}
+ .compact-network-card .speed-direction {grid-column:3}
+ .compact-network-card[data-indicator] .speed-indicators strong {grid-column:4;margin-left:4px}
+}
+@media(max-width:360px) {
+ .compact-network-card[data-indicator] .speed-indicators>div {grid-template-columns:minmax(0,1fr) 12px auto minmax(0,1fr)}
+ .compact-network-card[data-indicator] .speed-indicators>div>svg:first-child {grid-column:2}
+ .compact-network-card .speed-direction {grid-column:3}
+ .compact-network-card[data-indicator] .speed-indicators strong {justify-self:center}
+}
