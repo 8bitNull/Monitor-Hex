@@ -12,17 +12,29 @@ test('billing rows align, preserve quota states and fit narrow cards',async({pag
  for(const width of [320,390,1440])for(const language of ['zh','en']){
   await page.setViewportSize({width,height:1000});await page.addInitScript(language=>{localStorage.setItem('monitor-next-language',language);localStorage.setItem('monitor-next',JSON.stringify({_storageVersion:1,homeRoutes:1,modules:{map:false}}))},language)
   await page.goto('/');const cards=page.locator('.node-card');await expect(cards).toHaveCount(5)
-  await expect(cards.nth(0).getByRole('progressbar')).toHaveAttribute('aria-valuenow','44')
-  await expect(cards.nth(1).locator('.quota-percent')).toHaveText('104%');await expect(cards.nth(1).locator('.traffic-summary')).toHaveAttribute('data-quota-state','over')
+  await expect(cards.locator('.quota,.quota-percent,[role=progressbar]')).toHaveCount(0);await expect(cards.first().locator('.billing-allowance')).toContainText('GB')
+  await expect(cards.nth(1).locator('.traffic-summary')).toHaveAttribute('data-quota-state','over')
   await expect(cards.nth(1).locator('.card-expiry')).toHaveAttribute('data-expiry-state','expired')
-  await expect(cards.nth(2).locator('.quota')).toHaveCount(0);await expect(cards.nth(2).locator('.traffic-reset')).toBeVisible()
+  await expect(cards.nth(2).locator('.quota')).toHaveCount(0);await expect(cards.nth(2).locator('.billing-allowance')).toContainText('∞')
   await expect(cards.nth(3).locator('.traffic-reset')).toHaveCount(0)
   await expect(cards.nth(4).locator('.traffic-summary')).toHaveAttribute('data-quota-state','near')
-  if(width===320)await expect(cards.first().locator('.quota-percent')).toBeHidden();else await expect(cards.first().locator('.quota-percent')).toBeVisible()
+  await expect(cards.first().locator('.billing-used')).toBeVisible()
   for(const card of await cards.all()){
    const layout=await card.evaluate(el=>{const a=el.querySelector('.traffic-summary b')!.getBoundingClientRect(),b=el.querySelector('.card-expiry b')!.getBoundingClientRect();return {delta:Math.abs(a.y-b.y),overflow:el.scrollWidth>el.clientWidth+1}})
    expect(layout.delta).toBeLessThanOrEqual(1);expect(layout.overflow).toBeFalsy()
   }
   if(language==='zh')await cards.first().screenshot({path:`tests/artifacts/billing-aligned/${width}.png`})
  }
+})
+
+
+test('long notes expand without opening the node and keep price at the top',async({page})=>{
+ await page.setViewportSize({width:320,height:900})
+ const note='这是一段用于验证两行折叠及展开的很长备注。'.repeat(12)
+ await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[{...nodes()[0],remark:'国际线路;'+note}]}}))
+ await page.goto('/');const card=page.locator('.node-card'),text=card.locator('.card-long-notes p')
+ await expect(text).toHaveCSS('-webkit-line-clamp','2');const height=(await text.boundingBox())!.height
+ await card.getByRole('button',{name:'展开备注',exact:true}).click();expect((await text.boundingBox())!.height).toBeGreaterThan(height);await expect(page).not.toHaveURL(/node\//)
+ await card.getByRole('button',{name:'收起备注',exact:true}).click();expect((await text.boundingBox())!.height).toBe(height)
+ await expect(card.locator('.detail-remark-tag')).toHaveText('国际线路')
 })

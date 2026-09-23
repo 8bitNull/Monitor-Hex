@@ -19,7 +19,7 @@ for(const width of [320,360,390,430])test(`default mobile table fits ${width}px 
 })
 test('all routes have legends, summary follows loss route, keyboard zoom has readable dates',async({page})=>{
  await setup(page);await page.goto('/node/1?routes=all#latency');await expect(page.locator('.route-chips button')).toHaveCount(8)
- await page.getByLabel('统计线路',{exact:true}).selectOption('2');await expect(page.getByLabel('丢包线路',{exact:true})).toHaveValue('2');await page.getByLabel('丢包线路',{exact:true}).selectOption('3');await expect(page.getByLabel('统计线路',{exact:true})).toHaveValue('3')
+ await expect(page.getByLabel('统计线路',{exact:true})).toHaveCount(0);await page.getByLabel('丢包线路',{exact:true}).selectOption('3');await expect(page.locator('.latency-summary-route')).toHaveText('线路 3')
  const start=page.getByRole('slider',{name:'开始时间',exact:true});await expect(start).toHaveAttribute('aria-valuenow','0');await start.focus();await page.keyboard.press('ArrowRight');await expect(start).toHaveAttribute('aria-valuenow','1');await expect(start).toHaveAttribute('aria-valuetext',/\d/);await expect(page.locator('.loss-unavailable')).toBeVisible();await page.getByRole('button',{name:'恢复范围',exact:true}).click();await expect(page.locator('.loss-unavailable')).toHaveCount(0)
  await page.setViewportSize({width:390,height:844});await expect(page.locator('.route-chips button')).toHaveCount(5);await page.getByRole('button',{name:'展开其余 4 条线路',exact:true}).click();await expect(page.locator('.route-chips button')).toHaveCount(9)
 })
@@ -31,4 +31,19 @@ test('resource toolbar text and desktop-only settings are explicit on mobile',as
  await page.setViewportSize({width:320,height:844});await setup(page);await page.goto('/node/1');await expect(page.locator('.detail-tabs').getByText('资源',{exact:true})).toBeVisible();await expect(page.locator('.detail-resource-metric-mobile summary')).toContainText('CPU')
  for(const l of [page.locator('.detail-ranges'),page.locator('.detail-refresh'),page.locator('.detail-resource-metric-mobile summary')]){const box=await l.boundingBox();expect(box!.x+box!.width).toBeLessThanOrEqual(320)}
  await page.getByRole('button',{name:'显示与偏好',exact:true}).click();await expect(page.getByLabel('资料密度',{exact:true})).toHaveCount(0);await expect(page.getByText('仅桌面生效',{exact:true}).first()).toBeVisible();await expect(page.getByLabel('背景图片地址',{exact:true})).toBeHidden();await page.getByText('高级外观',{exact:true}).click();await expect(page.getByLabel('背景图片地址',{exact:true})).toBeVisible()
+})
+
+for(const width of [320,390,1440])test(`one loss selector owns summary and hidden routes cannot reclaim it at ${width}`,async({page})=>{
+ await page.setViewportSize({width,height:1000});await setup(page);await page.goto('/node/1?routes=1,2,3#latency')
+ const chips=page.locator('.route-chips'),summary=page.locator('.latency-summary-route'),loss=page.getByLabel('丢包线路',{exact:true})
+ await expect(page.locator('.detail-chart-toolbar select,.detail-probe-legend,.latency-summary select')).toHaveCount(0)
+ await loss.selectOption('3');await expect(summary).toHaveText('线路 3')
+ await chips.getByRole('button',{name:'线路 3',exact:true}).click();await expect(summary).toHaveText('线路 1');await expect(loss).toHaveValue('1')
+ await chips.getByRole('button',{name:'线路 3',exact:true}).click();await expect(summary).toHaveText('线路 1')
+ await chips.getByRole('button',{name:'线路 1',exact:true}).click();await expect(summary).toHaveText('线路 2')
+ await chips.getByRole('button',{name:'线路 3',exact:true}).click();await expect(summary).toHaveText('线路 2');await expect(loss).toHaveCount(0)
+ await chips.getByRole('button',{name:'线路 2',exact:true}).click();await expect(page.locator('.latency-summary,.loss-track')).toHaveCount(0)
+ await page.getByRole('button',{name:'选择线路',exact:true}).click();await expect(chips.getByRole('button',{name:'线路 1',exact:true})).toBeFocused()
+ await page.keyboard.press('Space');await expect(summary).toHaveText('线路 1')
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
 })

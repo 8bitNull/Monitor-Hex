@@ -1,23 +1,24 @@
+import {expandRoutes} from './routes'
 import {test,expect} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
 async function setup(page:any,width:number,routes='1,3'){
  await page.setViewportSize({width,height:900})
  await page.route('**/api/nodes',(r:any)=>r.fulfill({json:{nodes:[{...nodes()[0],cpu_name:'AMD EPYC Processor '.repeat(8),ipv6:'2001:db8:1234:5678:abcd:1234:5678:abcd',remark:'Remark;'.repeat(8)}]}}))
  await page.route('**/api/nodes/*/metrics?*',(r:any)=>{const d=metrics();return r.fulfill({json:{...d,probes:Object.fromEntries(Array.from({length:12},(_,i)=>[i+1,`Route ${i+1}`])),ping:d.ping.flatMap(p=>Array.from({length:12},(_,i)=>({...p,task_id:i+1,latency:i===0?0:12.34567+i,loss:undefined})))}})})
- await page.goto(`/node/1${routes==='inherit'?'':`?routes=${routes}`}#latency`);await expect(page.locator('.detail-probe-legend')).toBeVisible()
+ await page.goto(`/node/1${routes==='inherit'?'':`?routes=${routes}`}#latency`);await expect(page.locator('.route-chips')).toBeVisible()
 }
-for(const width of [320,390,1440])test(`route picker is compact and keyboard friendly at ${width}`,async({page})=>{
- await setup(page,width,'1,3');const summary=page.locator('.detail-probe-legend>summary');await summary.click()
- const plot=page.locator('.detail-chart-frame'),height=(await plot.boundingBox())!.height,options=page.locator('.probe-options .probe-select')
+for(const width of [320,390,1440])test(`route legends expand and support keyboard toggles at ${width}`,async({page})=>{
+ await setup(page,width,'1,3');await expandRoutes(page)
+ const plot=page.locator('.detail-chart-frame'),height=(await plot.boundingBox())!.height,options=page.locator('.route-chips button[aria-pressed]')
  await expect(options).toHaveCount(12);await expect(page.locator('.probe-bulk-actions,.route-search,.probe-solo,.probe-restore')).toHaveCount(0)
- await expect(options.filter({has:page.locator('.probe-check')}).first()).toBeVisible();await expect(page.locator('.probe-select[aria-pressed="true"] .probe-check').first()).toHaveText('✓')
+ await expect(options.filter({has:page.locator('.route-chip-check')}).first()).toBeVisible();await expect(page.locator('.route-chips button[aria-pressed="true"] .route-chip-check').first()).toHaveText('✓')
  const route12=page.getByRole('button',{name:'Route 12',exact:true});await route12.click();await expect(route12).toHaveAttribute('aria-pressed','true');await expect(page).toHaveURL(/routes=1%2C3%2C12/)
  expect((await plot.boundingBox())!.height).toBe(height);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
- await page.keyboard.press('Escape');await expect(summary).toBeFocused();await expect(summary).toContainText('线路')
+ await route12.focus();await page.keyboard.press('Space');await expect(route12).toHaveAttribute('aria-pressed','false');await expect(route12).toBeFocused()
 })
-test('route picker can clear the final route without restoring removed actions',async({page})=>{
- await setup(page,390,'1');const summary=page.locator('.detail-probe-legend>summary');await summary.click();await page.getByRole('button',{name:'Route 1',exact:true}).click()
- await expect(page.locator('.detail-chart-frame')).toContainText('没有选中任何探测');await expect(page.locator('.probe-select[aria-label="Route 1"]')).toHaveAttribute('aria-pressed','false')
+test('route legends can clear the final route without restoring removed actions',async({page})=>{
+ await setup(page,390,'1');await expandRoutes(page);await page.getByRole('button',{name:'Route 1',exact:true}).click()
+ await expect(page.locator('.detail-chart-frame')).toContainText('没有选中任何探测');await expect(page.locator('.route-chips button[aria-label="Route 1"]')).toHaveAttribute('aria-pressed','false')
  await expect(page.locator('.probe-bulk-actions,.route-search,.probe-solo,.probe-restore')).toHaveCount(0)
 })
 for(const width of [390,1440])for(const tab of ['latency','resources'])test(`Escape dismisses and reopens ${tab} tooltip at ${width}`,async({page})=>{

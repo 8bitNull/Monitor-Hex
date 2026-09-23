@@ -1,3 +1,4 @@
+import {expandRoutes} from './routes'
 import {setting,settingsButton} from './settings'
 import {test,expect,type Page} from '@playwright/test'
 import {toggleSettings,visualSelect,settingsCategory} from './settings'
@@ -23,7 +24,7 @@ for(const width of [320,390,720,900,1440])test(`network readings fit in both lan
   if(language==='zh'&&appearance==='light')await card.screenshot({path:`tests/artifacts/v013/home-${width}.png`})
   await page.goto('/node/1?routes=1,2,3#latency');await expect(page.locator('.loss-track')).toBeVisible();await expect(page.locator('.detail-speed .micro-trend')).toHaveCount(2)
   const select=page.locator('.loss-track select');await select.selectOption('2');await expect(select).toHaveValue('2')
-  await page.locator('.detail-probe-legend>summary').click();await expect(page.locator('.probe-label').first()).toHaveCSS('text-overflow','ellipsis');await page.keyboard.press('Escape')
+  await expandRoutes(page);await expect(page.locator('.route-chips button>span').first()).toHaveCSS('text-overflow','ellipsis');await page.keyboard.press('Escape')
   const billing=page.locator('.overview-account')
   if(width<900){await page.locator('.detail-facts-toggle').click()}
   const status=(await billing.locator('.overview-account-footer').boundingBox())!,facts=(await billing.locator('.overview-billing').boundingBox())!;if(width>=900&&width<1200)expect(status.x).toBeGreaterThanOrEqual(facts.x+facts.width);else expect(status.y).toBeGreaterThanOrEqual(facts.y+facts.height-1)
@@ -65,8 +66,8 @@ test('loss timeline preserves zero, unknown and timeout and follows selected rou
  await page.keyboard.press('ArrowRight');await expect(reading).toContainText('丢包 —')
  await page.keyboard.press('ArrowRight');await expect(reading).toContainText('超时');await expect(reading).toContainText('100%')
  await track.locator('select').selectOption('3');await expect(reading).toContainText('丢包 —')
- await page.locator('.detail-probe-legend>summary').click();await page.getByRole('button',{name:'No packet statistics',exact:true}).click();await page.keyboard.press('Escape');await expect(track.locator('select')).toHaveValue('1')
- await page.locator('.detail-probe-legend>summary').click();await page.getByRole('button',{name:'Hong Kong backup route',exact:true}).click();await page.keyboard.press('Escape');await expect(track.locator('select')).toHaveCount(0);await expect(track).toContainText('Tokyo primary route')
+ await expandRoutes(page);await page.getByRole('button',{name:'No packet statistics',exact:true}).click();await page.keyboard.press('Escape');await expect(track.locator('select')).toHaveValue('1')
+ await expandRoutes(page);await page.getByRole('button',{name:'Hong Kong backup route',exact:true}).click();await page.keyboard.press('Escape');await expect(track.locator('select')).toHaveCount(0);await expect(track).toContainText('Tokyo primary route')
  await page.getByRole('button',{name:'1 小时',exact:true}).click();await expect(reading).toContainText('25%')
 })
 test('live trends accumulate real reports and clear on offline state',async({page})=>{

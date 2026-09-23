@@ -1,3 +1,4 @@
+import {expandRoutes} from './routes'
 import {test,expect} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
 import {toggleSettings,settingsCategory,setting} from './settings'
@@ -22,12 +23,10 @@ test('all route entry selects all after load, survives reload and manual selecti
  await page.reload();await expect(page.locator('.route-chips button[aria-pressed=true]')).toHaveCount(2)
  await expect(page.locator('.route-chips button').nth(1)).toHaveAttribute('aria-pressed','false')
  await page.route('**/api/nodes/*/metrics?*',r=>{const d=metrics();return r.fulfill({json:{...d,probes:Object.fromEntries(Array.from({length:20},(_,i)=>[i+1,`Route ${i+1}`])),ping:Array.from({length:20},(_,i)=>({task_id:i+1,ts:Date.now()/1000,latency:20+i}))}})})
- await page.goto('/node/1?routes=all#latency');await page.locator('.detail-probe-legend>summary').click()
- await page.getByRole('searchbox',{name:'查找线路',exact:true}).fill('Route 12')
- await expect(page.locator('.probe-options button')).toHaveCount(1)
- await page.locator('.probe-options button').click();await expect(page.locator('.probe-options button')).toHaveAttribute('aria-pressed','false')
- await page.getByRole('searchbox',{name:'查找线路',exact:true}).fill('')
- await expect(page.locator('.probe-options button[aria-pressed=true]')).toHaveCount(19)
+ await page.goto('/node/1?routes=all#latency');await expandRoutes(page)
+ const route=page.locator('.route-chips').getByRole('button',{name:'Route 12',exact:true})
+ await route.click();await expect(route).toHaveAttribute('aria-pressed','false')
+ await expect(page.locator('.route-chips button[aria-pressed=true]')).toHaveCount(19)
 })
 test('legacy preferences stay full; recommended preset preserves unrelated choices and drafts',async({page})=>{
  await page.addInitScript(()=>{if(!localStorage.getItem('monitor-next'))localStorage.setItem('monitor-next',JSON.stringify({_storageVersion:1,schemaVersion:2,graph:'columns',palette:'forest',latencyScale:200,modules:{map:false}}))})

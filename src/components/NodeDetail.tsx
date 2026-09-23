@@ -1,6 +1,5 @@
 import {useBrushAccessibility} from './useBrushAccessibility'
 import {LossTrack} from './LossTrack'
-import {ChevronDown} from 'lucide-react'
 import {ChartTooltip,useChartTooltip} from './ChartTooltip'
 import type {Preferences} from '@/lib/appearance'
 import {DetailIdentity,DetailLiveOverview} from './DetailOverview'
@@ -114,17 +113,15 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
     const [ranges, setRanges] = useState({ resources:eventStart?eventRange:([1,6,24,168].includes(Number(params.get("rh")))?Number(params.get("rh")):6), latency:[1,6,24].includes(Number(params.get("lh")))?Number(params.get("lh")):6 });
     const hours = ranges[tab];
     const {frame:tooltipFrame,dismiss:tooltipDismiss,onChartClick:tooltipClick,onChartPointerMove:tooltipMove,onChartKeyDown:tooltipKey}=useChartTooltip(`${node.id}:${hours}:${tab}`,compact);
-    const legend=useRef<HTMLDetailsElement>(null),[routeOrder,setRouteOrder]=useState<number[]>([]);
-    useEffect(()=>{const outside=(e:PointerEvent)=>{if(legend.current&&!legend.current.contains(e.target as globalThis.Node))legend.current.open=false};document.addEventListener('pointerdown',outside);return()=>document.removeEventListener('pointerdown',outside)},[]);
+    const legend=useRef<HTMLDivElement>(null);
     const [retry, setRetry] = useState(0);
     const [smooth, setSmooth] = useState(false);
     useEffect(()=>{if(location.hash === "#latency"){const frame=requestAnimationFrame(()=>document.getElementById("latency")?.scrollIntoView());return ()=>cancelAnimationFrame(frame)}},[]);
     // Probes switched off. Hiding a slow one is what makes the fast ones readable,
     // as the axis rescales to what remains.
     const choice = useNodeProbe(node.id,probe);
-    const [routeFilter,setRouteFilter]=useState('');
     const [expandedRoutes,setExpandedRoutes]=useState(false);
-    const openRoutes=()=>{if(legend.current){legend.current.open=true;legend.current.querySelector<HTMLElement>('input,button')?.focus()}};
+    const openRoutes=()=>{setExpandedRoutes(true);requestAnimationFrame(()=>{legend.current?.scrollIntoView({block:'nearest'});legend.current?.querySelector<HTMLButtonElement>('button')?.focus()})};
     const chooseRange=()=>document.querySelector<HTMLElement>('.detail-ranges button')?.focus();
     const [highlightProbe, setHighlightProbe] = useState<number | null>(null);
     const [selectedProbes, setSelectedProbes] = useState<RouteSelection>(()=>readRouteSelection(params.get("routes")));
@@ -294,42 +291,28 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
     useBrushAccessibility(tooltipFrame,pingRows,zoom?.[0]??0,zoom?.[1]??Math.max(0,pingRows.length-1),locale());
     const zoomed=!!zoom&&(zoom[0]>0||zoom[1]<pingRows.length-1);
     const summaryRoute=shownProbes.find(s=>s.id===summaryProbe)??shownProbes.find(s=>s.id===defaultProbe)??shownProbes[0];
+    if(summaryRoute?.id!==summaryProbe)setSummaryProbe(summaryRoute?.id);
     const values=(summaryRoute?.points??[]).filter(p=>p.ts*1000>=rangeStart&&p.ts*1000<=rangeEnd&&p.latency!==null&&Number.isFinite(p.latency)).map(p=>p.latency!).sort((a,b)=>a-b);
     const average=values.length?values.reduce((a,b)=>a+b,0)/values.length:null;
     const percentile=values.length?values[Math.ceil(values.length*.95)-1]:null;
     const reading=(value:number|null)=>value===null?'—':`${value.toFixed(1)} ms`;
-    const latencyControls = tab === "latency" ? <details ref={legend} className="detail-probe-legend" onToggle={e=>{if(e.currentTarget.open)setRouteOrder([...visibleIds])}} onKeyDown={e=>{if(e.key==='Escape'){e.currentTarget.open=false;e.currentTarget.querySelector('summary')?.focus()}}}>
-      <summary aria-label={tr("选择线路")}><span>{tr("线路")}</span><ChevronDown size={13} aria-hidden="true"/></summary>
-      <div className="probe-options">{pingSeries.length>3&&<input className="probe-filter" type="search" aria-label={tr("查找线路")} placeholder={tr("查找线路")} value={routeFilter} onChange={e=>setRouteFilter(e.target.value)}/>}
-        {pingSeries.filter(s=>s.name.toLocaleLowerCase().includes(routeFilter.trim().toLocaleLowerCase())).sort((a,b)=>Number(routeOrder.includes(b.id))-Number(routeOrder.includes(a.id))).map(s=>{
-          const shown=visibleIds.includes(s.id), latest=s.points.at(-1);
-          return <button className="probe-select" key={s.id} aria-label={s.name} title={s.name} aria-pressed={shown} onMouseEnter={()=>setHighlightProbe(s.id)} onMouseLeave={()=>setHighlightProbe(null)} onFocus={()=>setHighlightProbe(s.id)} onBlur={()=>setHighlightProbe(null)} onClick={()=>setSelectedProbes(shown ? visibleIds.filter(id=>id!==s.id) : [...visibleIds,s.id])}>
-            <span className="probe-check" aria-hidden="true">{shown?'✓':''}</span>
-            <svg width="16" height="6" aria-hidden="true"><line x1="0" y1="3" x2="16" y2="3" stroke={style(s.id).stroke} strokeWidth="2"/></svg>
-            <span className="probe-label">{s.name}</span>
-            <b style={{color:style(s.id).stroke}}>{!latest ? tr("暂无探测记录") : latest.latency === null ? tr("超时") : `${Math.round(latest.latency)} ms`}</b>
-            <span className="probe-loss" title={tr("丢包统计范围：{0} 小时",hours)}>{tr("丢包")} {s.loss===null || !latest ? '—' : `${s.loss.toFixed(1)}%`}</span>
-          </button>;
-        })}
-      {routeFilter&&!pingSeries.some(s=>s.name.toLocaleLowerCase().includes(routeFilter.trim().toLocaleLowerCase()))&&<p className="preferences-note">{tr("没有符合条件的线路")}</p>}</div>
-    </details> : null;
     return (<div className="node-detail">
       <DetailIdentity node={node} nodes={nodes} onSwitch={onSwitch}/>
       <div className="detail-workspace">
       <DetailLiveOverview node={node}/>
       <section className="detail-history" aria-label={tr("历史图表")}>
-       <DetailToolbar busy={loading} updated={updated} failed={!!failed} tab={tab} hours={hours} onTab={setTab} onHours={value=>setRanges(all=>({...all,[tab]:value}))} onRefresh={refresh} resourceMetric={resourceMetric} onResourceMetric={setResourceMetric} smooth={smooth} onSmooth={setSmooth} latencyControls={latencyControls}/>
+       <DetailToolbar busy={loading} updated={updated} failed={!!failed} tab={tab} hours={hours} onTab={setTab} onHours={value=>setRanges(all=>({...all,[tab]:value}))} onRefresh={refresh} resourceMetric={resourceMetric} onResourceMetric={setResourceMetric} smooth={smooth} onSmooth={setSmooth}/>
       {eventStart>0&&<p className="event-context">{tr('告警时段：{0} — {1}',new Date(eventStart).toLocaleString(locale()),new Date(eventEnd).toLocaleString(locale()))}{age>168||hours<age?<span>{tr('当前历史范围无法覆盖完整告警时段。')}</span>:data&&!(data.metrics??[]).some(p=>p.ts*1000>=eventStart&&p.ts*1000<=eventEnd)?<span>{tr('此告警时段没有返回历史样本。')}</span>:null}</p>}
       {failed && <div className="history-notice" role="alert"><span>{data && (data.metrics?.length || data.ping?.length)?tr("更新失败，保留上次历史记录。"):tr("读取历史数据失败：")}{failed}{updated!==null && data && (data.metrics?.length || data.ping?.length)?<small className="history-retained-time">{tr("上次成功更新：{0}",new Date(updated).toLocaleString(locale()))}</small>:null}</span><button disabled={loading} onClick={refresh}>{tr("重试")}</button></div>}
       <div className="detail-history-body" data-history={tab}>
       {!data ? (<HistoryState loading={!failed} failed={!!failed} message={failed?tr("暂无可用历史数据"):tr("正在读取历史数据")}/>) : failed && !data.metrics?.length && !data.ping?.length ? (<HistoryState failed message={tr("暂无可用历史数据")}/>) : tab === "latency" ? (pingSeries.length === 0 ? (<HistoryState message={tr("这段时间没有延迟数据")} action={tr("调整时间范围")} onAction={chooseRange}/>) : (
          <div className="latency-view">
-            <div className="route-chips" role="group" aria-label={tr("线路图例")}>
-              {(compact&&!expandedRoutes?pingSeries.slice(0,4):pingSeries).map(s=>{const latest=s.points.at(-1),shown=visibleIds.includes(s.id);return <button key={s.id} aria-pressed={shown} title={`${s.name} · ${latest?tr("采样：{0}",new Date(latest.ts*1000).toLocaleString(locale())):tr("暂无探测记录")}`} onMouseEnter={()=>setHighlightProbe(s.id)} onMouseLeave={()=>setHighlightProbe(null)} onFocus={()=>setHighlightProbe(s.id)} onBlur={()=>setHighlightProbe(null)} onClick={()=>setSelectedProbes(shown?visibleIds.filter(id=>id!==s.id):[...visibleIds,s.id])}><i className="route-chip-check" aria-hidden="true">{shown?'✓':''}</i><svg width="20" height="8" aria-hidden="true"><line x1="0" y1="4" x2="20" y2="4" stroke={style(s.id).stroke} strokeWidth="2"/></svg><span>{s.name}</span><b>{!latest?'—':latest.latency===null?tr("超时"):`${Math.round(latest.latency)} ms`}</b></button>})}
+            <div ref={legend} className="route-chips" role="group" aria-label={tr("线路图例")}>
+              {(compact&&!expandedRoutes?pingSeries.slice(0,4):pingSeries).map(s=>{const latest=s.points.at(-1),shown=visibleIds.includes(s.id);return <button key={s.id} aria-label={s.name} aria-pressed={shown} title={`${s.name} · ${latest?tr("采样：{0}",new Date(latest.ts*1000).toLocaleString(locale())):tr("暂无探测记录")}`} onMouseEnter={()=>setHighlightProbe(s.id)} onMouseLeave={()=>setHighlightProbe(null)} onFocus={()=>setHighlightProbe(s.id)} onBlur={()=>setHighlightProbe(null)} onClick={()=>setSelectedProbes(shown?visibleIds.filter(id=>id!==s.id):[...visibleIds,s.id])}><i className="route-chip-check" aria-hidden="true">{shown?'✓':''}</i><svg width="20" height="8" aria-hidden="true"><line x1="0" y1="4" x2="20" y2="4" stroke={style(s.id).stroke} strokeWidth="2"/></svg><span>{s.name}</span><b>{!latest?'—':latest.latency===null?tr("超时"):`${Math.round(latest.latency)} ms`}</b></button>})}
               {compact&&pingSeries.length>4&&<button className="expand-routes" aria-expanded={expandedRoutes} onClick={()=>setExpandedRoutes(v=>!v)}>{expandedRoutes?tr("收起线路"):tr("展开其余 {0} 条线路",pingSeries.length-4)}</button>}
             </div>
             {summaryRoute&&<div className="latency-summary" title={summaryRoute.name}>
-              <label className="latency-summary-route">{tr("统计线路")}<select aria-label={tr("统计线路")} value={summaryRoute.id} onChange={e=>setSummaryProbe(Number(e.target.value))}>{shownProbes.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
+              <span className="latency-summary-route" style={{color:style(summaryRoute.id).stroke}}>{summaryRoute.name}</span>
               <span>{tr("采样均值")} <b>{reading(average)}</b></span>
               <span className="latency-p95">P95 <b>{reading(percentile)}</b></span>
               <span>{tr("丢包")} <b>{!zoomed&&summaryRoute.points.length>0&&summaryRoute.loss!==null?`${summaryRoute.loss.toFixed(1)}%`:'—'}</b>{zoomed&&<small className="loss-unavailable" title={tr("丢包率来自完整查询窗口；缩放范围缺少样本数，暂不计算。")}>{tr("所选范围暂不可统计")}</small>}</span>
@@ -344,7 +327,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
                     {/* Not anchored at zero: these lines live in a narrow band
                     far from it, and zero flattens every wobble. */}
                     <YAxis width={52} domain={["auto", "auto"]} {...AXIS}/>
-                    <Tooltip itemSorter={item=>{const id=Number(String(item.dataKey).slice(1));const index=pingSeries.findIndex(s=>s.id===id);return (routeOrder.includes(id)?0:pingSeries.length)+index}} content={props=><ChartTooltip {...props} compact={compact} dismiss={tooltipDismiss}/>} wrapperStyle={{pointerEvents:'auto'}} trigger={compact?"click":"hover"} allowEscapeViewBox={{x:false,y:false}} cursor={{stroke:"var(--border)",strokeDasharray:"3 4"}} isAnimationActive={false} labelFormatter={(ts) => new Date(Number(ts)).toLocaleString(locale())}
+                    <Tooltip itemSorter={item=>{const id=Number(String(item.dataKey).slice(1));const index=pingSeries.findIndex(s=>s.id===id);return index}} content={props=><ChartTooltip {...props} compact={compact} dismiss={tooltipDismiss}/>} wrapperStyle={{pointerEvents:'auto'}} trigger={compact?"click":"hover"} allowEscapeViewBox={{x:false,y:false}} cursor={{stroke:"var(--border)",strokeDasharray:"3 4"}} isAnimationActive={false} labelFormatter={(ts) => new Date(Number(ts)).toLocaleString(locale())}
             // The line is drawn from what answered, so without this a
             // bucket that lost most of its packets reads as normal.
             // `dataKey` is `t7`/`s7`; the loss sits at `l7`.

@@ -29,8 +29,7 @@
 .latency-view .route-chips button {min-height:44px}
 .latency-view .route-chips .expand-routes {grid-column:1/-1;justify-content:center}
 .latency-view>.latency-summary {flex-wrap:wrap;align-items:center;gap:10px 18px}
-.latency-view .latency-summary-route {display:flex;align-items:center;gap:8px;max-width:100%;font-size:12px;white-space:normal;flex-basis:100%}
-.latency-summary-route select {min-width:0;max-width:240px;min-height:44px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--foreground)}
+.latency-view .latency-summary-route {display:flex;align-items:center;gap:8px;max-width:100%;font-size:12px;white-space:normal;overflow-wrap:anywhere;font-weight:600}
 .loss-unavailable {display:block;font-size:12px;margin-top:4px;max-width:170px;white-space:normal}
 .latency-view .latency-range-heading button {min-height:44px}
 @media(min-width:900px){
@@ -54,7 +53,6 @@
  .detail-chart-toolbar .detail-update {display:none}
  .latency-view .route-chips button>span {max-width:none}
  .latency-view .route-chips button {min-width:0}
- .latency-summary-route select {flex:1;max-width:100%}
 }
 @media(max-width:720px){
  .summary-toggle {display:block;margin-left:auto;min-height:44px;font-size:12px;color:var(--tone)}
@@ -105,3 +103,39 @@
  .detail-chart-toolbar[data-history-tab=resources] .detail-tabs button {font-size:11px;padding-inline:3px}
  .detail-chart-toolbar[data-history-tab=resources] .detail-tabs {gap:1px}
 }
+
+@media(max-width:899px){.latency-view .latency-summary-route{flex-basis:100%}}
+
+/* Billing, expiry and uptime share equal columns; visible fields retain their order. */
+.node-card .card-billing {grid-template-columns:none;grid-auto-columns:minmax(0,1fr);grid-auto-flow:column;column-gap:0}
+.node-card .card-billing>.traffic-summary,.node-card .card-billing>.card-expiry,.node-card .card-billing>.card-uptime {grid-column:auto;grid-row:1/4;display:grid;grid-template-rows:subgrid;min-width:0;align-items:center;justify-items:start;text-align:left;padding:0 10px}
+.node-card .card-billing>:first-child {padding-left:0}
+.node-card .card-billing>:last-child {padding-right:0}
+.node-card .card-billing>* {position:relative}
+.node-card .card-billing>:not(:first-child)::before {content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);width:1px;height:32px;background:var(--border);opacity:.7}
+.node-card .card-billing .billing-label {min-width:0;white-space:normal;line-height:1.4;font-size:11px;gap:4px}
+.node-card .card-billing .billing-label svg {flex-shrink:0}
+.node-card .card-billing .billing-label small,.node-card .card-billing .traffic-summary small,.node-card .card-billing .card-expiry small {font-size:11px}
+.node-card .card-billing .traffic-summary b,.node-card .card-billing .card-expiry b,.node-card .card-uptime b {font-size:12px;line-height:1.5;align-self:start;font-weight:500;color:var(--foreground);overflow-wrap:anywhere}
+.node-card .card-billing .traffic-summary b {display:block;white-space:normal}
+.node-card .card-billing .billing-used,.node-card .card-billing .traffic-summary b small {display:inline-block;white-space:nowrap}
+.node-card .card-billing [data-quota-state=over] b {color:var(--destructive)}
+.node-card .card-billing .card-expiry small {justify-content:start}
+.node-card .card-billing .quota-meter {width:100%;min-width:0;gap:4px}
+.node-card .card-billing .quota-percent {font-size:10px}
+.node-card.compact-network-card .node-footer {display:grid!important;grid-template-columns:minmax(0,1fr) fit-content(45%);align-items:start;gap:8px;padding:8px 0 0!important}
+.node-card .node-footer .node-remarks {grid-column:1;grid-row:1;min-width:0;justify-content:flex-start;flex-basis:auto;order:0}
+.node-card .node-footer .node-price {grid-column:2;grid-row:1;justify-self:end;margin:0;max-width:100%;text-align:right;white-space:normal;overflow-wrap:anywhere}
+.node-card .node-footer:not(:has(.node-price)) {grid-template-columns:minmax(0,1fr)}
+@media(max-width:360px){.node-card .card-billing>.traffic-summary,.node-card .card-billing>.card-expiry,.node-card .card-billing>.card-uptime{padding-inline:6px}.node-card .card-billing>:first-child{padding-left:0}.node-card .card-billing>:last-child{padding-right:0}}
+
+.node-card .card-billing {grid-template-rows:minmax(18px,auto) minmax(24px,auto) minmax(18px,auto);padding-block:12px 4px}
+.node-card .card-billing .billing-used {white-space:nowrap}
+.node-card .card-billing .billing-label {color:var(--muted-foreground)}
+.node-card .card-billing .billing-allowance {white-space:normal;overflow-wrap:anywhere;line-height:1.5}
+.node-card .node-footer .node-price {padding-top:2px;line-height:20px;background:transparent}
+.node-card .node-footer .detail-remark-tag {font-size:11px;background:var(--muted);color:var(--muted-foreground)}
+.node-card .card-long-notes {flex-basis:100%;min-width:0;color:var(--muted-foreground);font-size:12px;line-height:1.6}
+.node-card .card-long-notes p {margin:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;white-space:normal}
+.node-card .card-long-notes p.expanded {display:block}
+.node-card .card-long-notes button {display:block;min-height:44px;padding:4px 0;color:var(--tone);font-size:11px;text-align:left}

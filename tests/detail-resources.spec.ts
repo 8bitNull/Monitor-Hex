@@ -1,3 +1,4 @@
+import {expandRoutes} from './routes'
 import {test,expect} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
 import {toggleSettings,visualSelect} from './settings'
@@ -33,12 +34,12 @@ test('responsive composition and stable hover with many routes in light and dark
    if(width>=900){expect(facts.y).toBeGreaterThan(history.y+history.height);expect(history.y).toBeGreaterThan(live.y+live.height)}else{expect(facts.y).toBeGreaterThan(history.y+history.height);expect(history.y).toBeGreaterThan(live.y+live.height)}
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
   }
-  await page.getByRole('button',{name:'网络延迟',exact:true}).click();await page.locator('.detail-probe-legend>summary').click();const hidden=page.locator('.probe-options .probe-select[aria-pressed="false"]');while(await hidden.count())await hidden.first().click();await page.keyboard.press('Escape')
-  await expect(page.locator('.probe-options button[aria-pressed]')).toHaveCount(18)
+  await page.getByRole('button',{name:'网络延迟',exact:true}).click();await expandRoutes(page);const hidden=page.locator('.route-chips button[aria-pressed][aria-pressed="false"]');while(await hidden.count())await hidden.first().click();await page.keyboard.press('Escape')
+  await expect(page.locator('.route-chips button[aria-pressed]')).toHaveCount(18)
   const frame=page.locator('.detail-chart-frame'),before=(await frame.boundingBox())!
   await frame.hover({position:{x:100,y:100}});expect((await frame.boundingBox())!.height).toBe(before.height)
   await page.getByLabel('平滑显示').check();expect((await frame.boundingBox())!.height).toBe(before.height)
-  await page.locator('.detail-probe-legend>summary').click();const selected=page.locator('.probe-options .probe-select[aria-pressed="true"]');while(await selected.count())await selected.first().click();await expect(frame).toContainText('没有选中任何探测');expect((await frame.boundingBox())!.height).toBe(before.height)
+  await expandRoutes(page);const selected=page.locator('.route-chips button[aria-pressed][aria-pressed="true"]');while(await selected.count())await selected.first().click();await expect(frame).toContainText('没有选中任何探测');expect((await frame.boundingBox())!.height).toBe(before.height)
   await page.getByRole('button',{name:'资源',exact:true}).click()
  }
 })

@@ -1,3 +1,4 @@
+import {expandRoutes} from './routes'
 import {settingsCategory} from './settings'
 import {setting,settingsButton} from './settings'
 import {test,expect} from '@playwright/test'
@@ -8,17 +9,11 @@ async function setup(page:any,count=3){
  await page.route('**/api/nodes/*/metrics?*',(r:any)=>{const d=metrics();return r.fulfill({json:{...d,probes:Object.fromEntries(Array.from({length:count},(_,i)=>[i+1,`Route ${i+1}`])),ping:d.ping.flatMap(p=>Array.from({length:count},(_,i)=>({...p,task_id:i+1,latency:p.latency+i*10})))}})})
  await page.goto('/node/1');await expect(page.locator('.detail-resource-charts')).toBeVisible()
 }
-test('latency controls stay in the unified toolbar with a quiet route trigger',async({page})=>{
+test('latency toolbar has smoothing but no duplicate route controls',async({page})=>{
  await setup(page);await page.getByRole('button',{name:'网络延迟',exact:true}).click()
- const toolbar=page.locator('.detail-chart-toolbar'),frame=page.locator('.detail-chart-frame'),summary=page.locator('.detail-probe-legend>summary')
- await expect(toolbar).toBeVisible();await expect(toolbar.locator('.latency-chart-tools')).toHaveCount(0)
- await expect(toolbar.locator('.detail-smooth')).toBeVisible();await expect(summary).toBeVisible();await expect(toolbar.locator('.detail-submenu-divider')).toHaveCount(2)
- const toolbarBox=(await toolbar.boundingBox())!,frameBox=(await frame.boundingBox())!
- expect(toolbarBox.y+toolbarBox.height).toBeLessThanOrEqual(frameBox.y+1)
- const borderStyle=await summary.evaluate((element)=>getComputedStyle(element).borderStyle)
- expect(borderStyle).toBe('none')
- await summary.click();await expect(page.locator('.probe-options')).toBeVisible()
- await expect(page.locator('.probe-bulk-actions,.route-search,.probe-solo,.probe-restore')).toHaveCount(0)
+ const toolbar=page.locator('.detail-chart-toolbar');await expect(toolbar.locator('.detail-smooth')).toBeVisible()
+ await expect(toolbar.locator('.detail-probe-legend,select')).toHaveCount(0);await expect(toolbar.locator('.detail-submenu-divider')).toHaveCount(1)
+ await expect(page.locator('.route-chips button[aria-pressed]')).toHaveCount(3)
 })
 for(const width of [320,390,430,720,899,900,1024,1440,1920])test(`detail reading and toolbar geometry at ${width}`,async({page})=>{
  test.setTimeout(90000);await page.setViewportSize({width,height:844})
@@ -69,15 +64,13 @@ test('loading empty failure and success share the same history canvas',async({pa
  await page.getByRole('button',{name:'刷新历史',exact:true}).click();await expect.poll(()=>calls).toBe(2);await pending.fulfill({status:503})
  await expect(page.locator('.history-notice')).toBeVisible();expect(Math.abs((await body.boundingBox())!.height-height)).toBeLessThanOrEqual(2)
 })
-for(const count of [1,3,20])test(`route selector handles ${count} routes without moving the plot`,async({page})=>{
+for(const count of [1,3,20])test(`route legends handle ${count} routes without resizing the plot`,async({page})=>{
  await page.setViewportSize({width:390,height:844});await setup(page,count);await page.getByRole('button',{name:'网络延迟',exact:true}).click()
- const selector=page.locator('.detail-probe-legend'),plot=page.locator('.detail-chart-frame');await expect(selector).not.toHaveAttribute('open','')
- const height=(await plot.boundingBox())!.height;await selector.locator('summary').click();await expect(page.locator('.probe-options .probe-select')).toHaveCount(count)
- await expect(page.locator('.probe-bulk-actions,.route-search,.probe-solo,.probe-restore')).toHaveCount(0)
- const hidden=page.locator('.probe-options .probe-select[aria-pressed="false"]');if(await hidden.count()){await hidden.first().click();await expect(page.locator('.probe-select[aria-pressed="true"]')).toHaveCount(Math.min(count,2))}
- expect((await plot.boundingBox())!.height).toBe(height);await expect(page.locator('.probe-select[aria-pressed="true"] .probe-check').first()).toHaveText('✓')
- await expect(page.locator('.probe-label').first()).toHaveCSS('text-overflow','ellipsis')
- await page.keyboard.press('Escape');await expect(selector).not.toHaveAttribute('open','');await expect(selector.locator('summary')).toBeFocused()
+ const plot=page.locator('.detail-chart-frame');const height=(await plot.boundingBox())!.height;await expandRoutes(page)
+ await expect(page.locator('.route-chips button[aria-pressed]')).toHaveCount(count)
+ const hidden=page.locator('.route-chips button[aria-pressed="false"]');if(await hidden.count()){await hidden.first().click();await expect(page.locator('.route-chips button[aria-pressed="true"]')).toHaveCount(Math.min(count,2))}
+ expect((await plot.boundingBox())!.height).toBe(height);await expect(page.locator('.route-chips button[aria-pressed="true"] .route-chip-check').first()).toHaveText('✓')
+ await expect(page.locator('.route-chips button>span').first()).toHaveCSS('text-overflow','ellipsis')
 })
 test('long identity notes expand and copy feedback does not move facts',async({page,context})=>{
  await context.grantPermissions(['clipboard-read','clipboard-write']);await setup(page)

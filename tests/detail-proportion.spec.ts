@@ -1,3 +1,4 @@
+import {expandRoutes} from './routes'
 import {test,expect} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
 async function setup(page:any,count=3){
@@ -20,7 +21,7 @@ for(const width of [899,900,1024,1199,1200,1440,1920])test(`detail proportions a
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
 })
 for(const width of [320,390])test(`tooltip header, precision and scroll at ${width}`,async({page})=>{
- await page.setViewportSize({width,height:844});await setup(page,20);await page.getByRole('button',{name:'网络延迟',exact:true}).click();await page.locator('.detail-probe-legend>summary').click();const hidden=page.locator('.probe-options .probe-select[aria-pressed="false"]');while(await hidden.count())await hidden.first().click();await page.keyboard.press('Escape')
+ await page.setViewportSize({width,height:844});await setup(page,20);await page.getByRole('button',{name:'网络延迟',exact:true}).click();await expandRoutes(page);const hidden=page.locator('.route-chips button[aria-pressed][aria-pressed="false"]');while(await hidden.count())await hidden.first().click();await page.keyboard.press('Escape')
  const frame=page.locator('.detail-chart-frame');await frame.scrollIntoViewIfNeeded();await frame.click({position:{x:150,y:110}})
  const tip=frame.locator('.chart-tooltip'),body=tip.locator('.recharts-default-tooltip'),close=tip.getByRole('button',{name:'关闭图表提示',exact:true});await expect(tip).toBeVisible()
  const first=body.locator('.recharts-tooltip-item').filter({has:page.locator('.recharts-tooltip-item-name',{hasText:/Tokyo 线路 1$/})});await expect(first).toContainText('0 ms')
@@ -31,14 +32,14 @@ for(const width of [320,390])test(`tooltip header, precision and scroll at ${wid
  await close.click();await expect(frame.locator('.recharts-tooltip-wrapper')).toBeHidden()
 })
 test('route line and legend styles remain stable through range and selection changes',async({page})=>{
- await page.setViewportSize({width:1440,height:900});await setup(page,20);await page.getByRole('button',{name:'网络延迟',exact:true}).click();await page.locator('.detail-probe-legend>summary').click();const hidden=page.locator('.probe-options .probe-select[aria-pressed="false"]');while(await hidden.count())await hidden.first().click();await page.keyboard.press('Escape')
+ await page.setViewportSize({width:1440,height:900});await setup(page,20);await page.getByRole('button',{name:'网络延迟',exact:true}).click();await expandRoutes(page);const hidden=page.locator('.route-chips button[aria-pressed][aria-pressed="false"]');while(await hidden.count())await hidden.first().click();await page.keyboard.press('Escape')
  const lines=page.locator('.recharts-line-curve');await expect(lines).toHaveCount(20)
  const styles=()=>lines.evaluateAll(elements=>elements.map(el=>[el.getAttribute('name'),el.getAttribute('stroke'),el.getAttribute('stroke-dasharray')]))
  const before=await styles();expect(new Set(before.map(v=>v[1])).size).toBe(20);expect(before.every(v=>v[2]===null)).toBeTruthy()
- await page.locator('.detail-probe-legend>summary').click()
- for(const [name,color,dash] of before){const line=page.locator('.probe-options').getByRole('button',{name:name!,exact:true}).locator('svg line');expect(await line.getAttribute('stroke')).toBe(color);expect(await line.getAttribute('stroke-dasharray')).toBe(dash)}
+ await expandRoutes(page)
+ for(const [name,color,dash] of before){const line=page.locator('.route-chips').getByRole('button',{name:name!,exact:true}).locator('svg line');expect(await line.getAttribute('stroke')).toBe(color);expect(await line.getAttribute('stroke-dasharray')).toBe(dash)}
  await page.keyboard.press('Escape');await page.getByRole('button',{name:'24 小时',exact:true}).click();await expect(lines).toHaveCount(20);expect(await styles()).toEqual(before)
- await page.locator('.detail-probe-legend>summary').click();const selected=page.locator('.probe-options .probe-select[aria-pressed="true"]');while(await selected.count()>0)await selected.first().click();const hiddenAgain=page.locator('.probe-options .probe-select[aria-pressed="false"]');while(await hiddenAgain.count())await hiddenAgain.first().click();await expect(lines).toHaveCount(20);expect(await styles()).toEqual(before)
+ await expandRoutes(page);const selected=page.locator('.route-chips button[aria-pressed][aria-pressed="true"]');while(await selected.count()>0)await selected.first().click();const hiddenAgain=page.locator('.route-chips button[aria-pressed][aria-pressed="false"]');while(await hiddenAgain.count())await hiddenAgain.first().click();await expect(lines).toHaveCount(20);expect(await styles()).toEqual(before)
 })
 for(const width of [390,1440])test(`loading empty and failure share the chart canvas at ${width}`,async({page})=>{
  await page.setViewportSize({width,height:900});await setup(page)

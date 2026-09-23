@@ -1,3 +1,4 @@
+import {expandRoutes} from './routes'
 import {test,expect} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
 async function setup(page:any) {
@@ -7,26 +8,26 @@ async function setup(page:any) {
  })
  await page.route('**/api/nodes/*/metrics?*',(r:any)=>{const d=metrics();return r.fulfill({json:{...d,ping:[{task_id:1,ts:Date.now()/1000-60,latency:20},{task_id:1,ts:Date.now()/1000,latency:25},{task_id:2,ts:Date.now()/1000-60,latency:80},{task_id:2,ts:Date.now()/1000,latency:90}],probes:{1:'Route A',2:'Route B',3:'Empty route'},loss:{2:2.5}}})})
  await page.goto('/node/1#latency')
- await expect(page.locator('.probe-options button[aria-pressed]')).toHaveCount(3);await page.locator('.detail-probe-legend>summary').click()
+ await expect(page.locator('.route-chips button[aria-pressed]')).toHaveCount(3);await expandRoutes(page)
 }
-test('detail route picker keeps the home route, supports comparison and keeps height stable',async({page})=>{
+test('detail route legends keep the home route, supports comparison and keeps height stable',async({page})=>{
  await setup(page)
- const a=page.locator('.probe-options button[aria-label="Route A"]'),b=page.locator('.probe-options button[aria-label="Route B"]')
+ const a=page.locator('.route-chips button[aria-label="Route A"]'),b=page.locator('.route-chips button[aria-label="Route B"]')
  await expect(a).toHaveAttribute('aria-pressed','false');await expect(b).toHaveAttribute('aria-pressed','true')
  await expect(page.getByLabel('平滑显示')).not.toBeChecked()
  const frame=page.locator('.detail-chart-frame');const height=(await frame.boundingBox())!.height
- await a.click();await expect(a).toHaveAttribute('aria-pressed','true');await page.locator('.detail-probe-legend>summary').click()
+ await a.click();await expect(a).toHaveAttribute('aria-pressed','true');await expandRoutes(page)
  await frame.hover({position:{x:100,y:100}})
  expect((await frame.boundingBox())!.height).toBe(height)
  await page.getByLabel('平滑显示').check()
  expect((await frame.boundingBox())!.height).toBe(height)
- await page.locator('.detail-probe-legend>summary').click();await expect(page.locator('.probe-bulk-actions,.route-search,.probe-solo,.probe-restore')).toHaveCount(0)
- const empty=page.locator('.probe-options button[aria-label="Empty route"]');await empty.click();await expect(empty).toHaveAttribute('aria-pressed','true')
+ await expandRoutes(page);await expect(page.locator('.probe-bulk-actions,.route-search,.probe-solo,.probe-restore')).toHaveCount(0)
+ const empty=page.locator('.route-chips button[aria-label="Empty route"]');await empty.click();await expect(empty).toHaveAttribute('aria-pressed','true')
  expect((await frame.boundingBox())!.height).toBe(height)
- await page.keyboard.press('Escape');await expect(page.locator('.detail-probe-legend>summary')).toBeFocused()
+ await expect(empty).toBeFocused()
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('monitor-next-node-probes-v1')!)['1'])).toBe('2')
  await page.getByRole('button',{name:'1 小时',exact:true}).click()
- await page.locator('.detail-probe-legend>summary').click();await expect(b.locator('.probe-loss')).toHaveAttribute('title','丢包统计范围：1 小时')
+ await expandRoutes(page);await expect(page.locator('.latency-summary')).toContainText('2.5%')
  await expect(b).toHaveAttribute('aria-pressed','true')
 })
 test('detail prioritizes charts, renders complete facts and compact controls at all widths',async({page})=>{
@@ -57,6 +58,6 @@ test('missing home route stays empty, offline live metrics are unknown, long nam
   await page.setViewportSize({width,height:900})
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
  }
- await page.locator('.detail-probe-legend>summary').click();const options=page.locator('.probe-options .probe-select');expect(await options.count()).toBeGreaterThan(0);await expect(page.locator('.probe-bulk-actions,.route-search,.probe-solo,.probe-restore')).toHaveCount(0);await page.locator('.probe-options .probe-select[aria-pressed="false"]').first().click()
+ await expandRoutes(page);const options=page.locator('.route-chips button[aria-pressed]');expect(await options.count()).toBeGreaterThan(0);await expect(page.locator('.probe-bulk-actions,.route-search,.probe-solo,.probe-restore')).toHaveCount(0);await page.locator('.route-chips button[aria-pressed][aria-pressed="false"]').first().click()
  await expect(page.locator('.detail-chart-frame .recharts-wrapper')).toBeVisible()
 })

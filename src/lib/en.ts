@@ -58,6 +58,7 @@ export const english: Record<string, string> = {
 "用量与账期": "Usage and billing",
 "延迟和丢包按所选线路比较；无效或旧数据排在末尾。已读取":"Latency and loss compare selected routes; invalid or old data comes last. Loaded ",
 "已超额":"Over quota",
+"额度 {0}": "Allowance {0}",
 "流量额度使用率":"Traffic quota usage",
 "查看完整节点资料：{0}":"View full node information: {0}",
 "{0}排序":"Sort {0}",

@@ -1,3 +1,4 @@
+import {expandRoutes} from './routes'
 import {test,expect} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
 import {toggleSettings,visualSelect} from './settings'
@@ -17,11 +18,11 @@ for(const width of [320,390,1024,1440])test(`primary metrics and long identity f
  const cpuRow=page.locator('section[aria-label="硬件与系统"] .detail-facts>div').filter({hasText:'CPU'}).first();await expect(cpuRow.getByRole('button',{name:'复制：CPU',exact:true})).toHaveCount(0);await expect(cpuRow.locator('.fact-value')).toBeVisible()
  for(const graph of ['bar','ring','columns','minimal']){await toggleSettings(page);await visualSelect(page,'graph',graph);await toggleSettings(page);expect(await page.locator('.detail-live').evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy();if(graph==='bar'){const bottoms=await page.locator('.detail-resources .resource-bar').evaluateAll(elements=>elements.map(el=>el.getBoundingClientRect().bottom));expect(Math.abs(bottoms[0]-bottoms[1])).toBeLessThanOrEqual(1);expect(Math.abs(bottoms[2]-bottoms[3])).toBeLessThanOrEqual(1)}}
 })
-test('tooltip follows route list order including selected-first order',async({page})=>{
+test('tooltip follows route list order using stable catalog order',async({page})=>{
  await page.setViewportSize({width:1440,height:900});await setup(page);await page.getByRole('button',{name:'网络延迟',exact:true}).click()
- const legend=page.locator('.detail-probe-legend'),summary=legend.locator('summary');await summary.click();await legend.getByRole('button',{name:'Route 10',exact:true}).click();await page.keyboard.press('Escape');await summary.click()
- const order=await legend.locator('.probe-options button[aria-pressed]').evaluateAll(elements=>elements.map(el=>el.getAttribute('aria-label')));expect(order.slice(0,3)).toEqual(['Route 1','Route 10','Route 2'])
- const hidden=page.locator('.probe-options .probe-select[aria-pressed="false"]');while(await hidden.count())await hidden.first().click();await page.keyboard.press('Escape');const frame=page.locator('.detail-chart-frame');await frame.hover({position:{x:160,y:100}});await expect(frame.locator('.recharts-tooltip-wrapper')).toBeVisible()
+ const legend=page.locator('.route-chips');await expandRoutes(page);await legend.getByRole('button',{name:'Route 10',exact:true}).click();await expandRoutes(page)
+ const order=await legend.locator('button[aria-pressed]').evaluateAll(elements=>elements.map(el=>el.getAttribute('aria-label')));expect(order.slice(0,3)).toEqual(['Route 1','Route 2','Route 3'])
+ const hidden=page.locator('.route-chips button[aria-pressed][aria-pressed="false"]');while(await hidden.count())await hidden.first().click();await page.keyboard.press('Escape');const frame=page.locator('.detail-chart-frame');await frame.hover({position:{x:160,y:100}});await expect(frame.locator('.recharts-tooltip-wrapper')).toBeVisible()
  expect(await frame.locator('.recharts-tooltip-item-name').allTextContents()).toEqual(order)
  await page.getByRole('button',{name:'24 小时',exact:true}).click();await expect(page.locator('.recharts-line-curve')).toHaveCount(12);await frame.hover({position:{x:180,y:100}});expect(await frame.locator('.recharts-tooltip-item-name').allTextContents()).toEqual(order)
 })
