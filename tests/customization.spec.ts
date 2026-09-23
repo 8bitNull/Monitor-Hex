@@ -1,3 +1,4 @@
+import {chooseOption} from './select'
 import {settingsCategory} from './settings'
 import {setting,settingsButton} from './settings'
 import {test,expect,type Page} from '@playwright/test'
@@ -32,25 +33,25 @@ test('mobile follows, copies once, remembers independent choices and respects 72
  const general=page.getByRole('group',{name:'通用卡片信息',exact:true}),mobile=page.getByRole('group',{name:'手机卡片信息',exact:true})
  const openMore=async()=>{const disclosure=page.locator('.node-secondary-disclosure').first();if(await disclosure.count()&&!(await disclosure.getAttribute('open')))await disclosure.locator('summary').click()}
  await general.getByLabel('TCP／UDP',{exact:true}).uncheck()
- await (await setting(page,'手机显示',{exact:true})).selectOption('custom');await expect(mobile.getByLabel('TCP／UDP',{exact:true})).not.toBeChecked()
+ await chooseOption((await setting(page,'手机显示',{exact:true})),'custom');await expect(mobile.getByLabel('TCP／UDP',{exact:true})).not.toBeChecked()
  await mobile.getByLabel('价格',{exact:true}).uncheck();await toggleSettings(page);await expect(page.locator('.node-price')).toHaveCount(0)
  await page.setViewportSize({width:721,height:1000});await expect(page.locator('.node-price')).toBeVisible()
  await page.setViewportSize({width:720,height:1000});await expect(page.locator('.node-price')).toHaveCount(0)
- await toggleSettings(page);await (await setting(page,'手机显示',{exact:true})).selectOption('follow');await toggleSettings(page);await openMore();await expect(page.locator('.node-price')).toBeVisible()
- await page.reload();await toggleSettings(page);await (await setting(page,'手机显示',{exact:true})).selectOption('custom');await expect(mobile.getByLabel('价格',{exact:true})).not.toBeChecked()
- await (await settingsButton(page,'恢复默认外观',{exact:true})).click();await expect((await setting(page,'手机显示',{exact:true}))).toHaveValue('custom');await expect(mobile.getByLabel('价格',{exact:true})).not.toBeChecked()
- await (await settingsButton(page,'重置全部偏好',{exact:true})).click();await expect((await setting(page,'手机显示',{exact:true}))).toHaveValue('follow');await expect(general.getByLabel('TCP／UDP',{exact:true})).toBeChecked()
+ await toggleSettings(page);await chooseOption((await setting(page,'手机显示',{exact:true})),'follow');await toggleSettings(page);await openMore();await expect(page.locator('.node-price')).toBeVisible()
+ await page.reload();await toggleSettings(page);await chooseOption((await setting(page,'手机显示',{exact:true})),'custom');await expect(mobile.getByLabel('价格',{exact:true})).not.toBeChecked()
+ await (await settingsButton(page,'恢复默认外观',{exact:true})).click();await expect((await setting(page,'手机显示',{exact:true}))).toHaveAttribute('data-value','custom');await expect(mobile.getByLabel('价格',{exact:true})).not.toBeChecked()
+ await (await settingsButton(page,'重置全部偏好',{exact:true})).click();await expect((await setting(page,'手机显示',{exact:true}))).toHaveAttribute('data-value','follow');await expect(general.getByLabel('TCP／UDP',{exact:true})).toBeChecked()
 })
 test('explicit equal-default display choices survive site changes, unrelated changes, export and import',async({page})=>{
  let config:any={cardInfo:all,desktopColumns:'auto'};await page.route('**/theme-config.json',r=>r.fulfill({json:config}));await setup(page);await toggleSettings(page)
  const group=page.getByRole('group',{name:'通用卡片信息',exact:true})
  await group.getByLabel('价格',{exact:true}).uncheck();await group.getByLabel('价格',{exact:true}).check()
- await (await setting(page,'桌面列数',{exact:true})).selectOption('2');await (await setting(page,'桌面列数',{exact:true})).selectOption('auto')
- await (await setting(page,'明暗模式',{exact:true})).selectOption('dark');await toggleSettings(page)
+ await chooseOption((await setting(page,'桌面列数',{exact:true})),'2');await chooseOption((await setting(page,'桌面列数',{exact:true})),'auto')
+ await chooseOption((await setting(page,'明暗模式',{exact:true})),'dark');await toggleSettings(page)
  config={cardInfo:{...all,price:false,uptime:false},desktopColumns:'4'};await page.reload();await expect(page.locator('.node-price')).toBeVisible();await expect(page.locator('.card-uptime')).toHaveCount(0);await expect(page.locator('.node-grid')).toHaveAttribute('data-columns','auto')
  await toggleSettings(page);const downloadPromise=page.waitForEvent('download');await (await settingsButton(page,'导出外观偏好',{exact:true})).click();const download=await downloadPromise;const exported=JSON.parse(await readFile((await download.path())!,'utf8'));expect(exported.cardInfo.price).toBe(true);expect(exported.cardInfo.uptime).toBe(false)
  await (await settingsButton(page,'重置全部偏好',{exact:true})).click();await settingsCategory(page,'cards');await expect(group.getByLabel('价格',{exact:true})).not.toBeChecked()
- await (await setting(page,'导入外观偏好',{exact:true})).setInputFiles({name:'prefs.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(exported))});await settingsCategory(page,'cards');await expect(group.getByLabel('价格',{exact:true})).toBeChecked();await expect((await setting(page,'桌面列数',{exact:true}))).toHaveValue('auto')
+ await (await setting(page,'导入外观偏好',{exact:true})).setInputFiles({name:'prefs.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(exported))});await settingsCategory(page,'cards');await expect(group.getByLabel('价格',{exact:true})).toBeChecked();await expect((await setting(page,'桌面列数',{exact:true}))).toHaveAttribute('data-value','auto')
  await page.reload();await expect(page.locator('.node-price')).toBeVisible()
 })
 for(const width of [320,390,430,720,721,1024,1440,1920])test('column safety and customization layout at '+width,async({page})=>{
@@ -59,7 +60,7 @@ for(const width of [320,390,430,720,721,1024,1440,1920])test('column safety and 
  await page.addInitScript(({language,appearance})=>{localStorage.setItem('monitor-next-language',language);localStorage.setItem('monitor-next',JSON.stringify({_storageVersion:1,appearance,modules:{map:false},desktopColumns:'4'}))},{language,appearance});await setup(page)
  const grid=page.locator('.node-grid'),card=page.locator('.node-card')
  for(const columns of ['2','3','4','auto']){
-  await toggleSettings(page);await (await setting(page,language==='zh'?'桌面列数':'Desktop columns',{exact:true})).selectOption(columns);await toggleSettings(page)
+  await toggleSettings(page);await chooseOption((await setting(page,language==='zh'?'桌面列数':'Desktop columns',{exact:true})),columns);await toggleSettings(page)
   const count=await grid.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)
   if(width<=720)expect(count).toBe(1);else if(columns!=='auto'){expect(count).toBeLessThanOrEqual(Number(columns));expect((await card.boundingBox())!.width).toBeGreaterThanOrEqual(300)}
   if(width===1440&&columns==='4')expect(count).toBe(4)

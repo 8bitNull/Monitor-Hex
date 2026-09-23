@@ -1,12 +1,12 @@
 import {test,expect} from '@playwright/test'
 import {nodes} from '../scripts/fixtures.mjs'
-test('table traffic follows accounting mode, appears after download and hides persistently',async({page})=>{
+test('table traffic follows accounting mode, follows independent network columns and hides persistently',async({page})=>{
  await page.addInitScript(()=>{if(!sessionStorage.getItem('monitor-next-browse-v1'))sessionStorage.setItem('monitor-next-browse-v1',JSON.stringify({view:'table',columns:['cpu','memory','disk','upload','download','latency','expiry']}))})
  await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:['up','down','max','sum'].map((traffic_mode,i)=>({...nodes()[0],id:i+1,name:traffic_mode,traffic_mode,traffic_limit:i===3?0:1024**4}))}}))
  await page.goto('/')
  await expect(page.getByRole('button',{name:'流量用量 / 总额度',exact:true})).toBeVisible()
- const headers=await page.locator('thead th button').evaluateAll(els=>els.map(el=>el.getAttribute('aria-label')))
- expect(headers.indexOf('流量用量 / 总额度')).toBe(headers.indexOf('下载速度')+1)
+ const headers=await page.locator('thead th').evaluateAll(els=>els.map(el=>el.getAttribute('data-column')))
+ expect(headers.slice(headers.indexOf('download'),headers.indexOf('traffic')+1)).toEqual(['download','latency','loss','probe','traffic'])
  await expect(page.locator('.table-traffic')).toHaveText(['12.0 GB / 1.00 TB','42.0 GB / 1.00 TB','42.0 GB / 1.00 TB','54.0 GB / ∞'])
  await expect(page.locator('.table-ping').getByRole('button',{name:'刷新延迟数据'})).toHaveCount(0)
  await expect(page.locator('.table-ping').getByRole('button',{name:'历史曲线'})).toHaveCount(0)

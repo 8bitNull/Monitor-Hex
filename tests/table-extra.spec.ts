@@ -1,0 +1,33 @@
+import {test,expect} from '@playwright/test'
+import {nodes,metrics} from '../scripts/fixtures.mjs'
+import {availableTableColumns} from '../src/lib/browse'
+import {toggleSettings,settingsCategory} from './settings'
+
+test('all extra metrics preserve zero, offline and missing values',async({page})=>{
+ await page.addInitScript(columns=>sessionStorage.setItem('monitor-next-browse-v1',JSON.stringify({columnsVersion:5,columns,tableLayout:'grouped',view:'table'})),availableTableColumns)
+ await page.route('**/api/nodes',r=>{const n=nodes()[0];return r.fulfill({json:{nodes:[{...n,price:0,day_rx:0,day_tx:0,metrics:{...n.metrics,tcp:0,udp:8,uptime:0,load:[0,1.25,2.5],swap_total:1024,swap_used:512,procs:0}},{...n,id:2,name:'Offline',online:false},{...n,id:3,name:'Missing',last_seen:0,metrics:null}]}})})
+ await page.route('**/api/nodes/*/metrics?*',r=>r.fulfill({json:{...metrics(),loss:{1:0}}}))
+ await page.goto('/');const row=page.locator('tbody tr').first(),cell=(key:string)=>row.locator(`[data-column=${key}]`)
+ await expect(page.locator('thead th')).toHaveCount(21)
+ await expect(cell('connections')).toHaveText('TCP 0UDP 8');await expect(cell('uptime')).toHaveText('0 分');await expect(cell('processes')).toHaveText('0')
+ await expect(cell('billing')).toContainText('$0.00 USD');await expect(cell('todayTraffic')).toContainText('上传 0 B下载 0 B')
+ await expect(cell('swap')).toContainText('50.0%');await expect(cell('load')).toContainText('0.00 / 1.25 / 2.50')
+ await expect(cell('system')).toContainText('x86_64');await expect(cell('country')).toHaveText('日本');await expect(cell('lastSeen').locator('time')).toHaveAttribute('datetime',/T/)
+ for(const i of [1,2])for(const key of ['connections','uptime','load','swap','processes'])await expect(page.locator('tbody tr').nth(i).locator(`[data-column=${key}]`)).not.toContainText(/NaN|undefined|Infinity|96%/)
+ await expect(page.locator('tbody tr').nth(2).locator('[data-column=lastSeen]')).toHaveText('—')
+ await cell('loss').scrollIntoViewIfNeeded();await expect(cell('loss')).toContainText('0.0%');await expect(cell('probe')).toContainText('Tokyo gateway');await expect(cell('latency')).not.toContainText('Tokyo gateway');await expect(cell('latency')).not.toContainText('丢包')
+})
+
+test('mobile can show only packet loss or only the probe route and retains selection',async({page})=>{
+ await page.setViewportSize({width:390,height:844});await page.addInitScript(()=>{if(!sessionStorage.getItem('monitor-next-browse-v1'))sessionStorage.setItem('monitor-next-browse-v1',JSON.stringify({columnsVersion:5,mobileColumns:['loss'],view:'table',mobileTableLayout:'grouped'}))})
+ await page.route('**/api/nodes/*/metrics?*',r=>r.fulfill({json:{...metrics(),loss:{1:0}}}));await page.goto('/');await expect(page.locator('thead th')).toHaveCount(3);await expect(page.locator('td[data-column=loss]').first()).toContainText('0.0%')
+ await toggleSettings(page);await settingsCategory(page,'cards');const group=page.getByRole('group',{name:'手机表格',exact:true});await expect(group.getByRole('checkbox')).toHaveCount(20);await group.getByLabel('丢包率',{exact:true}).uncheck();await group.getByLabel('探测线路',{exact:true}).check();await toggleSettings(page)
+ await expect(page.locator('thead [data-column=loss]')).toHaveCount(0);await expect(page.locator('td[data-column=probe]').first()).toContainText('Tokyo gateway');await expect(page.locator('thead th')).toHaveCount(3)
+ await page.reload();await expect(page.locator('thead [data-column=probe]')).toHaveCount(1);await expect(page.locator('thead [data-column=latency]')).toHaveCount(0)
+})
+
+test('legacy network columns expand without restoring hidden metrics',async({page})=>{
+ await page.addInitScript(()=>localStorage.setItem('monitor-next-table-columns-v1',JSON.stringify({columnsVersion:4,columns:['latency'],mobileColumns:['cpu','latency'],tableLayout:'grouped',mobileTableLayout:'grouped'})))
+ await page.goto('/');await page.getByLabel('表格视图',{exact:true}).click();await expect(page.locator('thead th')).toHaveCount(5);await expect(page.locator('thead [data-column=loss]')).toHaveCount(1);await expect(page.locator('thead [data-column=cpu]')).toHaveCount(0)
+ await page.setViewportSize({width:390,height:844});await expect(page.locator('thead th')).toHaveCount(4);await expect(page.locator('thead [data-column=loss]')).toHaveCount(0)
+})

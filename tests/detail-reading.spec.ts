@@ -1,3 +1,4 @@
+import {chooseOption} from './select'
 import {expandRoutes} from './routes'
 import {settingsCategory} from './settings'
 import {setting,settingsButton} from './settings'
@@ -12,7 +13,7 @@ async function setup(page:any,count=3){
 test('latency toolbar has smoothing but no duplicate route controls',async({page})=>{
  await setup(page);await page.getByRole('button',{name:'网络延迟',exact:true}).click()
  const toolbar=page.locator('.detail-chart-toolbar');await expect(toolbar.locator('.detail-smooth')).toBeVisible()
- await expect(toolbar.locator('.detail-probe-legend,select')).toHaveCount(0);await expect(toolbar.locator('.detail-submenu-divider')).toHaveCount(1)
+ await expect(toolbar.locator('.detail-probe-legend,[data-slot=select]')).toHaveCount(0);await expect(toolbar.locator('.detail-submenu-divider')).toHaveCount(1)
  await expect(page.locator('.route-chips button[aria-pressed]')).toHaveCount(3)
 })
 for(const width of [320,390,430,720,899,900,1024,1440,1920])test(`detail reading and toolbar geometry at ${width}`,async({page})=>{
@@ -48,12 +49,12 @@ test('device information preference persists, exports, inherits and resets',asyn
  const toggle=page.locator('.detail-facts-toggle');await expect(toggle).toHaveAttribute('aria-expanded','false')
  await page.setViewportSize({width:900,height:900});await expect(toggle).toHaveCount(0);await expect(page.locator('#detail-fact-groups')).toBeVisible()
  await page.setViewportSize({width:899,height:900});await expect(toggle).toHaveAttribute('aria-expanded','false');await toggle.click();await page.reload();await expect(toggle).toHaveAttribute('aria-expanded','true')
- await toggleSettings(page);const select=(await setting(page,'设备资料展开方式',{exact:true}));await expect(select).toHaveValue('expanded')
+ await toggleSettings(page);const select=(await setting(page,'设备资料展开方式',{exact:true}));await expect(select).toHaveAttribute('data-value','expanded')
  const download=page.waitForEvent('download');await (await settingsButton(page,'导出外观偏好',{exact:true})).click();const path=await (await download).path()
- await (await settingsButton(page,'恢复默认外观',{exact:true})).click();await expect(select).toHaveValue('expanded')
- await (await settingsButton(page,'重置全部偏好',{exact:true})).click();await expect(select).toHaveValue('auto')
- await (await setting(page,'导入外观偏好',{exact:true})).setInputFiles(path!);await expect(select).toHaveValue('expanded')
- await settingsCategory(page,'cards');await select.selectOption('expanded');await toggleSettings(page);await page.setViewportSize({width:390,height:844});await expect(toggle).toHaveAttribute('aria-expanded','true')
+ await (await settingsButton(page,'恢复默认外观',{exact:true})).click();await expect(select).toHaveAttribute('data-value','expanded')
+ await (await settingsButton(page,'重置全部偏好',{exact:true})).click();await expect(select).toHaveAttribute('data-value','auto')
+ await (await setting(page,'导入外观偏好',{exact:true})).setInputFiles(path!);await expect(select).toHaveAttribute('data-value','expanded')
+ await settingsCategory(page,'cards');await chooseOption(select,'expanded');await toggleSettings(page);await page.setViewportSize({width:390,height:844});await expect(toggle).toHaveAttribute('aria-expanded','true')
  await expect(page.getByRole('region',{name:'硬件与系统',exact:true})).toContainText('1.2.3')
 })
 test('loading empty failure and success share the same history canvas',async({page})=>{

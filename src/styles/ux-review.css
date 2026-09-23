@@ -62,7 +62,7 @@
  .mobile-table-tools {display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px}
  .mobile-table-tools .table-sort-toolbar {flex:1;min-width:0}
  .mobile-table-tools .table-sort-toolbar label {display:flex;align-items:center;gap:8px;width:100%}
- .mobile-table-tools .table-sort-toolbar select {flex:1;min-width:0;max-width:240px}
+ .mobile-table-tools .table-sort-toolbar :is(select,[data-slot="select"]) {flex:1;min-width:0;max-width:240px}
  .mobile-toolbar-main .mobile-region-picker {flex:1}
  .node-browser .active-filters {display:flex;gap:6px;margin-top:8px}
  .node-browser .active-filters:empty {display:none}

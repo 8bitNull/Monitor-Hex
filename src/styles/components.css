@@ -1,16 +1,16 @@
 /* Global foundations. A single visual system; density changes spacing only. */
 body {margin:0;font:var(--text-body)/1.5 Inter,-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif}
-button,select {cursor:pointer}
+button,:is(select,[data-slot="select"]) {cursor:pointer}
 button:disabled {cursor:default;opacity:.45}
-:where(button,a,input,select):focus-visible {outline:2px solid var(--tone);outline-offset:3px}
+:where(button,a,input,:is(select,[data-slot="select"])):focus-visible {outline:2px solid var(--tone);outline-offset:3px}
 .next-theme {position:relative;isolation:isolate;color:var(--foreground)}
-.next-theme :where(select,input:not([type=checkbox],[type=range],[type=file]),button:not(.node-open,.brand,.table-node-name),a[data-slot=button]) {min-height:var(--control-height);font-size:var(--text-small);border-radius:var(--radius-control)}
-.next-theme select {border:1px solid var(--border);background:var(--card);color:var(--foreground);padding:6px 10px;min-width:0;max-width:100%}
+.next-theme :where(:is(select,[data-slot="select"]),input:not([type=checkbox],[type=range],[type=file]),button:not(.node-open,.brand,.table-node-name),a[data-slot=button]) {min-height:var(--control-height);font-size:var(--text-small);border-radius:var(--radius-control)}
+.next-theme :is(select,[data-slot="select"]) {border:1px solid var(--border);background:var(--card);color:var(--foreground);padding:6px 10px;min-width:0;max-width:100%}
 /* Native popup options need an opaque surface even when the trigger is transparent. */
-.next-theme select option,.next-theme select optgroup {background:var(--card);color:var(--foreground)}
-.next-theme select option:checked {background:var(--muted);color:var(--foreground)}
-.next-theme select {color-scheme:light}
-.dark .next-theme select {color-scheme:dark}
+.next-theme :is(select,[data-slot="select"]) option,.next-theme :is(select,[data-slot="select"]) optgroup {background:var(--card);color:var(--foreground)}
+.next-theme :is(select,[data-slot="select"]) option:checked {background:var(--muted);color:var(--foreground)}
+.next-theme :is(select,[data-slot="select"]) {color-scheme:light}
+.dark .next-theme :is(select,[data-slot="select"]) {color-scheme:dark}
 .next-theme :where(button,a[data-slot=button]) {touch-action:manipulation}
 .next-theme button:not(.node-open,.brand):hover {background-color:var(--muted)}
 .next-theme header {background:color-mix(in srgb,var(--background) 94%,transparent)}

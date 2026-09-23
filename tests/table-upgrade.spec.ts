@@ -1,3 +1,4 @@
+import {chooseOption} from './select'
 import {test,expect,type Page} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
 async function setup(page:Page,count=6) {
@@ -6,12 +7,12 @@ async function setup(page:Page,count=6) {
 }
 async function table(page:Page){await page.goto('/');await page.getByRole('button',{name:'表格视图',exact:true}).click();await page.locator('.table-ping').first().scrollIntoViewIfNeeded();await page.locator('.table-ping strong').first().waitFor();await page.locator('.table-scroll').evaluate(el=>el.scrollLeft=0)}
 test('grouped table fits desktop and sorts each network metric independently',async({page})=>{
- await setup(page);await table(page);await expect(page.locator('thead th')).toHaveCount(9)
+ await setup(page);await table(page);await expect(page.locator('thead th')).toHaveCount(11)
  expect(await page.locator('.table-scroll').evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBeTruthy()
- await page.getByLabel('实时网速排序',{exact:true}).selectOption('download:desc');await expect(page.locator('.table-node-name').first()).toContainText('Node 1')
- await page.getByLabel('实时网速排序',{exact:true}).selectOption('upload:desc');await expect(page.locator('.table-node-name').first()).toContainText('Node 6')
- await page.getByLabel('网络质量排序',{exact:true}).selectOption('loss:desc');await expect(page.locator('.table-node-name').first()).toContainText('Node 2');await expect(page.locator('.table-node-name').last()).toContainText('Node 6')
- await page.getByLabel('网络质量排序',{exact:true}).selectOption('latency:desc');await expect(page.locator('.table-node-name').last()).toContainText('Node 5')
+ await chooseOption(page.getByLabel('实时网速排序',{exact:true}),'download:desc');await expect(page.locator('.table-node-name').first()).toContainText('Node 1')
+ await chooseOption(page.getByLabel('实时网速排序',{exact:true}),'upload:desc');await expect(page.locator('.table-node-name').first()).toContainText('Node 6')
+ await page.locator('th[data-column=loss] button').click();await page.locator('th[data-column=loss] button').click();await expect(page.locator('.table-node-name').first()).toContainText('Node 2');await expect(page.locator('.table-node-name').last()).toContainText('Node 6')
+ await page.locator('th[data-column=latency] button').click();await page.locator('th[data-column=latency] button').click();await expect(page.locator('.table-node-name').last()).toContainText('Node 5')
 })
 test('table toolbar only keeps view controls',async({page})=>{
  await setup(page);await table(page)
@@ -20,9 +21,9 @@ test('table toolbar only keeps view controls',async({page})=>{
 })
 test('legacy grouped columns persist without reviving a hidden direction',async({page})=>{
  await setup(page);await page.addInitScript(()=>{if(!sessionStorage.getItem('monitor-next-browse-v1'))sessionStorage.setItem('monitor-next-browse-v1',JSON.stringify({columnsVersion:3,tableLayout:'grouped',columns:['cpu','download','latency'],mobileColumns:[]}))})
- await table(page);await expect(page.locator('thead th')).toHaveCount(5)
+ await table(page);await expect(page.locator('thead th')).toHaveCount(7)
  await expect(page.locator('.table-speed [data-direction=upload]')).toHaveCount(0);await expect(page.locator('.table-speed [data-direction=download]')).toHaveCount(6)
- await page.reload();await expect(page.locator('thead th')).toHaveCount(5)
+ await page.reload();await expect(page.locator('thead th')).toHaveCount(7)
  expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('monitor-next-table-v3-backup')!).columns)).toEqual(['cpu','download','latency'])
  await page.setViewportSize({width:390,height:844});await expect(page.locator('thead th')).toHaveCount(2)
 })
@@ -32,12 +33,12 @@ test('mobile custom columns, edge hints and remark disclosure preserve desktop c
  await page.keyboard.press('Escape');await page.locator('.table-scroll').evaluate(el=>el.scrollLeft=el.scrollWidth)
  await expect(page.locator('.table-shell')).toHaveAttribute('data-right','false');await expect(page.locator('.table-shell')).toHaveAttribute('data-left','true')
  await page.locator('.table-remark').first().click();await expect(page.getByRole('dialog',{name:'备注',exact:true})).toContainText('备注 1 <script>文本内容</script>');await page.keyboard.press('Escape');await expect(page.locator('.table-remark').first()).toBeFocused()
- await page.setViewportSize({width:1440,height:1000});await expect(page.locator('thead th')).toHaveCount(9)
+ await page.setViewportSize({width:1440,height:1000});await expect(page.locator('thead th')).toHaveCount(11)
 })
 test('latency grade boundaries and unknown loss remain distinct',async({page})=>{
  await setup(page);await table(page)
  await expect(page.locator('.table-ping').nth(0)).toHaveAttribute('data-tone','good');await expect(page.locator('.table-ping').nth(1)).toHaveAttribute('data-tone','fair');await expect(page.locator('.table-ping').nth(3)).toHaveAttribute('data-tone','bad');await expect(page.locator('.table-ping').nth(4)).toHaveAttribute('data-tone','timeout')
- await page.locator('.table-ping').nth(5).scrollIntoViewIfNeeded();await expect(page.locator('.table-network-meta').nth(5)).toContainText('24h 丢包 —');await expect(page.locator('.table-network-meta').first()).toContainText('24h 丢包 0.0%')
+ await page.locator('.table-ping').nth(5).scrollIntoViewIfNeeded();await expect(page.locator('td[data-column=loss]').nth(5)).toContainText('—');await expect(page.locator('td[data-column=loss]').first()).toContainText('0.0%')
  await expect(page.locator('.table-speed').first()).toContainText('0Mbps')
 })
 test('20-row pagination, filtering, sorting and return from detail',async({page})=>{
@@ -46,10 +47,10 @@ test('20-row pagination, filtering, sorting and return from detail',async({page}
  await page.getByRole('button',{name:'下一页',exact:true}).click()
  await expect(page.locator('.table-node-name').first()).toContainText('Node 21')
  const row=page.locator('.table-node-name').nth(3);await row.click();await page.getByRole('button',{name:'返回总览',exact:true}).click();await expect(row).toBeFocused()
- await expect(page.getByLabel('页码',{exact:true})).toHaveValue('2')
+ await expect(page.getByLabel('页码',{exact:true})).toHaveAttribute('data-value','2')
  await page.getByRole('button',{name:'下一页',exact:true}).click();await expect(page.locator('tbody tr')).toHaveCount(5)
  await expect(page.getByRole('button',{name:'下一页',exact:true})).toBeDisabled()
- await page.getByRole('button',{name:'名称',exact:true}).click();await expect(page.getByLabel('页码',{exact:true})).toHaveValue('1')
+ await page.getByRole('button',{name:'名称',exact:true}).click();await expect(page.getByLabel('页码',{exact:true})).toHaveAttribute('data-value','1')
  await page.getByRole('button',{name:'下一页',exact:true}).click()
  await page.getByRole('searchbox',{name:'搜索节点',exact:true}).fill('Node 45');await expect(page.locator('tbody tr')).toHaveCount(1)
  await expect(page.locator('.table-node-name')).toContainText('Node 45');await expect(page.getByRole('button',{name:'下一页',exact:true})).toHaveCount(0)
@@ -68,7 +69,7 @@ test('table layouts in both languages and themes at responsive boundaries',async
 test('visible rows load lazily and explicit quality sorting reads the complete fleet',async({page})=>{
  let requests=0;page.on('request',request=>{if(request.url().includes('/metrics?'))requests++})
  await setup(page,30);await table(page);expect(requests).toBeLessThan(30)
- await page.getByLabel('网络质量排序',{exact:true}).selectOption('loss:desc')
+ await page.locator('th[data-column=loss] button').click();await page.locator('th[data-column=loss] button').click()
  await expect(page.locator('tbody tr')).toHaveCount(20);await expect(page.locator('.sort-note')).toContainText('30/30')
  expect(requests).toBe(30)
 })

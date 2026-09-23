@@ -1,3 +1,4 @@
+import {chooseOption} from './select'
 import {settingsCategory} from './settings'
 import {setting,settingsButton} from './settings'
 import {test,expect} from '@playwright/test'
@@ -12,12 +13,12 @@ async function setup(page:any){
 test('presets derive from saved switches, preserve unrelated settings and survive export import',async({page})=>{
  await setup(page);await toggleSettings(page)
  const presets=page.getByRole('group',{name:'通用显示预设',exact:true}),info=page.getByRole('group',{name:'通用卡片信息',exact:true})
- await (await setting(page,'明暗模式',{exact:true})).selectOption('dark');await (await setting(page,'桌面列数',{exact:true})).selectOption('4')
+ await chooseOption((await setting(page,'明暗模式',{exact:true})),'dark');await chooseOption((await setting(page,'桌面列数',{exact:true})),'4')
  await settingsCategory(page,'cards')
  await presets.getByRole('button',{name:/精简/}).click()
  await expect(info.getByLabel('TCP／UDP',{exact:true})).not.toBeChecked();await expect(info.getByLabel('在线时长',{exact:true})).not.toBeChecked()
  for(const name of ['本月用量','到期信息','备注标签','价格'])await expect(info.getByLabel(name,{exact:true})).toBeChecked()
- await expect((await setting(page,'明暗模式',{exact:true}))).toHaveValue('dark');await expect((await setting(page,'桌面列数',{exact:true}))).toHaveValue('4')
+ await expect((await setting(page,'明暗模式',{exact:true}))).toHaveAttribute('data-value','dark');await expect((await setting(page,'桌面列数',{exact:true}))).toHaveAttribute('data-value','4')
  await settingsCategory(page,'cards')
  await info.getByLabel('价格',{exact:true}).uncheck();await expect(page.locator('.preset-heading small').first()).toHaveText('自定义')
  const download=page.waitForEvent('download');await (await settingsButton(page,'导出外观偏好',{exact:true})).click();const path=await (await download).path()
@@ -29,14 +30,14 @@ test('presets derive from saved switches, preserve unrelated settings and surviv
 })
 test('independent mobile preset does not change general switches and follows again',async({page})=>{
  await page.setViewportSize({width:390,height:844});await setup(page);await toggleSettings(page)
- await (await setting(page,'手机显示',{exact:true})).selectOption('custom')
+ await chooseOption((await setting(page,'手机显示',{exact:true})),'custom')
  await page.getByRole('group',{name:'手机显示预设',exact:true}).getByRole('button',{name:/精简/}).click()
  await expect(page.getByRole('group',{name:'通用卡片信息',exact:true}).getByLabel('TCP／UDP',{exact:true})).toBeChecked()
  await toggleSettings(page);await expect(page.locator('.node-connections')).toHaveCount(0)
  await page.setViewportSize({width:721,height:844});await expect(page.locator('.node-connections')).toBeVisible()
  await page.setViewportSize({width:720,height:844});await expect(page.locator('.node-connections')).toHaveCount(0)
  await page.reload();await toggleSettings(page);await expect(page.getByRole('group',{name:'手机显示预设',exact:true}).getByRole('button',{name:/精简/})).toHaveAttribute('aria-pressed','true')
- await (await setting(page,'手机显示',{exact:true})).selectOption('follow');await expect(page.locator('.mobile-follow-note')).toBeVisible()
+ await chooseOption((await setting(page,'手机显示',{exact:true})),'follow');await expect(page.locator('.mobile-follow-note')).toBeVisible()
  await toggleSettings(page);await expect(page.locator('.node-connections')).toBeVisible()
 })
 for(const [width,height] of [[320,568],[390,844],[430,932],[844,390],[720,900],[721,900],[1440,1000]])test(`presets and settings fit ${width}x${height}`,async({page})=>{
@@ -70,7 +71,7 @@ test('preset keyboard controls keep scroll, target sizes and readable contrast',
  expect(Math.abs(await page.locator('.settings-drawer').evaluate(el=>el.scrollTop)-before)).toBeLessThanOrEqual(2)
  for(const b of await group.getByRole('button').all()){const rect=(await b.boundingBox())!;expect(rect.height).toBeGreaterThanOrEqual(44);expect(rect.width).toBeGreaterThanOrEqual(44)}
  for(const mode of ['light','dark']){
-  await (await setting(page,'明暗模式',{exact:true})).selectOption(mode)
+  await chooseOption((await setting(page,'明暗模式',{exact:true})),mode)
   const ratios=await page.locator('.settings-drawer').evaluate(el=>{
    const ctx=document.createElement('canvas').getContext('2d')!;
    function rgb(color:string){ctx.clearRect(0,0,1,1);ctx.fillStyle=color;ctx.fillRect(0,0,1,1);return [...ctx.getImageData(0,0,1,1).data].slice(0,3)}

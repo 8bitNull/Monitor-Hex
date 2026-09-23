@@ -19,7 +19,7 @@ export async function settingsCategory(page:Page,category:'appearance'|'cards'|'
 export async function setting(page:Page,label:string,options?:{exact?:boolean}) {
  const locator=page.getByLabel(label,options)
  const section=await locator.evaluate(el=>el.closest('[data-settings]')?.getAttribute('data-settings') || (el.closest('.settings-language,.settings-reset')?'other':''))
- const category=({appearance:'appearance','card-info':'cards',indicators:'appearance',layout:'appearance',detail:'cards',routes:'network',home:'cards',alerts:'cards',other:'other'} as const)[section as 'appearance']
+ const category=({appearance:'appearance','card-info':'cards',indicators:'appearance',layout:'appearance',detail:'cards',table:'cards',routes:'network',home:'cards',alerts:'cards',other:'other'} as const)[section as 'appearance']
  if(category)await settingsCategory(page,category)
  return locator
 }

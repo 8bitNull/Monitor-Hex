@@ -7,10 +7,10 @@
 .node-table th {height:44px;padding-block:0;background:var(--muted);font-weight:500;color:var(--muted-foreground)}
 .node-table th button {width:100%;text-align:inherit;min-height:44px;background:none}
 .node-table th button span {color:var(--muted-foreground);font-size:11px}
-.node-table th select {min-width:0;width:auto;field-sizing:content;max-width:100%;min-height:28px;height:28px;padding:2px 4px;text-align:center;font-size:12px;line-height:20px;background:transparent;border:0;border-radius:4px;cursor:pointer;box-shadow:none}
-.node-table th select:focus {outline:none;box-shadow:none}
-.node-table th select:focus-visible:not([data-pointer-focus]) {outline:1px solid var(--muted-foreground);outline-offset:2px}
-@media(pointer:coarse) {.node-table th select {min-height:44px;height:44px}}
+.node-table th :is(select,[data-slot="select"]) {min-width:0;width:auto;field-sizing:content;max-width:100%;min-height:28px;height:28px;padding:2px 4px;text-align:center;font-size:12px;line-height:20px;background:transparent;border:0;border-radius:4px;cursor:pointer;box-shadow:none}
+.node-table th :is(select,[data-slot="select"]):focus {outline:none;box-shadow:none}
+.node-table th :is(select,[data-slot="select"]):focus-visible:not([data-pointer-focus]) {outline:1px solid var(--muted-foreground);outline-offset:2px}
+@media(pointer:coarse) {.node-table th :is(select,[data-slot="select"]) {min-height:44px;height:44px}}
 .node-table th[aria-sort=ascending],.node-table th[aria-sort=descending] {color:var(--foreground);background:color-mix(in srgb,var(--tone) 9%,var(--card))}
 .node-table tbody tr:last-child td {border-bottom:0}
 .node-table td:first-child,.node-table th:first-child {position:sticky;left:0;z-index:2;background:var(--card);text-align:center;border-right:1px solid var(--border)}
@@ -69,15 +69,15 @@
 .table-expiry[data-state=expired] strong {color:var(--destructive)}
 .table-sort-toolbar {display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted-foreground);margin-bottom:12px}
 .table-sort-toolbar label {display:flex;align-items:center;gap:8px}
-.table-sort-toolbar select {max-width:240px;min-height:44px;background:var(--card);border:1px solid var(--border);padding:0 8px;color:var(--foreground)}
+.table-sort-toolbar :is(select,[data-slot="select"]) {max-width:240px;min-height:44px;background:var(--card);border:1px solid var(--border);padding:0 8px;color:var(--foreground)}
 .table-sort-toolbar button {min-height:44px;color:var(--tone)}
 .view-toolbar .table-sort-toolbar {margin:0;gap:6px;flex-wrap:nowrap}
 .view-toolbar .table-sort-toolbar label {gap:6px;white-space:nowrap}
-.view-toolbar .table-sort-toolbar select {max-width:190px}
+.view-toolbar .table-sort-toolbar :is(select,[data-slot="select"]) {max-width:190px}
 .view-toolbar .table-sort-toolbar button {display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 8px;white-space:nowrap}
 .column-options[open]>div {width:288px;max-height:min(650px,75dvh);overflow:auto;z-index:20}
 .column-options[open]>div>label {display:flex;align-items:center;gap:10px;min-height:44px;font-size:12px}
-.column-options label select {margin-left:auto;min-height:44px}
+.column-options label :is(select,[data-slot="select"]) {margin-left:auto;min-height:44px}
 .table-column-title {font-weight:600;font-size:13px}
 .table-column-note {font-size:11px;color:var(--muted-foreground);line-height:1.6;margin:8px 0}
 .table-presets {display:flex;gap:6px;margin:10px 0}
@@ -104,11 +104,11 @@
  .table-shell:after {position:absolute;content:'';right:0;top:0;bottom:0;width:14px;pointer-events:none;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--foreground) 12%,transparent));opacity:0;z-index:5}
  .table-shell[data-right=true]:after {opacity:1}
  .table-shell[data-left=true] .node-table td:first-child {box-shadow:3px 0 5px -3px #0005}
- .table-sort-toolbar select {max-width:calc(100vw - 125px)}
+ .table-sort-toolbar :is(select,[data-slot="select"]) {max-width:calc(100vw - 125px)}
  .mobile-toolbar-actions .view-toolbar {max-width:100%;gap:4px}
  .mobile-toolbar-actions .view-toolbar .table-sort-toolbar {min-width:0;gap:4px}
  .mobile-toolbar-actions .view-toolbar .table-sort-toolbar label {font-size:0;gap:0}
- .mobile-toolbar-actions .view-toolbar .table-sort-toolbar select {max-width:130px;min-width:0}
+ .mobile-toolbar-actions .view-toolbar .table-sort-toolbar :is(select,[data-slot="select"]) {max-width:130px;min-width:0}
  .mobile-toolbar-actions .view-toolbar .table-sort-toolbar button {width:44px;padding:0}
  .mobile-toolbar-actions .view-toolbar .table-sort-reset-label {display:none}
 }
@@ -133,7 +133,7 @@
 .table-order-reset:disabled {opacity:.45;cursor:default}
 .table-pagination {display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted-foreground)}
 .table-pagination>div {display:flex;gap:8px;align-items:center}
-.table-pagination :is(button,select) {min-height:44px;border:1px solid var(--border);border-radius:8px;background:var(--card);padding:0 12px;color:var(--foreground)}
+.table-pagination :is(button,:is(select,[data-slot="select"])) {min-height:44px;border:1px solid var(--border);border-radius:8px;background:var(--card);padding:0 12px;color:var(--foreground)}
 .table-pagination button:disabled {opacity:.4;cursor:default}
 @media(max-width:720px) {
  .mobile-toolbar-actions .view-toolbar {display:flex;align-items:center}
@@ -141,3 +141,16 @@
  .table-pagination {gap:8px}
  .table-pagination>div {width:100%;justify-content:space-between}
 }
+.table-device-settings {padding:14px 0;border-bottom:1px solid var(--border)}
+.table-device-settings h3 {margin-bottom:10px;font-size:13px;font-weight:600}
+.table-column-checks {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px;margin-top:10px}
+.table-column-checks .check-control {display:flex;align-items:center;gap:8px;min-height:44px;font-size:12px;overflow-wrap:anywhere}
+.table-column-checks input {flex-shrink:0}
+.table-column-actions {display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.table-column-actions button {min-height:36px;padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px}
+@media(max-width:720px){.table-column-actions button {min-height:44px}}
+.table-extra {display:flex;flex-direction:column;align-items:center;gap:4px;white-space:normal;overflow-wrap:anywhere;line-height:1.5}
+.table-extra small {color:var(--muted-foreground);font-size:11px}
+.node-table [data-column=probe] .table-route {white-space:normal;overflow-wrap:anywhere}
+.node-table [data-column=lastSeen] time {white-space:normal;font-variant-numeric:tabular-nums}
+.node-table [data-column=loss] [data-loss=true] {color:var(--warn)}

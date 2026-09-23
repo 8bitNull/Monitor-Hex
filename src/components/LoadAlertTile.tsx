@@ -11,6 +11,7 @@ function Records({events,onClose,saved,onOpen,available}:{events:LoadAlert[];onC
  useEffect(()=>{const trigger=document.activeElement as HTMLElement|null;const overflow=document.body.style.overflow;const el=dialog.current!;el.showModal();document.body.style.overflow='hidden';return()=>{el.close();document.body.style.overflow=overflow;trigger?.focus({preventScroll:true})}},[])
  return <dialog ref={dialog} className="load-records" aria-labelledby="load-records-title" onCancel={onClose}>
   <div className="load-records-heading"><h2 id="load-records-title"><Activity size={18}/>{tr('高负载观测记录')}</h2><button onClick={onClose} aria-label={tr('关闭')}><X size={18}/></button></div>
+  <div className="load-records-body">
   <p className="load-records-note">{tr("仅记录当前浏览器打开期间观测到的高负载。")}</p><details className="load-record-rules"><summary>{tr("记录规则")}</summary><p className="load-records-note">{tr('CPU ≥85% 触发，低于 80% 恢复。记录从首次观测起计时；中断时仅统计已观测时段。')}</p>
   <p className="load-records-note">{saved?tr('仅保存在当前浏览器，保留最近 100 条结束记录；页面关闭期间不监测。'):tr('浏览器存储不可用，记录仅在本次页面内保留。')}</p>
   </details><div className="load-records-list">{events.length===0?<p className="load-records-empty">{tr('暂无高负载记录')}</p>:events.map(e=><article key={e.id} data-status={e.status}>
@@ -18,7 +19,7 @@ function Records({events,onClose,saved,onOpen,available}:{events:LoadAlert[];onC
    <dl><div><dt>{tr('开始时间')}</dt><dd><time dateTime={new Date(e.start).toISOString()}>{time(e.start)}</time></dd></div>
     <div><dt>{e.status==='recovered'?tr('恢复时间'):tr('最后观测')}</dt><dd>{time(e.end??e.last)}</dd></div>
     <div><dt>{tr('持续时长')}</dt><dd className="load-duration"><Clock size={12}/>{duration(e)}</dd></div><div><dt>{tr('CPU 峰值')}</dt><dd>{e.peak.toFixed(1)}%</dd></div></dl>
-  </article>)}</div>
+  </article>)}</div></div>
  </dialog>
 }
 export function LoadAlertTile({events,saved,onOpen,available}:{events:LoadAlert[];saved:boolean;onOpen:(event:LoadAlert)=>void;available:number[]}){

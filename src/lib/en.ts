@@ -1,4 +1,26 @@
 export const english: Record<string, string> = {
+"地区":"Region",
+"上传":"Upload",
+"下载":"Download",
+"未启用":"Not enabled",
+"丢包率":"Packet loss",
+"探测线路":"Probe route",
+"系统信息":"System information",
+"系统负载":"System load",
+"进程数":"Processes",
+
+"名称、状态和备注固定显示，备注位于最后一列。延迟、丢包率和探测线路可分别勾选。":"Name, status and remarks stay visible, with remarks last. Select latency, packet loss and probe route independently.",
+"TCP／UDP 连接数":"TCP / UDP connections",
+"费用与账期":"Price and billing cycle",
+"Swap 使用率":"Swap usage",
+"最近上报时间":"Last report",
+
+"表格显示":"Table display",
+"电脑和手机分别设置，自动保存到当前浏览器。手机列较多时可左右滑动。":"Configure desktop and mobile separately. Saved in this browser. Swipe horizontally when mobile has more columns.",
+"名称、状态和备注固定显示，备注位于最后一列。网络质量包含延迟和丢包。":"Name, status and remarks stay visible, with remarks last. Network quality includes latency and packet loss.",
+"全选指标":"Select all metrics",
+"恢复默认列":"Reset columns",
+
 "清除搜索筛选":"Clear search filter",
 "结束时间":"End time",
 "拖拽移动；Ctrl / ⌘ + 滚轮缩放，全屏内直接滚轮缩放。方向键平移，+ / − 缩放。地图表示地区分组，不是机房精确位置。":"Drag to pan; Ctrl / ⌘ + wheel to zoom, or wheel in fullscreen. Arrow keys pan; + / − zoom. Regions are groups, not exact data-center locations.",

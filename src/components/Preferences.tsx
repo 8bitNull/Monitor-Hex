@@ -1,3 +1,5 @@
+import {TableDisplaySettings} from './TableControls'
+import type {Browse} from '@/lib/browse'
 import {Select} from '@/components/ui/select'
 import { tr, getLanguage, subscribeLanguage, setLanguage } from '../lib/i18n.ts'
 import {X, Check, Circle, Minus, BarChart3, Hash, Rows2, Rows3} from 'lucide-react';
@@ -47,7 +49,9 @@ function LatencySettings({value,onChange}:{value:Prefs;onChange:(next:Partial<Pr
     {profile==='custom'&&!valid&&<p role="alert" className="preferences-note">{tr("阈值须满足：1 ≤ 黄色 < 红色 ≤ 5000 ms")}</p>}
     <p className="preferences-note">{tr("所有首页卡片共用刻度。超出刻度的采样封顶标红，实际数值保留；叉号代表超时，空隙代表缺失。")}</p></div>;
 }
-export function Preferences({ onClose, value, onChange, onGraphChange, onDisplayChange, onReset, siteDefaults, backgroundError, probes }: {
+export function Preferences({ browse, onTableChange, onClose, value, onChange, onGraphChange, onDisplayChange, onReset, siteDefaults, backgroundError, probes }: {
+    browse:Browse;
+    onTableChange:(patch:Partial<Browse>)=>void;
     onClose:()=>void;
     probes: Map<number,string>;
     value: Prefs;
@@ -89,6 +93,7 @@ export function Preferences({ onClose, value, onChange, onGraphChange, onDisplay
     <fieldset hidden={category!=='appearance'} data-settings="indicators"><legend>{tr("指标与图标")}</legend><div className="preference-grid">      <div className="visual-preference"><span>{tr("指标样式")}</span><div className="graph-options" role="group" aria-label={tr("指标样式")}>{Object.entries(graphStyles).map(([k,v])=>{const Icon=k==='ring'?Circle:k==='bar'?Minus:k==='columns'?BarChart3:Hash;return <button key={k} aria-label={tr(v)} aria-pressed={value.graph===k} onClick={()=>onGraphChange(k as Prefs['graph'])}><Icon size={22}/><small>{tr(v)}</small></button>})}</div></div>      <label className="check-control"><input type="checkbox" checked={value.showTotals} onChange={e => patch({ showTotals: e.target.checked })}/>{tr("显示已用 / 总容量")}</label>      <label className="check-control"><input type="checkbox" checked={value.icons} onChange={e => patch({ icons: e.target.checked })}/>{tr("国旗与系统图标")}</label></div></fieldset>
     <p hidden={category!=='appearance'} className="preferences-note">{tr("指标样式影响资源指标；首页网速显示趋势波浪线，延迟显示采样柱条。")}</p>
     <fieldset hidden={category!=='cards'} data-settings="home"><legend>{tr("首页模块")}</legend><div className="module-switches">{Object.entries(moduleLabels).map(([key, label]) => <label className="check-control" key={key}><input type="checkbox" aria-label={tr(label)} checked={value.modules[key as keyof typeof moduleLabels]} onChange={e => patch({ modules: { ...value.modules, [key]: e.target.checked } })}/>{tr(label)}{key==='map'&&<small>{tr("仅桌面生效")}</small>}</label>)}</div><p className="preferences-note">{tr("高负载提示在 CPU 达到 85% 时记录，低于 80% 时标记恢复；记录仅保存在当前浏览器。")}</p></fieldset>
+    <fieldset hidden={category!=='cards'} data-settings="table"><legend>{tr("表格显示")}</legend><TableDisplaySettings browse={browse} onChange={onTableChange}/></fieldset>
     <fieldset hidden={category!=='cards'} data-settings="detail"><legend>{tr("详情页")}</legend><div className="preference-grid"><label>{tr("设备资料展开方式")}<Select aria-label={tr("设备资料展开方式")} value={value.detailInfoMode} onChange={e=>onDisplayChange({detailInfoMode:e.target.value as Prefs['detailInfoMode']})}><option value="auto">{tr("自动：手机折叠，桌面展开")}</option><option value="expanded">{tr("展开")}</option><option value="collapsed">{tr("折叠")}</option></Select></label></div><p className="preferences-note">{tr("自动模式仅在手机端折叠；PC端始终展开，手动选择会在手机端记住。")}</p></fieldset>
     <fieldset hidden={category!=='network'} data-settings="routes"><legend>{tr("线路")}</legend><p className="preferences-note">{tr("上下行显示近期速率趋势，共用纵向刻度，不代表带宽使用率")}</p><div className="preference-grid"><label>{tr("首页线路数量")}<Select aria-label={tr("首页线路数量")} value={value.homeRoutes} onChange={e=>patch({homeRoutes:Number(e.target.value)})}>{[1,2,3].map(n=><option key={n} value={n}>{n}</option>)}</Select></label><label>{tr("主要探测线路")}<Select aria-label={tr("主要探测线路")} value={value.probe} onChange={e=>patch({probe:e.target.value})}><option value="auto">{tr("各节点首条线路")}</option>{[...probes].map(([id,name])=><option key={id} value={id}>{name}</option>)}{value.probe!=="auto"&&!probes.has(Number(value.probe))&&<option value={value.probe}>{tr("线路")}{value.probe}{tr("（等待数据）")}</option>}</Select></label></div><p className="preferences-note">{tr("节点独立选择优先于全局线路；其余线路可在详情查看。")}</p><LatencySettings key={`${value.latencyScale}:${value.latencyWarn}:${value.latencyHigh}`} value={value} onChange={patch}/></fieldset>
     <details hidden={category!=='appearance'} className="advanced-appearance"><summary>{tr("高级外观")}</summary><fieldset><legend>{tr("背景与质感")}</legend>

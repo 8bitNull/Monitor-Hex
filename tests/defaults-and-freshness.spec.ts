@@ -1,3 +1,4 @@
+import {chooseOption} from './select'
 import {setting,settingsButton} from './settings'
 import {test,expect} from '@playwright/test'
 import {nodes} from '../scripts/fixtures.mjs'
@@ -46,11 +47,11 @@ test('stale reports and transport loss invalidate every live view and recover',a
 test('route selection explicitly distinguishes inherited and fixed routes',async({page})=>{
  await page.goto('/')
  const first=page.locator('.node-card').first();const select=first.getByLabel('节点探测线路')
- await expect(select.locator('option').first()).toHaveText(/全局：/)
- await select.scrollIntoViewIfNeeded();await select.selectOption({index:1})
+ await select.click();await expect(page.getByRole('option').first()).toHaveText(/全局：/);await page.keyboard.press('Escape')
+ await select.scrollIntoViewIfNeeded();await chooseOption(select,{index:1})
  await expect(first.getByRole('button',{name:'恢复跟随全局线路'})).toBeVisible()
  await first.getByRole('button',{name:'恢复跟随全局线路'}).click()
- await expect(select).toHaveValue('auto')
+ await expect(select).toHaveAttribute('data-value','auto')
  await expect(first.getByRole('button',{name:'恢复跟随全局线路'})).toHaveCount(0)
 })
 

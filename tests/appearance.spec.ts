@@ -17,7 +17,7 @@ test('each card layout fits its indicator, keeps data visible and persists selec
  await page.addInitScript(()=>{if(!localStorage.getItem('monitor-next'))localStorage.setItem('monitor-next',JSON.stringify({designVersion:1,modules:{map:false},homeRoutes:1}))})
  await page.goto('/')
  const card=page.locator('.node-card').first();await card.locator('.latency-reading').waitFor()
- await expect(card.getByLabel('节点探测线路').locator('option').first()).toHaveText(/^全局：/)
+ await card.getByLabel('节点探测线路').click();await expect(page.getByRole('option').first()).toHaveText(/^全局：/);await page.keyboard.press('Escape')
  for(const appearance of ['light','dark']){
   await page.locator('.next-theme').evaluate((el,a)=>{el.classList.toggle('dark',a==='dark');document.documentElement.classList.toggle('dark',a==='dark')},appearance)
   for(const graph of ['columns','bar','ring','minimal']){
@@ -43,7 +43,7 @@ test('settings option borders stay neutral while selection remains visible',asyn
  await page.goto('/');await toggleSettings(page)
  const colors=await page.locator('.settings-drawer').evaluate(drawer=>{
   const styles=getComputedStyle(drawer),read=(name:string)=>{const probe=document.createElement('span');probe.style.color=styles.getPropertyValue(name).trim();document.body.append(probe);const color=getComputedStyle(probe).color;probe.remove();return color}
-  return {border:read('--border'),foreground:read('--foreground')}
+  return {border:read('--border'),foreground:read('--foreground'),muted:read('--muted-foreground')}
  })
  const assertBorder=async(selector:string,color=colors.border)=>{const button=page.locator(selector).first();await button.hover();await expect(button).toHaveCSS('border-top-color',color)}
  await settingsCategory(page,'cards')
@@ -54,7 +54,7 @@ test('settings option borders stay neutral while selection remains visible',asyn
  const swatch=page.locator('.palette-options button[aria-pressed=false]').first();await swatch.hover();await expect(swatch).toHaveCSS('border-top-color','rgba(0, 0, 0, 0)')
  await assertBorder('.palette-options button[aria-pressed=true]',colors.border)
  const focused=page.locator('.graph-options button[aria-pressed=true]').first();await page.keyboard.press('Tab');await focused.focus();await expect(focused).toHaveCSS('outline-color',colors.foreground)
- const select=page.getByLabel('明暗模式',{exact:true});await select.focus();await expect(select).toHaveCSS('outline-color',colors.border)
+ const select=page.getByLabel('明暗模式',{exact:true});await select.focus();await expect(select).toHaveCSS('outline-color',colors.muted)
  await settingsCategory(page,'network')
  await assertBorder('.latency-presets button[aria-pressed=false]',colors.border)
  await assertBorder('.latency-presets button[aria-pressed=true]',colors.border)

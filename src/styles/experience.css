@@ -48,7 +48,7 @@
 .settings-drawer [data-settings] {scroll-margin-top:65px}
 .settings-drawer .preference-grid {grid-template-columns:1fr;gap:16px}
 .settings-drawer .preference-grid>label {display:flex;justify-content:space-between;flex-wrap:wrap}
-.settings-drawer .preference-grid>label>select {width:58%}
+.settings-drawer .preference-grid>label>:is(select,[data-slot="select"]) {width:58%}
 .visual-preference {display:grid;gap:8px;font-size:var(--text-small)}
 .palette-options,.graph-options,.density-options {display:flex;gap:8px}
 .palette-options {flex-wrap:wrap}
@@ -294,7 +294,7 @@
 .settings-drawer legend {font-size:13px;font-weight:600;color:var(--foreground);padding-right:12px}
 .settings-drawer .preference-grid {gap:20px}
 .settings-drawer .preference-grid>label {flex-direction:row;align-items:center;gap:12px}
-.settings-drawer .preference-grid>label>select {width:55%;min-height:44px;padding:9px 10px;border-radius:8px;background:var(--background)}
+.settings-drawer .preference-grid>label>:is(select,[data-slot="select"]) {width:55%;min-height:44px;padding:9px 10px;border-radius:8px;background:var(--background)}
 .settings-drawer .visual-preference {gap:12px}
 .settings-drawer .palette-options {gap:6px}
 .settings-drawer .palette-options button {width:44px;height:44px;min-height:44px;flex-basis:44px;background:transparent}
@@ -318,11 +318,11 @@
 .settings-drawer .preference-action-group>button,.settings-drawer .preference-action-group>.import-control {min-width:0}
 .settings-drawer .preference-action-group:last-child>button:last-child {border-color:color-mix(in srgb,var(--destructive) 55%,var(--border));color:var(--destructive)}
 .settings-drawer :is(button,input):focus-visible {outline:2px solid var(--foreground);outline-offset:2px}
-.settings-drawer select:focus {outline:2px solid var(--border);outline-offset:2px;box-shadow:none}
+.settings-drawer :is(select,[data-slot="select"]):focus {outline:2px solid var(--border);outline-offset:2px;box-shadow:none}
 @media(max-width:600px){
  .settings-drawer .preferences {padding:12px 18px max(24px,env(safe-area-inset-bottom))}
  .settings-top {top:-12px}
- .settings-drawer .preference-grid>label>select {width:100%}
+ .settings-drawer .preference-grid>label>:is(select,[data-slot="select"]) {width:100%}
  .settings-drawer .preference-grid>label {gap:8px}
  .settings-drawer .settings-nav button {min-width:0;padding-inline:2px;font-size:12px;overflow-wrap:anywhere}
  .settings-drawer .palette-options {justify-content:space-between;gap:0}

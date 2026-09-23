@@ -229,7 +229,7 @@ export default function App({ siteDefaults = defaults }: {
       </header>
       {compactViewport && mobileSearchOpen && <MobileSearch count={filtered.length} onClear={()=>setQuery('')} onResults={()=>{setMobileSearchOpen(false);requestAnimationFrame(()=>{const results=document.getElementById('node-results');results?.focus({preventScroll:true});results?.scrollIntoView({block:'start'})})}} onClose={()=>setMobileSearchOpen(false)}>{searchField()}</MobileSearch>}
 
-        {settings && <Preferences onClose={()=>setSettings(false)} probes={probes} value={prefs} onChange={setPrefs} onGraphChange={selectGraph} onDisplayChange={selectDisplay} siteDefaults={siteDefaults} backgroundError={background.error} onReset={scope => {
+        {settings && <Preferences browse={browse} onTableChange={patch=>{const next={...browse,...patch};setBrowse(next);try{localStorage.setItem("monitor-next-table-columns-v1",JSON.stringify({columns:next.columns,mobileColumns:next.mobileColumns,tableLayout:next.tableLayout,mobileTableLayout:next.mobileTableLayout,columnsVersion:next.columnsVersion}))}catch{/* Optional storage. */}}} onClose={()=>setSettings(false)} probes={probes} value={prefs} onChange={setPrefs} onGraphChange={selectGraph} onDisplayChange={selectDisplay} siteDefaults={siteDefaults} backgroundError={background.error} onReset={scope => {
                 setPrefs(scope === 'all' ? { ...siteDefaults, modules: { ...siteDefaults.modules } } : restoreAppearance(prefs, siteDefaults), true, scope === 'all');
                 if (scope === 'all') {
                     clearNodeProbes(); setLanguage('zh');
@@ -237,6 +237,7 @@ export default function App({ siteDefaults = defaults }: {
                     setBrowse({ ...defaultBrowse });
                     try {
                         localStorage.removeItem('monitor-next-rates-v1');
+                        localStorage.removeItem('monitor-next-table-columns-v1');
                         localStorage.removeItem('monitor-next-mode');
                         sessionStorage.removeItem('monitor-next-browse-v1');
                     }

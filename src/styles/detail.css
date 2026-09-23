@@ -18,7 +18,7 @@
 .detail-navigation button:hover:not(:disabled) {background:var(--muted)}
 .detail-node-switcher {display:flex;align-items:center;gap:4px;min-width:0;max-width:100%;padding:3px;border-radius:10px;background:var(--card);border:1px solid var(--detail-line,var(--border))}
 .detail-node-switcher button {flex-shrink:0}
-.detail-node-switcher select {width:300px;max-width:100%;min-width:0;height:34px;padding:0 22px 0 8px;border:0;background:transparent;color:var(--foreground);font-size:12px;text-overflow:ellipsis;box-shadow:none}
+.detail-node-switcher :is(select,[data-slot="select"]) {width:300px;max-width:100%;min-width:0;height:34px;padding:0 22px 0 8px;border:0;background:transparent;color:var(--foreground);font-size:12px;text-overflow:ellipsis;box-shadow:none}
 .detail-node-switcher option {background:var(--card);color:var(--foreground)}
 .detail-identity {padding:8px 2px 24px}
 .detail-title-row,.detail-title {display:flex;align-items:center;gap:10px;min-width:0}
@@ -83,7 +83,7 @@
  .detail-information {grid-template-columns:repeat(2,minmax(0,1fr))}.detail-history {padding:18px}.detail-chart-frame {height:360px;min-height:360px}.detail-history-body {min-height:450px}
 }
 @media(max-width:600px){
- .detail-navigation {gap:8px}.detail-back span {display:none}.detail-navigation .detail-back {flex-shrink:0;width:44px}.detail-node-switcher {flex:1}.detail-node-switcher select {flex:1;width:100%;padding-left:3px}
+ .detail-navigation {gap:8px}.detail-back span {display:none}.detail-navigation .detail-back {flex-shrink:0;width:44px}.detail-node-switcher {flex:1}.detail-node-switcher :is(select,[data-slot="select"]) {flex:1;width:100%;padding-left:3px}
  .detail-title-row {flex-wrap:wrap;gap:7px}.node-detail .detail-title h2 {font-size:20px}.detail-title {flex-basis:100%}.detail-title-row .node-status-group {margin-top:0}
  .detail-identity {padding-bottom:20px}.detail-subtitle {gap:8px 12px}.detail-live {padding:18px 16px}.detail-information {grid-template-columns:1fr}.detail-information section {padding:18px 16px}
  .detail-history {padding:16px 10px}.detail-chart-toolbar {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.detail-tabs {grid-column:1;grid-row:1;justify-self:start}.detail-chart-toolbar .detail-refresh {grid-column:2;grid-row:1;justify-self:end}

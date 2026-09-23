@@ -1,3 +1,4 @@
+import {chooseOption} from './select'
 import {expandRoutes} from './routes'
 import {setting,settingsButton} from './settings'
 import {test,expect,type Page} from '@playwright/test'
@@ -23,7 +24,7 @@ for(const width of [320,390,720,900,1440])test(`network readings fit in both lan
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
   if(language==='zh'&&appearance==='light')await card.screenshot({path:`tests/artifacts/v013/home-${width}.png`})
   await page.goto('/node/1?routes=1,2,3#latency');await expect(page.locator('.loss-track')).toBeVisible();await expect(page.locator('.detail-speed .micro-trend')).toHaveCount(2)
-  const select=page.locator('.loss-track select');await select.selectOption('2');await expect(select).toHaveValue('2')
+  const select=page.locator('.loss-track [data-slot=select]');await chooseOption(select,'2');await expect(select).toHaveAttribute('data-value','2')
   await expandRoutes(page);await expect(page.locator('.route-chips button>span').first()).toHaveCSS('text-overflow','ellipsis');await page.keyboard.press('Escape')
   const billing=page.locator('.overview-account')
   if(width<900){await page.locator('.detail-facts-toggle').click()}
@@ -36,7 +37,7 @@ for(const width of [320,390,720,900,1440])test(`network readings fit in both lan
 test('home route count shows the latency indicator for every selected route',async({page})=>{
  await setup(page);await page.goto('/');const card=page.locator('.node-card')
  for(const count of ['1','2','3']){
- await toggleSettings(page);await (await setting(page,'首页线路数量',{exact:true})).selectOption(count);await toggleSettings(page)
+ await toggleSettings(page);await chooseOption((await setting(page,'首页线路数量',{exact:true})),count);await toggleSettings(page)
  await expect(card.locator('.ping-probe')).toHaveCount(Number(count));await expect(card.locator('.latency-bars')).toHaveCount(Number(count));await expect(card.locator('.latency-trend-caption')).toHaveCount(0)
   const reading=card.locator('.ping-probe').first().locator('.latency-reading');expect(await reading.evaluate(el=>[...el.children].map(child=>child.className||child.tagName))).toEqual(['SPAN','latency-bars','latency-link'])
   if(count==='3'){const rows=await card.locator('.ping-probe .latency-reading').evaluateAll(els=>els.map(el=>el.getBoundingClientRect().y));expect(rows[1]-rows[0]).toBeLessThanOrEqual(45);expect(rows[2]-rows[1]).toBeLessThanOrEqual(45)}
@@ -53,9 +54,9 @@ test('home latency window defaults to one hour and can show six or twenty-four h
  await page.route('**/api/nodes/*/metrics?*',r=>{const d=metrics(),ts=Math.floor(Date.now()/1000);return r.fulfill({json:{...d,probes:{1:'Primary'},loss:{1:0},ping:[86400,21600,3600,60,0].map((offset,i)=>({task_id:1,ts:ts-offset,latency:20+i}))}})})
  await page.goto('/');const card=page.locator('.node-card'),matrix=card.locator('.route-matrix'),bars=card.locator('.latency-bars g')
  await expect(matrix).toHaveAttribute('data-latency-window','1');await expect(bars).toHaveCount(3);await expect(card.locator('.latency-trend-caption')).toHaveCount(0)
- await toggleSettings(page);await settingsCategory(page,'network');await (await setting(page,'首页延迟窗口',{exact:true})).selectOption('6');await toggleSettings(page)
+ await toggleSettings(page);await settingsCategory(page,'network');await chooseOption((await setting(page,'首页延迟窗口',{exact:true})),'6');await toggleSettings(page)
  await expect(matrix).toHaveAttribute('data-latency-window','6');await expect(bars).toHaveCount(4)
- await toggleSettings(page);await settingsCategory(page,'network');await (await setting(page,'首页延迟窗口',{exact:true})).selectOption('24');await toggleSettings(page)
+ await toggleSettings(page);await settingsCategory(page,'network');await chooseOption((await setting(page,'首页延迟窗口',{exact:true})),'24');await toggleSettings(page)
  await expect(matrix).toHaveAttribute('data-latency-window','24');await expect(bars).toHaveCount(5)
 })
 test('loss timeline preserves zero, unknown and timeout and follows selected routes',async({page})=>{
@@ -65,9 +66,9 @@ test('loss timeline preserves zero, unknown and timeout and follows selected rou
  await slider.focus();await page.keyboard.press('Home');await expect(reading).toContainText('0 ms');await expect(reading).toContainText('丢包 0%')
  await page.keyboard.press('ArrowRight');await expect(reading).toContainText('丢包 —')
  await page.keyboard.press('ArrowRight');await expect(reading).toContainText('超时');await expect(reading).toContainText('100%')
- await track.locator('select').selectOption('3');await expect(reading).toContainText('丢包 —')
- await expandRoutes(page);await page.getByRole('button',{name:'No packet statistics',exact:true}).click();await page.keyboard.press('Escape');await expect(track.locator('select')).toHaveValue('1')
- await expandRoutes(page);await page.getByRole('button',{name:'Hong Kong backup route',exact:true}).click();await page.keyboard.press('Escape');await expect(track.locator('select')).toHaveCount(0);await expect(track).toContainText('Tokyo primary route')
+ await chooseOption(track.locator('[data-slot=select]'),'3');await expect(reading).toContainText('丢包 —')
+ await expandRoutes(page);await page.getByRole('button',{name:'No packet statistics',exact:true}).click();await page.keyboard.press('Escape');await expect(track.locator('[data-slot=select]')).toHaveAttribute('data-value','1')
+ await expandRoutes(page);await page.getByRole('button',{name:'Hong Kong backup route',exact:true}).click();await page.keyboard.press('Escape');await expect(track.locator('[data-slot=select]')).toHaveCount(0);await expect(track).toContainText('Tokyo primary route')
  await page.getByRole('button',{name:'1 小时',exact:true}).click();await expect(reading).toContainText('25%')
 })
 test('live trends accumulate real reports and clear on offline state',async({page})=>{
@@ -89,14 +90,14 @@ test('network visuals remain fixed across resource styles and latency preference
   for(const trend of await card.locator('.speed-trend').all()){await expect(trend).toBeVisible();await expect(trend.locator('svg')).toHaveCount(1)}
   await expect(card.locator('.latency-bars')).toBeVisible();await expect(card.locator('.speed-ring,.speed-track')).toHaveCount(0)
  }
- await toggleSettings(page);await settingsCategory(page,'network');const profiles=page.locator('.latency-presets');await expect(profiles.getByRole('button',{name:'原有分档 80/160ms',exact:true})).toHaveAttribute('aria-pressed','true');await profiles.getByRole('button',{name:'跨境参考 150/300ms',exact:true}).click();await expect(profiles.getByRole('button',{name:'跨境参考 150/300ms',exact:true})).toHaveAttribute('aria-pressed','true');await profiles.getByRole('button',{name:'自定义',exact:true}).click();await expect(profiles.getByRole('button',{name:'自定义',exact:true})).toHaveAttribute('aria-pressed','true');await (await setting(page,'延迟统一刻度',{exact:true})).selectOption('500')
+ await toggleSettings(page);await settingsCategory(page,'network');const profiles=page.locator('.latency-presets');await expect(profiles.getByRole('button',{name:'原有分档 80/160ms',exact:true})).toHaveAttribute('aria-pressed','true');await profiles.getByRole('button',{name:'跨境参考 150/300ms',exact:true}).click();await expect(profiles.getByRole('button',{name:'跨境参考 150/300ms',exact:true})).toHaveAttribute('aria-pressed','true');await profiles.getByRole('button',{name:'自定义',exact:true}).click();await expect(profiles.getByRole('button',{name:'自定义',exact:true})).toHaveAttribute('aria-pressed','true');await chooseOption((await setting(page,'延迟统一刻度',{exact:true})),'500')
  await (await setting(page,'黄色阈值（ms）',{exact:true})).fill('250');await (await setting(page,'红色阈值（ms）',{exact:true})).fill('100')
  await expect(page.getByRole('button',{name:'应用延迟阈值',exact:true})).toBeDisabled()
  await (await setting(page,'黄色阈值（ms）',{exact:true})).fill('100');await (await setting(page,'红色阈值（ms）',{exact:true})).fill('250')
  await page.getByRole('button',{name:'应用延迟阈值',exact:true}).click();await toggleSettings(page);await page.reload()
  await expect(card.locator('.latency-bars svg')).toHaveAttribute('aria-label',/0–500 ms.*100.*250/)
- await toggleSettings(page);await (await settingsButton(page,'恢复默认外观',{exact:true})).click();await settingsCategory(page,'network');await page.locator('.latency-presets').getByRole('button',{name:'自定义',exact:true}).click();await expect((await setting(page,'延迟统一刻度',{exact:true}))).toHaveValue('500')
- await (await settingsButton(page,'重置全部偏好',{exact:true})).click();await settingsCategory(page,'network');await page.locator('.latency-presets').getByRole('button',{name:'自定义',exact:true}).click();await expect((await setting(page,'延迟统一刻度',{exact:true}))).toHaveValue('200')
+ await toggleSettings(page);await (await settingsButton(page,'恢复默认外观',{exact:true})).click();await settingsCategory(page,'network');await page.locator('.latency-presets').getByRole('button',{name:'自定义',exact:true}).click();await expect((await setting(page,'延迟统一刻度',{exact:true}))).toHaveAttribute('data-value','500')
+ await (await settingsButton(page,'重置全部偏好',{exact:true})).click();await settingsCategory(page,'network');await page.locator('.latency-presets').getByRole('button',{name:'自定义',exact:true}).click();await expect((await setting(page,'延迟统一刻度',{exact:true}))).toHaveAttribute('data-value','200')
 })
 
 test('live activity distinguishes zero, slow, missing, stale and offline readings',async({page})=>{
