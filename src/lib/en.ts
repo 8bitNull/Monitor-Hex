@@ -622,5 +622,15 @@ export const english: Record<string, string> = {
   "关闭搜索":"Close search",
   "找到 {0} 个节点":"{0} nodes found",
   "查找线路":"Find routes",
-  "没有符合条件的线路":"No matching routes"
+  "没有符合条件的线路":"No matching routes",
+  "合并相关指标":"Combine related metrics",
+  "每项独立一列":"Separate columns",
+  "合并显示上下行速度，桌面状态并入名称；手机状态始终跟随名称。":"Combine upload and download; include desktop status in the name. Mobile status always stays with the name.",
+  "查看备注：{0}":"View remarks: {0}",
+  "表格分页":"Table pagination",
+  "共 {0} 个节点 · 每页 20 个":"{0} nodes · 20 per page",
+  "上一页":"Previous",
+  "下一页":"Next",
+  "页码":"Page",
+  "第 {0} / {1} 页":"Page {0} of {1}"
 }

@@ -1,6 +1,6 @@
 /* Table layout is owned here; card and detail styles do not set table geometry. */
 .table-shell {position:relative;min-width:0}
-.table-scroll {max-width:100%;overflow:auto;border:1px solid var(--border);border-radius:var(--radius-panel);background:var(--card);scrollbar-gutter:stable}
+.table-scroll {max-width:100%;overflow:auto;border:1px solid var(--border);border-radius:var(--radius-panel);background:var(--card);scrollbar-width:none}
 .table-scroll:focus-visible {outline:2px solid var(--tone);outline-offset:3px}
 .node-table {table-layout:fixed;width:100%;border-collapse:separate;border-spacing:0;font-size:13px;text-align:left;font-variant-numeric:tabular-nums;white-space:nowrap}
 .node-table th,.node-table td {padding:8px 12px;border-bottom:1px solid var(--border);text-align:right;height:68px;vertical-align:middle}
@@ -86,7 +86,7 @@
 .table-name-dialog button {width:44px;min-height:44px;display:grid;place-items:center}
 .table-name-dialog p {overflow-wrap:anywhere;white-space:normal;margin:12px 0;line-height:1.6}
 @media(min-width:721px) {
- .table-scroll {max-height:clamp(320px,calc(100dvh - 240px),800px)}
+ .table-scroll {max-height:none}
  .node-table th {position:sticky;top:0;z-index:3}
  .node-table th:first-child {z-index:4}
 }
@@ -113,3 +113,27 @@
 .node-table tbody tr {content-visibility:auto;contain-intrinsic-block-size:auto 68px}
 
 .table-name-info:before {content:"i";display:block;width:13px;height:13px;line-height:12px;border:1px solid currentColor;border-radius:50%;font-family:serif;font-size:10px;font-weight:600;text-align:center}
+
+/* Page scrolling owns vertical movement; extra custom columns can still pan horizontally. */
+.table-scroll::-webkit-scrollbar {display:none}
+.table-scroll {scroll-margin-top:80px}
+.table-node-name {max-width:100%;width:100%;white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.5}
+.table-name-text>small {max-width:100%}
+.table-ping {min-width:0}
+.table-network-meta {gap:5px;flex-wrap:wrap}
+.table-speed>span {grid-template-columns:14px minmax(0,1fr) auto}
+.node-table [data-column=remark] {text-align:left}
+.node-table .table-remark {display:block;overflow:hidden;text-overflow:ellipsis;max-width:100%;width:100%;min-height:44px;white-space:nowrap;text-align:left;font-size:12px;font-weight:400;line-height:1.6;color:var(--muted-foreground);background:none}
+.table-remark-full {white-space:pre-wrap}
+.table-order-reset {display:flex;align-items:center;gap:8px;min-height:44px;color:var(--tone);margin-top:8px}
+.table-order-reset:disabled {opacity:.45;cursor:default}
+.table-pagination {display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted-foreground)}
+.table-pagination>div {display:flex;gap:8px;align-items:center}
+.table-pagination :is(button,select) {min-height:44px;border:1px solid var(--border);border-radius:8px;background:var(--card);padding:0 12px;color:var(--foreground)}
+.table-pagination button:disabled {opacity:.4;cursor:default}
+@media(max-width:720px) {
+ .mobile-toolbar-actions .view-toolbar {display:flex;align-items:center}
+ .node-table[data-mobile=true] .table-node-name {font-size:13px;line-height:1.5}
+ .table-pagination {gap:8px}
+ .table-pagination>div {width:100%;justify-content:space-between}
+}

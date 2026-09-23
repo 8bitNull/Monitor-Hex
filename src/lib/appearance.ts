@@ -48,9 +48,9 @@ export const defaults: Preferences = {
     summaryCollapsed: false, infoDensity: 'overview',
     detailInfoMode: 'auto',
     cardInfo: {...defaultCardInfo}, mobileCardInfo: null, mobileInfoMode: 'follow', desktopColumns: 'auto',
-    probe: 'auto', homeRoutes: 1, latencyScale:200, latencyWindow:1, latencyWarn:80, latencyHigh:160, skin: 'lumina', mobileLayout: 'inherit', designVersion: 1, schemaVersion: 3, palette: 'default', graph: 'bar', layout: 'comfortable', cardLayout: 'classic', appearance: 'system', map: false,
+    probe: 'auto', homeRoutes: 1, latencyScale:200, latencyWindow:1, latencyWarn:80, latencyHigh:160, skin: 'lumina', mobileLayout: 'inherit', designVersion: 1, schemaVersion: 3, palette: 'default', graph: 'bar', layout: 'comfortable', cardLayout: 'classic', appearance: 'system', map: true,
     showTotals: true, icons: true, backgroundUrl: '', backgroundBlur: 0, backgroundMask: 45, backgroundType: 'soft', glass: false, cardOpacity: 88, cardBlur: 12, speedStyle: 'spark',
-    modules: { online: true, busiest: true, traffic: true, speed: true, regions: false, clock: false, map: false },
+    modules: { online: true, busiest: true, traffic: true, speed: true, regions: false, clock: false, map: true },
 };
 function object(v: unknown): Record<string, unknown> { return v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {}; }
 export function safeBackground(value: unknown): string {

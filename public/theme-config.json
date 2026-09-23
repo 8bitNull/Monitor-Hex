@@ -22,7 +22,7 @@
     "speed": true,
     "regions": false,
     "clock": false,
-    "map": false
+    "map": true
   },
   "designVersion": 1,
   "probe": "auto",
