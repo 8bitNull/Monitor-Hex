@@ -268,7 +268,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
     const percentile=values.length?values[Math.ceil(values.length*.95)-1]:null;
     const reading=(value:number|null)=>value===null?'—':`${value.toFixed(1)} ms`;
     const latencyControls = tab === "latency" ? <details ref={legend} className="detail-probe-legend" onToggle={e=>{if(e.currentTarget.open)setRouteOrder([...visibleIds])}} onKeyDown={e=>{if(e.key==='Escape'){e.currentTarget.open=false;e.currentTarget.querySelector('summary')?.focus()}}}>
-      <summary aria-label={tr("选择线路")}><span>{tr("线路")}</span><ChevronDown size={13} aria-hidden="true"/></summary>
+      <summary aria-label={tr("选择线路")}><span>{tr("线路选择")}</span><ChevronDown size={13} aria-hidden="true"/></summary>
       <div className="probe-options">{pingSeries.length>3&&<input className="probe-filter" type="search" aria-label={tr("查找线路")} placeholder={tr("查找线路")} value={routeFilter} onChange={e=>setRouteFilter(e.target.value)}/>}
         {pingSeries.filter(s=>s.name.toLocaleLowerCase().includes(routeFilter.trim().toLocaleLowerCase())).sort((a,b)=>Number(routeOrder.includes(b.id))-Number(routeOrder.includes(a.id))).map(s=>{
           const shown=visibleIds.includes(s.id), latest=s.points.at(-1);

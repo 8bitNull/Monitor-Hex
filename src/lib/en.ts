@@ -1,4 +1,5 @@
 export const english: Record<string, string> = {
+"线路选择":"Routes",
 "采样范围（最小–最大）":"Sample range (min\u2013max)",
 "拖动两端缩放 · 双击恢复全范围":"Drag handles to zoom \u00b7 Double-click to reset",
 "与主图时间轴同步 · 未知留空，超时单独标记":"Same time axis \u00b7 Unknown left blank, timeouts marked separately",

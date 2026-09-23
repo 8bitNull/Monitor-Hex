@@ -111,3 +111,9 @@
  .loss-track-desktop-note {display:none}
 }
 @media(max-width:899px){.latency-chart-key {gap:4px}.latency-line-key {margin-left:4px;width:10px}.latency-band-key {width:10px}}
+@media(min-width:900px){
+ .detail-chart-toolbar[data-history-tab=latency] {gap:8px}
+ .detail-chart-toolbar[data-history-tab=latency] .detail-smooth>svg {display:none}
+ .detail-chart-toolbar[data-history-tab=latency] .detail-smooth {gap:6px;margin-left:4px}
+ .detail-chart-toolbar[data-history-tab=latency] .detail-submenu-divider {margin-inline:4px}
+}
