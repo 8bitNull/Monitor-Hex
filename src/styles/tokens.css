@@ -33,3 +33,19 @@
 .dark [data-palette=rose] {--tone:#f2a9c5}
 .next-theme {--tone-soft:color-mix(in srgb,var(--tone) 10%,transparent);--primary:var(--tone);--ring:var(--tone);--chart-1:var(--tone)}
 @media(max-width:720px) {:root {--control-height:44px}}
+
+/* Muted route colours keep latency charts independent of the accent palette. */
+:root {
+ --latency-line-1:#587aa3; --latency-line-2:#8675a0;
+ --latency-line-3:#54857d; --latency-line-4:#a18455;
+ --latency-line-5:#a16f83; --latency-line-6:#638794;
+ --latency-line-7:#8c815c; --latency-line-8:#81788a;
+ --latency-line-lightness:46%;
+}
+.dark {
+ --latency-line-1:#88a1c0; --latency-line-2:#ac9bbb;
+ --latency-line-3:#85aaa0; --latency-line-4:#b6a17e;
+ --latency-line-5:#bc93a2; --latency-line-6:#85a8b3;
+ --latency-line-7:#aaa581; --latency-line-8:#a59eaf;
+ --latency-line-lightness:66%;
+}

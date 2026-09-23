@@ -54,13 +54,7 @@ const AXIS = { stroke: "currentColor", fontSize: 11, tickLine: false, axisLine: 
 // chart across seven hundred points per probe.
 const SERIES = { dot: false as const, strokeWidth: 1.7, isAnimationActive: false };
 // Stable colours identify routes across time windows.
-const PALETTE = [
-    { stroke: "var(--color-chart-1)" },
-    { stroke: "var(--color-chart-3)" },
-    { stroke: "var(--color-chart-2)" },
-    { stroke: "var(--color-chart-4)" },
-    { stroke: "var(--color-chart-5)" },
-];
+const PALETTE = Array.from({length:8},(_,i)=>({stroke:`var(--latency-line-${i+1})` }));
 /**
  * Hampel filter (Hampel 1974; MATLAB ships it as `hampel`). A point more than
  * `sigmas` robust deviations from its window's median is replaced by that median,
@@ -220,7 +214,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
     const visibleIds = selectedRouteIds(selectedProbes,pingSeries.map(s=>s.id),defaultProbe);
     const shownProbes = pingSeries.filter(s=>visibleIds.includes(s.id));
     // The same probe ID retains its colour when the time window/catalog changes.
-    const style = (id:number) => PALETTE[id-1] ?? {stroke:`hsl(${(id*137.508)%360} 62% 48%)`};
+    const style = (id:number) => PALETTE[id-1] ?? {stroke:`hsl(${(id*137.508)%360} 28% var(--latency-line-lightness))`};
     // The hub stamps every sample with its bucket rather than the second the probe
     // finished, so probes reporting at the bucket's rate share rows instead of each
     // contributing its own: a day of four probes is 717 rows rather than 2,868. A
@@ -350,7 +344,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
                     {shownProbes.map((s) => (<Line key={s.id} dataKey={`${smooth ? "s" : "t"}${s.id}`} name={s.name} stroke={style(s.id).stroke} {...SERIES} strokeOpacity={highlightProbe!==null && visibleIds.includes(highlightProbe) && highlightProbe!==s.id ? 0.2 : 1} onMouseEnter={()=>{if(!compact)setHighlightProbe(s.id)}} onMouseLeave={()=>{if(!compact)setHighlightProbe(null)}} connectNulls={false}/>))}
                     {/* Drag either handle to zoom into a stretch of the trend. */}
                     <Brush ariaLabel={tr("时间范围")} dataKey="ts" height={44} travellerWidth={compact?44:12} startIndex={zoom?.[0]??0} endIndex={zoom?.[1]??pingRows.length-1} tickFormatter={clockFor(hours)} fill="var(--card)" className="latency-brush" stroke="var(--border)" onChange={(r) => {tooltipDismiss();setZoom([r.startIndex ?? 0, r.endIndex ?? pingRows.length - 1])}}>
-                      <AreaChart data={pingRows}><XAxis xAxisId="preview" dataKey="ts" type="number" domain={['dataMin','dataMax']} hide/><Area xAxisId="preview" dataKey={`t${summaryRoute?.id}`} stroke="var(--tone)" fill="var(--tone)" fillOpacity={.1} strokeWidth={1} isAnimationActive={false} connectNulls={false}/></AreaChart>
+                      <AreaChart data={pingRows}><XAxis xAxisId="preview" dataKey="ts" type="number" domain={['dataMin','dataMax']} hide/><Area xAxisId="preview" dataKey={`t${summaryRoute?.id}`} stroke={summaryRoute?style(summaryRoute.id).stroke:"var(--latency-line-1)"} fill={summaryRoute?style(summaryRoute.id).stroke:"var(--latency-line-1)"} fillOpacity={.07} strokeWidth={1} isAnimationActive={false} connectNulls={false}/></AreaChart>
                     </Brush>
                   </ComposedChart>
                 </ResponsiveContainer>)}
