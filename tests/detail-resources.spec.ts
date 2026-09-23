@@ -86,12 +86,12 @@ for(const width of [601,900,1199])for(const language of ['zh','en'])test(`icon r
  await page.setViewportSize({width,height:900})
  await page.addInitScript(language=>localStorage.setItem('monitor-next-language',language),language)
  await setup(page)
- const group=page.locator('.detail-resource-metric-desktop')
+ const group=page.locator(width<900?'.detail-resource-metric-menu':'.detail-resource-metric-desktop')
  const labels=language==='zh'?['CPU','内存','硬盘','网速']:['CPU','Memory','Disk','Network']
  const keys=['cpu','mem_used','disk_used','network']
  for(const [index,label] of labels.entries()){
-  const button=group.getByRole('button',{name:label,exact:true})
-  await expect(button).toBeVisible();await expect(button.locator('span')).toBeHidden();await expect(button).toHaveAttribute('title',label)
-  await button.click();await expect(button).toHaveAttribute('aria-pressed','true');await expect(page.locator('.detail-resource-charts')).toHaveAttribute('data-metric',keys[index])
+  if(width<900)await page.locator('.detail-resource-metric-mobile summary').click();const button=group.getByRole('button',{name:label,exact:true})
+  await expect(button).toBeVisible();if(width>=900)await expect(button.locator('span')).toBeHidden();else await expect(button.locator('span').first()).toBeVisible();await expect(button).toHaveAttribute('title',label)
+  await button.click();if(width<900)await expect(page.locator('.detail-resource-metric-mobile summary')).toContainText(label);else await expect(button).toHaveAttribute('aria-pressed','true');await expect(page.locator('.detail-resource-charts')).toHaveAttribute('data-metric',keys[index])
  }
 })

@@ -1,6 +1,6 @@
 import {Flag} from './NodeIcons'
 import {tr} from '../lib/i18n.ts'
-import {RotateCcw,Plus,Minus,Scan,Maximize,Minimize,Globe} from 'lucide-react'
+import {RotateCcw,Plus,Minus,Scan,Maximize,Minimize,Globe,HelpCircle} from 'lucide-react'
 import {useMemo,useState,useRef,useEffect,type ReactNode} from 'react'
 import {geoNaturalEarth1,geoPath,geoCentroid} from 'd3-geo'
 import {feature} from 'topojson-client'
@@ -54,11 +54,12 @@ export function WorldMap({nodes,region='all',onRegion,viewSwitch}:{nodes:Node[];
      <title>{tr("{0}：{1} / {2} 在线",countryName(r.code),r.online,r.total)}</title><circle className="small-region-hit" r={14}/><circle r={4}/>
     </g>)}
    </svg>
-   <div className="map-tools"><button aria-label={tr("恢复默认位置")} title={tr("恢复默认位置")} onClick={()=>setView({x:-363,y:-34.6,k:1.69})}><RotateCcw size={18}/></button><button title={tr("放大地图")} aria-label={tr("放大地图")} onClick={()=>zoom(1.3)}><Plus size={18}/></button><button title={tr("缩小地图")} aria-label={tr("缩小地图")} onClick={()=>zoom(1/1.3)}><Minus size={18}/></button><button title={tr("适配全部")} aria-label={tr("适配全部")} onClick={()=>setView({x:0,y:0,k:1})}><Scan size={18}/></button><button title={tr(full?"退出全屏":"全屏地图")} aria-label={tr(full?"退出全屏":"全屏地图")} onClick={fullscreen}>{full?<Minimize size={18}/>:<Maximize size={18}/>}</button></div>
+   <div className="map-tools"><button aria-label={tr("操作说明")} aria-expanded={help} onClick={()=>setHelp(v=>!v)}><HelpCircle size={18}/></button><button aria-label={tr("恢复默认位置")} title={tr("恢复默认位置")} onClick={()=>setView({x:-363,y:-34.6,k:1.69})}><RotateCcw size={18}/></button><button title={tr("放大地图")} aria-label={tr("放大地图")} onClick={()=>zoom(1.3)}><Plus size={18}/></button><button title={tr("缩小地图")} aria-label={tr("缩小地图")} onClick={()=>zoom(1/1.3)}><Minus size={18}/></button><button title={tr("适配全部")} aria-label={tr("适配全部")} onClick={()=>setView({x:0,y:0,k:1})}><Scan size={18}/></button><button title={tr(full?"退出全屏":"全屏地图")} aria-label={tr(full?"退出全屏":"全屏地图")} onClick={fullscreen}>{full?<Minimize size={18}/>:<Maximize size={18}/>}</button></div>
    {selected&&view.k>=1.8&&<div className="map-node-preview"><strong>{countryName(selected.code)}</strong><div>{selected.nodes.slice(0,6).map(n=><span key={n.id}><i className={n.online?'dot online':'dot'}/>{n.name}</span>)}</div>{selected.total>6&&<small>+{selected.total-6}</small>}</div>}
    <output className="map-scale">{Math.round(view.k*100)}%</output>
   </div>
   <div className="explorer-footer"><div className="region-list"><button onClick={()=>onRegion('all')} title={tr("所有地区")} aria-label={tr("所有地区")} aria-pressed={region==='all'}><Globe size={16}/></button>{regions.map(r=><button key={r.code} data-region={r.code} aria-pressed={region===r.code} onClick={()=>onRegion(r.code)}>{r.code!==UNKNOWN_REGION&&<Flag code={r.code}/>}<span>{countryName(r.code)}</span><b>{r.total}</b></button>)}</div></div>
   {viewSwitch&&<div className="map-view-switch">{viewSwitch}</div>}
- {help&&<p className="map-note">{tr("拖拽移动；Ctrl / ⌘ + 滚轮缩放，全屏内直接滚轮缩放。地图表示地区分组，不是机房精确位置。")}</p>}</section>
+ {selected&&<div className="map-selection"><span>{countryName(selected.code)} · {tr("在线")} {selected.online}/{selected.total}</span><button onClick={()=>onRegion('all')}>{tr("清除地区筛选")}</button></div>}
+ {help&&<p className="map-note">{tr("拖拽移动；Ctrl / ⌘ + 滚轮缩放，全屏内直接滚轮缩放。方向键平移，+ / − 缩放。地图表示地区分组，不是机房精确位置。")}</p>}</section>
 }

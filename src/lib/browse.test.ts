@@ -12,7 +12,7 @@ assert.deepEqual(browseNodes([create(2,20),create(1,20)], { ...defaultBrowse, so
 console.log('sorting, null-last, default order, ties and region search passed')
 
 assert.deepEqual(tableColumns(defaultBrowse.columns,true,false),['name','cpu','memory','disk','speed','latency','traffic','expiry'])
-assert.deepEqual(tableColumns(['download','latency'],true,true),['name','status','speed','latency'])
+assert.deepEqual(tableColumns(['download','latency'],true,true),['name','speed','latency'])
 assert.deepEqual(tableColumns([],false,false),['name','status'])
 assert.equal(normalizeBrowse({}).tableLayout,'grouped')
 for(const version of [2,3,4]) {
@@ -35,3 +35,7 @@ assert.deepEqual(browseNodes(qualityNodes,{...defaultBrowse,sort:'loss',directio
 assert.equal(sortValue({...qualityNodes[0],online:false},'loss','auto'),null)
 assert.equal(sortValue(qualityNodes[0],'latency','auto'),null)
 console.log('table grouping, independent presets, legacy columns, missing loss, stale and offline sorting passed')
+
+assert.deepEqual(normalizeBrowse({}).mobileColumns,['cpu','latency'])
+assert.deepEqual(normalizeBrowse({columnsVersion:4,mobileColumns:['memory','traffic']}).mobileColumns,['memory','traffic'])
+assert.deepEqual(normalizeBrowse({mobileColumns:[]}).mobileColumns,[])

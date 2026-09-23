@@ -1,0 +1,177 @@
+[
+  {
+    "width": 320,
+    "state": "home",
+    "overflow": -15
+  },
+  {
+    "width": 320,
+    "state": "table",
+    "overflow": -15
+  },
+  {
+    "width": 320,
+    "state": "resources",
+    "overflow": -15
+  },
+  {
+    "width": 320,
+    "state": "latency",
+    "overflow": -15
+  },
+  {
+    "width": 320,
+    "state": "latency-dark",
+    "overflow": -15
+  },
+  {
+    "width": 360,
+    "state": "home",
+    "overflow": -15
+  },
+  {
+    "width": 360,
+    "state": "table",
+    "overflow": -15
+  },
+  {
+    "width": 360,
+    "state": "resources",
+    "overflow": -15
+  },
+  {
+    "width": 360,
+    "state": "latency",
+    "overflow": -15
+  },
+  {
+    "width": 360,
+    "state": "latency-dark",
+    "overflow": -15
+  },
+  {
+    "width": 390,
+    "state": "home",
+    "overflow": -15
+  },
+  {
+    "width": 390,
+    "state": "table",
+    "overflow": -15
+  },
+  {
+    "width": 390,
+    "state": "resources",
+    "overflow": -15
+  },
+  {
+    "width": 390,
+    "state": "latency",
+    "overflow": -15
+  },
+  {
+    "width": 390,
+    "state": "latency-dark",
+    "overflow": -15
+  },
+  {
+    "width": 430,
+    "state": "home",
+    "overflow": -15
+  },
+  {
+    "width": 430,
+    "state": "table",
+    "overflow": -15
+  },
+  {
+    "width": 430,
+    "state": "resources",
+    "overflow": -15
+  },
+  {
+    "width": 430,
+    "state": "latency",
+    "overflow": -15
+  },
+  {
+    "width": 430,
+    "state": "latency-dark",
+    "overflow": -15
+  },
+  {
+    "width": 1280,
+    "state": "home",
+    "overflow": -15
+  },
+  {
+    "width": 1280,
+    "state": "table",
+    "overflow": -15
+  },
+  {
+    "width": 1280,
+    "state": "resources",
+    "overflow": -15
+  },
+  {
+    "width": 1280,
+    "state": "latency",
+    "overflow": -15
+  },
+  {
+    "width": 1280,
+    "state": "latency-dark",
+    "overflow": -15
+  },
+  {
+    "width": 1440,
+    "state": "home",
+    "overflow": -15
+  },
+  {
+    "width": 1440,
+    "state": "table",
+    "overflow": -15
+  },
+  {
+    "width": 1440,
+    "state": "resources",
+    "overflow": -15
+  },
+  {
+    "width": 1440,
+    "state": "latency",
+    "overflow": -15
+  },
+  {
+    "width": 1440,
+    "state": "latency-dark",
+    "overflow": -15
+  },
+  {
+    "width": 1920,
+    "state": "home",
+    "overflow": -15
+  },
+  {
+    "width": 1920,
+    "state": "table",
+    "overflow": -15
+  },
+  {
+    "width": 1920,
+    "state": "resources",
+    "overflow": -15
+  },
+  {
+    "width": 1920,
+    "state": "latency",
+    "overflow": -15
+  },
+  {
+    "width": 1920,
+    "state": "latency-dark",
+    "overflow": -15
+  }
+]

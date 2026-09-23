@@ -41,6 +41,6 @@ for(const width of [320,390,430,768,1024,1440])test('detail and settings polish 
   const close=drawer.getByRole('button',{name:language==='zh'?'关闭设置':'Close settings',exact:true})
   await expect(close).toBeInViewport();expect((await close.boundingBox())!.height).toBeGreaterThanOrEqual(44)
   await close.click();await expect(drawer).not.toBeVisible()
-  await expect(page.locator('header').getByRole('button',{name:language==='zh'?'外观设置':'Appearance',exact:true})).toBeFocused()
+  await expect(page.locator('header').getByRole('button',{name:language==='zh'?'显示与偏好':'Display & preferences',exact:true})).toBeFocused()
  }
 })

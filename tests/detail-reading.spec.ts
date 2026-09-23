@@ -28,20 +28,20 @@ for(const width of [320,390,430,720,899,900,1024,1440,1920])test(`detail reading
   for(const graph of ['bar','ring','columns','minimal']){
    await toggleSettings(page);await visualSelect(page,'graph',graph);await toggleSettings(page);await page.evaluate(()=>scrollTo(0,0))
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
-   if(width===390){const b=(await page.locator('.detail-chart-toolbar').boundingBox())!,live=(await page.locator('.detail-live').boundingBox())!;expect(b.y).toBeGreaterThan(live.y+live.height);expect(b.height).toBeLessThanOrEqual(64)}
+   if(width===390){const b=(await page.locator('.detail-chart-toolbar').boundingBox())!,live=(await page.locator('.detail-live').boundingBox())!;expect(b.y).toBeGreaterThan(live.y+live.height);expect(b.height).toBeLessThanOrEqual(116)}
   }
   for(const tab of ['resources','latency']){
    await page.getByRole('button',{name:language==='zh'?(tab==='resources'?'资源':'网络延迟'):(tab==='resources'?'Resources':'Network latency'),exact:true}).click()
    const toolbar=page.locator('.detail-chart-toolbar'),tabs=(await page.locator('.detail-tabs').boundingBox())!,ranges=(await page.locator('.detail-ranges').boundingBox())!,refresh=(await page.locator('.detail-refresh').boundingBox())!
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
    const centers=await toolbar.evaluate((element)=>Array.from(element.children).map(child=>{const box=child.getBoundingClientRect();return box.width?box.y+box.height/2:null}).filter((center):center is number=>center!==null))
-   if(tab==='latency'&&width<900){expect(ranges.y).toBeGreaterThanOrEqual(tabs.y+tabs.height);expect(Math.abs(refresh.y+refresh.height/2-(tabs.y+tabs.height/2))).toBeLessThanOrEqual(2)}else expect(Math.max(...centers)-Math.min(...centers)).toBeLessThanOrEqual(2)
+   if(width<900){expect(ranges.y).toBeGreaterThanOrEqual(tabs.y+tabs.height);expect(Math.abs(refresh.y+refresh.height/2-(tabs.y+tabs.height/2))).toBeLessThanOrEqual(2)}else expect(Math.max(...centers)-Math.min(...centers)).toBeLessThanOrEqual(2)
    const all=await page.locator('.detail-ranges button').evaluateAll(buttons=>buttons.map(button=>{const box=button.getBoundingClientRect();return {top:box.top,x:box.x,right:box.right}}));expect(new Set(all.map(box=>Math.round(box.top))).size).toBe(1)
    expect(all.length).toBe(tab==='resources'?4:3);if(tab==='resources')expect(all[3].x).toBeGreaterThan(all[2].x)
    expect(refresh.x+refresh.width).toBeLessThanOrEqual(width+1)
-   if(width<=600){await expect(page.locator('.detail-tabs button>span')).toHaveCount(2);for(const span of await page.locator('.detail-tabs button>span').all())if(tab==='latency')await expect(span).toBeVisible();else await expect(span).toBeHidden();if(tab==='resources'){await expect(page.locator('.detail-resource-metric-mobile')).toBeVisible();await expect(page.locator('.detail-resource-metric-desktop')).toBeHidden()}}
+   if(width<900){await expect(page.locator('.detail-tabs button>span')).toHaveCount(2);for(const span of await page.locator('.detail-tabs button>span').all())await expect(span).toBeVisible();if(tab==='resources'){await expect(page.locator('.detail-resource-metric-mobile')).toBeVisible();await expect(page.locator('.detail-resource-metric-desktop')).toBeHidden()}}
    else if(tab==='resources')await expect(page.locator('.detail-resource-metric-desktop')).toBeVisible()
-   if(tab!=='latency'||width>=900)expect(Math.abs(tabs.y+tabs.height/2-(ranges.y+ranges.height/2))).toBeLessThanOrEqual(2)
+   if(width>=900)expect(Math.abs(tabs.y+tabs.height/2-(ranges.y+ranges.height/2))).toBeLessThanOrEqual(2)
    expect(await page.locator('.detail-history').evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy()
   }
   if(width<900)await expect(page.locator('.detail-facts-toggle')).toHaveAttribute('aria-expanded','false')

@@ -7,7 +7,7 @@ import { trafficUsed } from './traffic.ts'
 export const sortLabels = { default: '后台默认', name: '名称', status: '在线状态', cpu: 'CPU', memory: '内存', disk: '硬盘', upload: '上传速度', download: '下载速度', traffic: '流量用量 / 总额度', latency: '所选线路延迟', loss: '24h 丢包', expiry: '到期时间' }
 export type SortKey = keyof typeof sortLabels
 export type Browse = { query: string; status: string; region: string; sort: SortKey; direction: 'asc' | 'desc'; view: 'cards' | 'table'; probe: string; columns: string[]; mobileColumns: string[]; columnsVersion: number; tableLayout: 'grouped'|'separate'; mobileTableLayout: 'grouped'|'separate' }
-export const defaultBrowse: Browse = { query: '', status: 'all', region: 'all', sort: 'default', direction: 'asc', view: 'cards', probe: 'auto', columnsVersion: 4, tableLayout:'grouped', mobileTableLayout:'grouped', mobileColumns: ['cpu','memory','latency'], columns: ['cpu', 'memory', 'disk', 'upload', 'download', 'traffic', 'latency', 'expiry'] }
+export const defaultBrowse: Browse = { query: '', status: 'all', region: 'all', sort: 'default', direction: 'asc', view: 'cards', probe: 'auto', columnsVersion: 4, tableLayout:'grouped', mobileTableLayout:'grouped', mobileColumns: ['cpu','latency'], columns: ['cpu', 'memory', 'disk', 'upload', 'download', 'traffic', 'latency', 'expiry'] }
 export function normalizeBrowse(input:unknown): Browse {
   const v=input && typeof input==='object' && !Array.isArray(input)?input as Record<string,unknown>:{}
   const columns=(value:unknown,fallback:string[])=>Array.isArray(value)?defaultBrowse.columns.filter(c=>value.includes(c)):fallback
@@ -23,7 +23,7 @@ export function readBrowse(): Browse {
   } catch { return {...defaultBrowse} }
 }
 export function tableColumns(columns:string[],grouped:boolean,mobile:boolean):string[] {
-  const keys=['name',...(!grouped||mobile?['status']:[]),...columns]
+  const keys=['name',...(!grouped&&!mobile?['status']:[]),...columns]
   if(!grouped)return keys
   let speed=false
   return keys.flatMap(key=>key==='upload'||key==='download'?(speed?[]:(speed=true,['speed'])):[key]).sort((a,b)=>['name','status','cpu','memory','disk','speed','latency','traffic','expiry'].indexOf(a)-['name','status','cpu','memory','disk','speed','latency','traffic','expiry'].indexOf(b))

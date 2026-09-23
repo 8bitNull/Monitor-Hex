@@ -8,6 +8,7 @@ export type CardInfo = Record<keyof typeof cardInfoLabels, boolean>;
 export const defaultCardInfo: CardInfo = {traffic:true,connections:true,uptime:true,expiry:true,remarks:true,price:true};
 export type DisplayPatch = {infoDensity?: 'overview' | 'full'; detailInfoMode?: 'auto' | 'expanded' | 'collapsed'; cardInfo?: Partial<CardInfo>; mobileCardInfo?: CardInfo | null; mobileInfoMode?: 'follow' | 'custom'; desktopColumns?: 'auto' | '2' | '3' | '4'};
 export type Preferences = {
+    summaryCollapsed: boolean;
     infoDensity: 'overview' | 'full';
     detailInfoMode: 'auto' | 'expanded' | 'collapsed';
     cardInfo: CardInfo;
@@ -44,7 +45,7 @@ export type Preferences = {
     modules: Record<keyof typeof moduleLabels, boolean>;
 };
 export const defaults: Preferences = {
-    infoDensity: 'overview',
+    summaryCollapsed: false, infoDensity: 'overview',
     detailInfoMode: 'auto',
     cardInfo: {...defaultCardInfo}, mobileCardInfo: null, mobileInfoMode: 'follow', desktopColumns: 'auto',
     probe: 'auto', homeRoutes: 1, latencyScale:200, latencyWindow:1, latencyWarn:80, latencyHigh:160, skin: 'lumina', mobileLayout: 'inherit', designVersion: 1, schemaVersion: 3, palette: 'default', graph: 'bar', layout: 'comfortable', cardLayout: 'classic', appearance: 'system', map: false,
@@ -81,7 +82,7 @@ export function normalizePreferences(input: unknown, base: Preferences = default
     const info = (input: unknown, fallback: CardInfo): CardInfo => Object.fromEntries(Object.keys(defaultCardInfo).map(key=>[key,typeof object(input)[key]==='boolean'?object(input)[key]:fallback[key as keyof CardInfo]])) as CardInfo;
     const warn=number('latencyWarn',1,4999),high=number('latencyHigh',2,5000);
     return {
-        infoDensity:choose(v.infoDensity,['overview','full'],base.infoDensity),
+        summaryCollapsed:bool('summaryCollapsed'), infoDensity:choose(v.infoDensity,['overview','full'],base.infoDensity),
         latencyScale:v.latencyScale===200||v.latencyScale===500?v.latencyScale:base.latencyScale,
         latencyWindow:v.latencyWindow===1||v.latencyWindow===6||v.latencyWindow===24?v.latencyWindow:base.latencyWindow,
         latencyWarn:warn<high?warn:base.latencyWarn,
@@ -133,7 +134,7 @@ export function parsePreferences(text: string, base: Preferences = defaults): Pr
     return normalizePreferences({...data,...(!Object.hasOwn(data,"infoDensity")&&data.schemaVersion!==3?{infoDensity:"full"}:{})}, base);
 }
 export function restoreAppearance(current: Preferences, site: Preferences): Preferences {
-    return { ...site, infoDensity:current.infoDensity, detailInfoMode:current.detailInfoMode, cardInfo:current.cardInfo,mobileCardInfo:current.mobileCardInfo,mobileInfoMode:current.mobileInfoMode,desktopColumns:current.desktopColumns, probe:current.probe, homeRoutes:current.homeRoutes, latencyScale:current.latencyScale, latencyWindow:current.latencyWindow, latencyWarn:current.latencyWarn, latencyHigh:current.latencyHigh, map: current.map, modules: { ...current.modules } };
+    return { ...site, summaryCollapsed:current.summaryCollapsed, infoDensity:current.infoDensity, detailInfoMode:current.detailInfoMode, cardInfo:current.cardInfo,mobileCardInfo:current.mobileCardInfo,mobileInfoMode:current.mobileInfoMode,desktopColumns:current.desktopColumns, probe:current.probe, homeRoutes:current.homeRoutes, latencyScale:current.latencyScale, latencyWindow:current.latencyWindow, latencyWarn:current.latencyWarn, latencyHigh:current.latencyHigh, map: current.map, modules: { ...current.modules } };
 }
 
 /** Store only differing fields; nested module choices inherit independently. */

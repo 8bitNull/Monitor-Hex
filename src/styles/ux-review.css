@@ -1,0 +1,107 @@
+/* UX review: shared affordances, responsive tables and consistent history controls. */
+#node-results,.detail-chart-toolbar {scroll-margin-top:88px}
+#node-results:focus {outline:none}
+.overview-summary {position:relative}
+.summary-toggle,.summary-compact {display:none}
+.summary-grid button[aria-pressed=true],.summary-compact button[aria-pressed=true] {color:var(--tone);text-decoration:underline;text-underline-offset:4px}
+.summary-grid button:focus-visible {outline:2px solid var(--tone);outline-offset:3px}
+.summary-grid button {min-height:28px}
+.filter-match-count {align-self:center;font-size:12px;color:var(--muted-foreground)}
+.search-results-action,.history-state-message button {min-height:44px;padding:8px 14px;border-radius:8px;background:var(--tone-soft);color:var(--tone);font-size:13px}
+.search-results-action {width:100%;margin-top:12px}
+.history-state-message button {pointer-events:auto;margin-top:10px}
+.advanced-appearance>summary,.load-record-rules>summary {min-height:44px;cursor:pointer;padding:10px 0;font-size:13px}
+.local-observation {font-size:11px;color:var(--muted-foreground);white-space:nowrap}
+.load-record-rules {margin:0 0 12px}
+.map-selection {display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:8px 16px;font-size:13px}
+.map-selection button {min-height:44px;color:var(--tone)}
+.map-note {padding:12px 16px;line-height:1.8}
+.node-card .node-remarks {flex-wrap:wrap;justify-content:flex-start;overflow:visible;gap:6px}
+.node-card .node-remarks.short-remarks {justify-content:center}
+.node-card .node-remarks .detail-remark-tag {white-space:normal;overflow-wrap:anywhere;max-width:100%;font-size:12px}
+.node-card .node-timing {display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.node-card .node-price {margin-left:auto;text-align:right}
+.node-card .resource-value {font-size:15px}
+.node-card .resource-foot,.node-card .billing-label,.node-card .node-timing,.node-card .node-connections {font-size:12px}
+.node-card .latency-reading {align-items:center}
+.node-card .node-remarks .remark-more {min-height:44px}
+.latency-view .route-chips {align-content:start;flex-wrap:wrap}
+.latency-view .route-chips button {min-height:44px}
+.latency-view .route-chips .expand-routes {grid-column:1/-1;justify-content:center}
+.latency-view>.latency-summary {flex-wrap:wrap;align-items:center;gap:10px 18px}
+.latency-view .latency-summary-route {display:flex;align-items:center;gap:8px;max-width:100%;font-size:12px;white-space:normal;flex-basis:100%}
+.latency-summary-route select {min-width:0;max-width:240px;min-height:44px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--foreground)}
+.loss-unavailable {display:block;font-size:12px;margin-top:4px;max-width:170px;white-space:normal}
+.latency-view .latency-range-heading button {min-height:44px}
+@media(min-width:900px){
+ .detail-chart-toolbar {flex-wrap:wrap}
+ .latency-view {grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+}
+@media(max-width:899px){
+ .detail-chart-toolbar[data-history-tab=resources] {display:grid;grid-template-columns:minmax(0,1fr) auto 44px;grid-template-rows:44px 48px;gap:4px;padding:8px;align-items:center}
+ .detail-chart-toolbar[data-history-tab=resources] .detail-tabs {grid-column:1;grid-row:1;display:flex;gap:4px;height:44px}
+ .detail-chart-toolbar[data-history-tab=resources] .detail-tabs button {width:auto;min-width:44px;min-height:44px;padding:0 5px;font-size:12px;gap:4px}
+ .detail-chart-toolbar[data-history-tab=resources] .detail-tabs button>span {display:inline}
+ .detail-chart-toolbar[data-history-tab=resources] .detail-submenu-divider {display:none}
+ .detail-chart-toolbar[data-history-tab=resources] .detail-resource-metric {grid-column:2;grid-row:1}
+ .detail-resource-metric-mobile {display:block}
+ .detail-resource-metric-desktop {display:none}
+ .detail-resource-metric-mobile>summary {display:flex;align-items:center;gap:4px;min-width:66px;width:auto;min-height:44px;font-size:12px;padding:0 4px}
+ .detail-resource-metric-mobile>summary>svg {display:none}
+ .detail-chart-toolbar[data-history-tab=resources] .detail-refresh {grid-column:3;grid-row:1;width:44px;height:44px}
+ .detail-chart-toolbar[data-history-tab=resources] .detail-ranges {grid-column:1/-1;grid-row:2;justify-self:start;margin:0}
+ .detail-chart-toolbar[data-history-tab=resources] .detail-ranges button {width:44px;min-width:44px;min-height:44px}
+ .detail-chart-toolbar .detail-update {display:none}
+ .latency-view .route-chips button>span {max-width:none}
+ .latency-view .route-chips button {min-width:0}
+ .latency-summary-route select {flex:1;max-width:100%}
+}
+@media(max-width:720px){
+ .summary-toggle {display:block;margin-left:auto;min-height:44px;font-size:12px;color:var(--tone)}
+ .overview-summary[data-collapsed=true] .summary-grid {display:none}
+ .overview-summary[data-collapsed=true] .summary-compact {display:flex;align-items:center;flex-wrap:wrap;gap:4px 16px;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:12px;font-size:12px}
+ .summary-compact button,.summary-compact>span {min-height:44px;display:flex;align-items:center;gap:6px}
+ .mobile-table-tools {display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px}
+ .mobile-table-tools .table-sort-toolbar {flex:1;min-width:0}
+ .mobile-table-tools .table-sort-toolbar label {display:flex;align-items:center;gap:8px;width:100%}
+ .mobile-table-tools .table-sort-toolbar select {flex:1;min-width:0;max-width:240px}
+ .mobile-toolbar-main .mobile-region-picker {flex:1}
+ .node-browser .active-filters {display:flex;gap:6px;margin-top:8px}
+ .node-browser .active-filters:empty {display:none}
+ .active-filters button {min-height:44px}
+ .node-table[data-mobile=true] [data-column=name] {min-width:110px;width:110px;max-width:none}
+ .node-table[data-mobile=true] :is([data-column=cpu],[data-column=memory],[data-column=disk]) {min-width:56px}
+ .node-table[data-mobile=true] [data-column=latency] {min-width:90px}
+ .node-table[data-mobile=true] .table-ping {min-width:0}
+ .node-table[data-mobile=true] th,.node-table[data-mobile=true] td {padding-inline:6px}
+ .node-table[data-mobile=true] .table-name-text>small {display:none}
+ .node-table[data-mobile=true] .table-identity .status-pill {display:inline-flex;margin-top:3px}
+ .node-table[data-mobile=true] .table-identity .status-pill .dot {display:inline-block}
+ .node-table[data-mobile=true] .table-node-name {font-size:12px;max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.4}
+ .node-table[data-compact-network=true] .table-name-info {display:none}
+ .node-table[data-compact-network=true] .table-network-meta,.node-table[data-compact-network=true] .table-latency-grade {display:none}
+ .node-table[data-mobile=true] .table-ping-value strong {font-size:12px}
+ .node-table[data-mobile=true] .table-network-meta {flex-direction:column;gap:2px}
+ .table-scroll-hint {font-size:12px;color:var(--muted-foreground);padding:8px}
+ .node-card .billing-label small,.node-card .node-price,.node-card .resource-foot {font-size:12px}
+}
+@media(max-width:360px){
+ .detail-chart-toolbar .detail-tabs button>svg {display:none}
+ .node-card .node-heading {flex-wrap:wrap}
+ .node-card .node-status-group {margin-left:auto}
+}
+
+@media(max-width:720px){.table-scroll{scrollbar-gutter:auto}.node-card .resource small,.node-card .node-connections span,.node-card .card-expiry small,.node-card .card-billing .traffic-summary small{font-size:12px}}
+
+.summary-grid .tnum button {font:inherit}
+@media(max-width:720px){
+ .summary-toggle {position:absolute;right:0;top:-44px;margin:0}
+ .load-alert-tile>div:first-child {display:grid;grid-template-columns:14px minmax(0,1fr) 24px;gap:4px;align-items:center}
+ .load-tile-label {white-space:nowrap;font-size:12px}
+ .load-alert-tile .local-observation {grid-column:2;grid-row:2;font-size:10px}
+ .load-alert-tile .load-history-button {grid-column:3;grid-row:1/3;align-self:start}
+}
+@media(max-width:360px){
+ .detail-chart-toolbar[data-history-tab=resources] .detail-tabs button {font-size:11px;padding-inline:3px}
+ .detail-chart-toolbar[data-history-tab=resources] .detail-tabs {gap:1px}
+}

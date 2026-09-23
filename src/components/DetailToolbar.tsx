@@ -34,7 +34,7 @@ function ResourceMetricControl({metric,onMetric}:{metric:ResourceMetricKey;onMet
         {resourceOptions.map(({key,label,Icon})=><button type="button" key={key} aria-label={tr(label)} title={tr(label)} aria-pressed={metric===key} onClick={()=>onMetric(key)}><Icon size={14} aria-hidden="true"/><span>{tr(label)}</span></button>)}
       </div>
       <details className="detail-resource-metric-mobile">
-        <summary aria-label={tr("资源指标")}><SlidersHorizontal size={16} aria-hidden="true"/></summary>
+        <summary aria-label={tr("资源指标")}><SlidersHorizontal size={16} aria-hidden="true"/><span>{tr(resourceOptions.find(o=>o.key===metric)!.label)}</span><span aria-hidden="true">▾</span></summary>
         <div className="detail-resource-metric-menu" role="group" aria-label={tr("资源指标")}>
           {resourceOptions.map(({key,label,Icon})=><button type="button" key={key} aria-label={tr(label)} title={tr(label)} aria-pressed={metric===key} onClick={e=>{onMetric(key);e.currentTarget.closest("details")?.removeAttribute("open")}}><Icon size={14} aria-hidden="true"/><span>{tr(label)}</span>{metric===key&&<span className="detail-metric-check" aria-hidden="true">✓</span>}</button>)}
         </div>

@@ -80,3 +80,10 @@ assert.equal(parsePreferences('{"schemaVersion":2,"graph":"columns"}').infoDensi
 assert.equal(parsePreferences(JSON.stringify(defaults)).infoDensity,'overview')
 assert.equal(restoreAppearance({...defaults,infoDensity:'full'},defaults).infoDensity,'full')
 assert.equal(normalizePreferences({infoDensity:'invalid'}).infoDensity,'overview')
+
+// Added preferences inherit safely and do not reset selected card fields.
+assert.equal(normalizePreferences({schemaVersion:2,cardInfo:{connections:false}}).summaryCollapsed,false)
+const collapsed=parsePreferences(JSON.stringify({...defaults,summaryCollapsed:true,cardInfo:{...defaults.cardInfo,connections:false}}))
+assert.equal(collapsed.summaryCollapsed,true)
+assert.equal(collapsed.cardInfo.connections,false)
+assert.equal(restoreAppearance(collapsed,defaults).summaryCollapsed,true)

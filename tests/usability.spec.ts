@@ -59,7 +59,7 @@ for(const [width,height] of [[320,568],[390,844],[430,932],[844,390],[720,900],[
   await settingsCategory(page,'other');await dialog.locator('.preference-actions button').last().scrollIntoViewIfNeeded();await expect(dialog.locator('.settings-top button')).toBeInViewport()
   await page.keyboard.press('Tab');expect(await dialog.evaluate(el=>el.contains(document.activeElement))).toBeTruthy()
   await page.keyboard.press('Escape');await expect(dialog).not.toBeVisible()
-  await expect(page.locator('header').getByRole('button',{name:language==='zh'?'外观设置':'Appearance',exact:true})).toBeFocused()
+  await expect(page.locator('header').getByRole('button',{name:language==='zh'?'显示与偏好':'Display & preferences',exact:true})).toBeFocused()
  }
 })
 test('preset keyboard controls keep scroll, target sizes and readable contrast',async({page})=>{

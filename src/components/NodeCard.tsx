@@ -5,7 +5,7 @@ import {SpeedIndicators} from './SpeedIndicators'
 import {ResourceMetric} from './ResourceMetric'
 import {Status} from './NodeIdentity'
 import { tr, locale } from '../lib/i18n.ts'
-import { Clock3, Server, ArrowUpRight, ArrowDownUp, CalendarDays } from 'lucide-react';
+import { Clock3, Server,  ArrowDownUp, CalendarDays } from 'lucide-react';
 import type { Node } from '@/lib/api';
 import type { Preferences, CardInfo } from '@/lib/appearance';
 import { Flag, OsIcon } from './NodeIcons';
@@ -38,9 +38,9 @@ export function NodeCard({ node, onOpen, onOpenRoutes, probe = 'auto', prefs, in
         {info.uptime && <span title={tr("在线时长")}><Clock3 size={14}/><b>{m ? uptime(m.uptime) : '—'}</b></span>}
         {info.price && node.price > 0 && <span className="tag node-price">{money(node.price, node.currency)} / {tr(Object.hasOwn(CYCLES, node.billing_cycle) ? CYCLES[node.billing_cycle] : node.billing_cycle)}</span>}
       </div>}
-      {notes.length > 0 && <div className="node-footer"><div className="node-remarks" aria-label={tr("备注")}><RemarkTags texts={notes.slice(0,3)} compact/>{(notes.length>3 || notes.some(text=>Array.from(text).length>24)) && <button className="remark-more" onClick={onOpen} aria-label={tr("查看完整备注")} title={tr("查看完整备注")}>{notes.length>3?`+${notes.length-3}`:<ArrowUpRight size={14}/>}</button>}</div></div>}
+      {notes.length > 0 && <div className="node-footer"><div className={`node-remarks${notes.length<=3&&notes.every(text=>Array.from(text).length<=10)?" short-remarks":""}`} aria-label={tr("备注")}><RemarkTags texts={notes}/></div></div>}
     </section></div>;
-    return <article data-density={prefs.infoDensity} data-indicator={prefs.graph} className={`node-card compact-network-card graphic-card ${!node.online ? 'node-offline' : ''}`}>
+    return <article data-density={prefs.layout==='compact'?'overview':'full'} data-indicator={prefs.graph} className={`node-card compact-network-card graphic-card ${!node.online ? 'node-offline' : ''}`}>
     <button data-node-id={node.id} className="node-open" onClick={onOpen} aria-label={tr("查看 {0}", node.name)}>
       <div className="node-heading"><div className="node-symbol">{node.country ? (prefs.icons ? <Flag code={node.country} key={node.country}/> : node.country) : <Server size={20}/>}</div><div className="node-identity"><h3 title={node.name}>{node.name}</h3><p>{prefs.icons && node.os && <OsIcon os={node.os} key={node.os}/>}{node.os ? osName(node.os) : tr("等待首次上报")}</p></div><div className="node-status-group">{(node.ipv4 || node.ipv4_pin || node.ipv6 || node.ipv6_pin) && <div className="node-ip-tags" aria-label={tr("IP 协议")} >{(node.ipv4 || node.ipv4_pin) && <span className="tag">V4</span>}{(node.ipv6 || node.ipv6_pin) && <span className="tag">V6</span>}</div>}<Status node={node}/></div></div>
 
