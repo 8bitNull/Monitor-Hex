@@ -13,6 +13,10 @@ for(const width of [320,390,720,900,1440])test(`network readings fit in both lan
   await page.addInitScript(({language,appearance})=>{localStorage.setItem('monitor-next-language',language);const p=JSON.parse(localStorage.getItem('monitor-next')!);localStorage.setItem('monitor-next',JSON.stringify({...p,appearance}))},{language,appearance})
   await page.goto('/');const card=page.locator('.node-card');await expect(card.locator('.ping-probe')).toHaveCount(3)
   await expect(card.locator('.latency-bars')).toHaveCount(3);await expect(card.locator('.latency-timeout')).toHaveCount(3)
+  for(const reading of await card.locator('.latency-reading').all()){
+   const offset=await reading.evaluate(el=>{const svg=el.querySelector('svg')!,box=svg.getBBox(),matrix=svg.getScreenCTM()!,value=el.querySelector('.latency-link')!.getBoundingClientRect();return Math.abs((box.y+box.height/2)*matrix.d+matrix.f-(value.top+value.height/2))})
+   expect(offset).toBeLessThanOrEqual(1)
+  }
   await expect(card.locator('.speed-direction')).toHaveText(language==='zh'?['上行','下行']:['Upload','Download'])
   const controls=card.locator('.latency-link');for(const button of await controls.all()){await button.scrollIntoViewIfNeeded();const b=(await button.boundingBox())!;expect(await button.evaluate((el,{x,y})=>el.contains(document.elementFromPoint(x,y)),{x:b.x+b.width/2,y:b.y+b.height/2})).toBeTruthy()}
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
@@ -40,7 +44,7 @@ test('home route count shows the latency indicator for every selected route',asy
 test('latency indicator stays close to the route label',async({page})=>{
  await page.setViewportSize({width:428,height:900});await setup(page);await page.goto('/')
  const reading=page.locator('.node-card .ping-probe').first().locator('.latency-reading');const label=reading.locator(':scope > span');const bars=reading.locator(':scope > .latency-bars')
- const labelBox=(await label.boundingBox())!,barsBox=(await bars.boundingBox())!;expect(barsBox.x-(labelBox.x+labelBox.width)).toBeLessThanOrEqual(12);expect(barsBox.width).toBeGreaterThanOrEqual(140)
+ const labelBox=(await label.boundingBox())!,barsBox=(await bars.boundingBox())!;expect(barsBox.x-(labelBox.x+labelBox.width)).toBeLessThanOrEqual(12);expect(barsBox.width).toBeGreaterThan(80);const valueBox=(await reading.locator(".latency-link").boundingBox())!;expect(Math.abs(valueBox.x-barsBox.x-barsBox.width-6)).toBeLessThanOrEqual(1)
  await page.setViewportSize({width:1440,height:900});await page.reload();const desktopBars=page.locator('.node-card .ping-probe').first().locator('.latency-bars');expect((await desktopBars.boundingBox())!.width).toBeGreaterThan(180);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
 })
 test('home latency window defaults to one hour and can show six or twenty-four hours',async({page})=>{
@@ -112,4 +116,14 @@ test('latency bars preserve timestamp gaps, threshold colors and capped actual v
  await expect(bars.locator('[data-tone=good]')).toHaveCount(1);await expect(bars.locator('[data-tone=fair]')).toHaveCount(1);await expect(bars.locator('.latency-timeout')).toHaveCount(1)
  await expect(bars.locator('[data-capped=true] title')).toContainText('600 ms');await expect(page.locator('.latency-link')).toContainText('600')
  const heights=await bars.locator('rect').evaluateAll(els=>els.map(e=>Number(e.getAttribute('height'))));expect(heights).toEqual([3,15,30])
+})
+
+test('latency summary keeps raw bucket statistics and clears window loss on zoom',async({page})=>{
+ await setup(page);await page.goto('/node/1?routes=1#latency')
+ const summary=page.locator('.latency-summary');await expect(summary).toContainText('16.3 ms');await expect(summary).toContainText('2.5%')
+ await page.getByRole('checkbox',{name:'平滑显示'}).check();await expect(summary).toContainText('16.3 ms')
+ const handle=page.locator('.latency-brush .recharts-brush-traveller').first();await handle.focus();await page.keyboard.press('ArrowRight')
+ await expect(page.getByRole('button',{name:'恢复完整范围'})).toBeVisible();await expect(summary).not.toContainText('2.5%');await expect(summary).toContainText('24.5 ms')
+ await page.getByRole('button',{name:'恢复完整范围'}).click();await expect(summary).toContainText('16.3 ms');await expect(summary).toContainText('2.5%')
+ await page.locator('.latency-explanation summary').click();await expect(page.locator('.latency-explanation')).toContainText('原始探测包')
 })

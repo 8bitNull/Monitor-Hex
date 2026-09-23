@@ -63,14 +63,17 @@
 .node-card .route-matrix[data-route-count="2"] .matrix-values,.node-card .route-matrix[data-route-count="3"] .matrix-values {margin-block:0}
 .node-card .route-matrix[data-route-count="2"] .ping-probe+.ping-probe,.node-card .route-matrix[data-route-count="3"] .ping-probe+.ping-probe {margin-top:0}
 @media(max-width:360px){
- .node-card .latency-reading {grid-template-columns:fit-content(10ch) 48px auto}
- .node-card[data-indicator=minimal] .route-matrix[data-route-count="1"] .latency-reading {grid-template-columns:48px auto}
  .node-card .latency-link {font-size:13px}
  .node-card .latency-link small {font-size:11px}
 }
 @media(min-width:721px){
  .node-card .latency-reading {grid-template-columns:auto minmax(120px,220px) auto}
  .node-card[data-indicator=minimal] .route-matrix[data-route-count="1"] .latency-reading {grid-template-columns:minmax(120px,220px) auto}
+}
+/* On phones, reserve the readings first and give the sample plot all remaining space. */
+@media(max-width:720px){
+ .node-card .latency-reading {grid-template-columns:fit-content(8ch) minmax(0,1fr) max-content;gap:6px}
+ .node-card[data-indicator=minimal] .route-matrix[data-route-count="1"] .latency-reading {grid-template-columns:minmax(0,1fr) max-content}
 }
 
 .node-card[data-indicator] .speed-indicators strong {flex-direction:row;flex-wrap:nowrap}

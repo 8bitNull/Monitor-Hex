@@ -1,4 +1,14 @@
 export const english: Record<string, string> = {
+"采样均值":"Sample mean",
+"统计说明":"About statistics",
+"均值和 P95 基于当前范围内各采样桶的中位值，不代表原始探测包统计。":"Mean and P95 use bucket medians in the visible range, not individual probe packets.",
+"实线表示采样中位值，阴影表示最小至最大延迟；平滑仅影响曲线。":"Lines show bucket medians; shading shows minimum to maximum latency. Smoothing only affects the line.",
+"丢包率来自完整查询窗口；缩放范围缺少样本数，暂不计算。":"Loss covers the full query window. Zoomed loss is unavailable without packet counts.",
+"采样中位值":"Bucket median",
+"阴影：采样范围":"Shading: sample range",
+"采样范围":"Sample range",
+"恢复完整范围":"Reset range",
+
 "节点概览": "Node overview",
 "资源使用": "Resource usage",
 "用量与账期": "Usage and billing",
