@@ -4,14 +4,14 @@ import {RemarkTags} from './RemarkTags'
 import {SpeedIndicators} from './SpeedIndicators'
 import {ResourceMetric} from './ResourceMetric'
 import {Status} from './NodeIdentity'
-import { tr } from '../lib/i18n.ts'
-import { Clock3, Server, ArrowUpRight } from 'lucide-react';
+import { tr, locale } from '../lib/i18n.ts'
+import { Clock3, Server, ArrowUpRight, ArrowDownUp, CalendarDays } from 'lucide-react';
 import type { Node } from '@/lib/api';
 import type { Preferences, CardInfo } from '@/lib/appearance';
 import { Flag, OsIcon } from './NodeIcons';
 import { PingStats } from '@/components/PingStats';
 import { bytes, daysUntil, FOREVER, osName, pair, percent, uptime, money, CYCLES } from '@/lib/format';
-import { trafficPeriodLabel, trafficUsage } from '@/lib/traffic';
+import { trafficPeriodLabel, trafficUsage, nextTrafficReset } from '@/lib/traffic';
 export function NodeCard({ node, onOpen, onOpenRoutes, probe = 'auto', prefs, info = prefs.cardInfo }: {
     node: Node;
     onOpen: () => void;
@@ -27,8 +27,11 @@ export function NodeCard({ node, onOpen, onOpenRoutes, probe = 'auto', prefs, in
     const used = traffic.value;
     const trafficLabel = tr(trafficPeriodLabel(node));
     const trafficHint = tr("流量周期：每月 {0} 日重置，本周期自 {1} 起", traffic.resetDay, traffic.periodKey);
+    const quotaPercent = node.traffic_limit > 0 ? used / node.traffic_limit * 100 : null;
+    const quotaState = quotaPercent === null ? 'unlimited' : quotaPercent > 100 ? 'over' : quotaPercent >= 80 ? 'near' : 'normal';
+    const nextReset = nextTrafficReset(node.traffic_reset_day);
     const days = daysUntil(node.expires_at);
-    const expiry = days === null ? tr("未设到期") : days < 0 ? tr("已过期 {0} 天", -days) : tr("{0} 天后到期", days);
+    const expiry = days === null ? tr("未设到期") : days < 0 ? tr("已到期") : days === 0 ? tr("今天到期") : tr("剩余 {0} 天", days);
     const hasSecondary = info.uptime || (info.price && node.price > 0) || notes.length > 0;
     const secondary = hasSecondary && <div className="node-secondary"><section className="node-more" aria-label={tr("更多信息")}>
       {(info.uptime || (info.price && node.price > 0)) && <div className="node-timing">
@@ -47,8 +50,8 @@ export function NodeCard({ node, onOpen, onOpenRoutes, probe = 'auto', prefs, in
         <SpeedIndicators key={node.id} node={node}/>
         {info.connections && <div className="node-connections">{([['TCP',m?.tcp],['UDP',m?.udp]] as const).map(([label,value])=><div key={label}><span>{label}</span><b>{value === undefined ? '—' : value.toLocaleString()}</b></div>)}</div>}
         {(info.traffic || info.expiry) && <div className="card-billing">
-          {info.traffic && <div className="network-box traffic-summary" title={trafficHint}><div><span><small>{trafficLabel}</small></span><b>{bytes(used)} <small>/ {node.traffic_limit > 0 ? bytes(node.traffic_limit) : FOREVER}</small></b></div>{node.traffic_limit > 0 && <div className="quota"><i style={{width:`${Math.min(100,percent(used,node.traffic_limit))}%`}}/></div>}</div>}
-          {info.expiry && <div className={`card-expiry ${days !== null && days <= 7 ? 'expiring' : ''}`}><span>{tr("到期时间")}</span><b>{days !== null && node.expires_at ? node.expires_at.replaceAll('-','.') : '—'}</b><small>{expiry}</small></div>}
+          {info.traffic && <div className="network-box traffic-summary" data-quota-state={quotaState} title={trafficHint}><div><span className="billing-label"><ArrowDownUp size={13} aria-hidden="true"/><small>{trafficLabel}</small></span><b>{bytes(used)} <small>/ {node.traffic_limit > 0 ? bytes(node.traffic_limit) : FOREVER}</small></b></div>{quotaPercent !== null ? <div className="quota-meter"><div className="quota" role="progressbar" aria-label={tr("流量额度使用率")} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(100,Math.max(0,quotaPercent))} aria-valuetext={`${quotaPercent.toFixed(1)}%`}><i style={{width:`${Math.min(100,Math.max(0,quotaPercent))}%`}}/></div><span className="quota-percent">{Number(quotaPercent.toFixed(1))}%</span></div> : nextReset && <small className="traffic-reset">{tr("{0}重置",nextReset.toLocaleDateString(locale(),{month:'numeric',day:'numeric'}))}</small>}</div>}
+          {info.expiry && <div className={`card-expiry ${days !== null && days <= 7 ? 'expiring' : ''}`} data-expiry-state={days===null?'unknown':days<0?'expired':days<=7?'soon':'normal'}><span className="billing-label"><CalendarDays size={13} aria-hidden="true"/>{tr("到期时间")}</span><b>{days !== null && node.expires_at ? node.expires_at.replaceAll('-','.') : '—'}</b><small>{days!==null&&days>=0&&days<=7&&<i className="expiry-dot" aria-hidden="true"/>}{expiry}</small></div>}
         </div>}
       </div>
     </button>

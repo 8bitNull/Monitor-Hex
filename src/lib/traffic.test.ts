@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import {trafficPeriodKey, trafficPeriodLabel, trafficPeriodStart, trafficUsed, trafficUsage} from './traffic.ts'
+import {nextTrafficReset, trafficPeriodKey, trafficPeriodLabel, trafficPeriodStart, trafficUsed, trafficUsage} from './traffic.ts'
 
 const at = (year: number, month: number, day: number, hour = 12) => new Date(year, month - 1, day, hour)
 
@@ -29,3 +29,9 @@ assert.equal(calendarMonthReport.isCurrentPeriod, false)
 assert.equal(trafficPeriodLabel({...node, traffic_reset_day: 1}), '本月用量')
 
 console.log('traffic reset-day periods and accounting modes passed')
+
+assert.equal(trafficPeriodKey(nextTrafficReset(31, at(2026, 1, 31))!), '2026-02-28')
+assert.equal(trafficPeriodKey(nextTrafficReset(31, at(2028, 2, 29))!), '2028-03-31')
+assert.equal(trafficPeriodKey(nextTrafficReset(1, at(2026, 12, 20))!), '2027-01-01')
+assert.equal(nextTrafficReset(undefined), null)
+assert.equal(nextTrafficReset(0), null)

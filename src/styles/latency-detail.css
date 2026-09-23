@@ -78,7 +78,6 @@
 .latency-chart-key {display:flex;align-items:center;gap:7px}
 .latency-band-key {width:18px;height:9px;background:currentColor;opacity:.1;border-radius:2px}
 .latency-line-key {width:18px;border-top:2px solid;margin-left:12px}
-.loss-track-context,.loss-track-desktop-note {display:none}
 @media(min-width:900px){
  .detail-chart-toolbar[data-history-tab=latency] .detail-tabs {order:0}
  .detail-chart-toolbar[data-history-tab=latency] .detail-submenu-divider {order:1}
@@ -99,8 +98,6 @@
  .latency-range-heading b {margin-left:12px;font-weight:500;color:var(--foreground)}
  .latency-range-heading button {min-height:28px;margin-right:12px;color:var(--tone)}
  .latency-view .loss-track {position:relative;margin-top:8px;padding-top:12px;padding-bottom:8px}
- .loss-track-desktop-note {display:inline}
- .loss-track-context {display:flex;justify-content:space-between;gap:16px;font-size:11px;color:var(--muted-foreground);margin-top:4px}
  .loss-track-scrubber {position:absolute;left:10px;top:51px;opacity:0;width:calc(100% - 62px);height:36px}
  .loss-track-scrubber:focus-visible {opacity:1;outline:2px solid var(--tone);outline-offset:2px}
  .loss-track-reading {font-size:10px;min-height:16px}
@@ -108,7 +105,6 @@
 @media(min-width:900px) and (max-width:1199px){
  .latency-view>.latency-summary {gap:12px}
  .detail-chart-toolbar[data-history-tab=latency] .detail-ranges {margin-left:auto}
- .loss-track-desktop-note {display:none}
 }
 @media(max-width:899px){.latency-chart-key {gap:4px}.latency-line-key {margin-left:4px;width:10px}.latency-band-key {width:10px}}
 @media(min-width:900px){
@@ -117,3 +113,6 @@
  .detail-chart-toolbar[data-history-tab=latency] .detail-smooth {gap:6px;margin-left:4px}
  .detail-chart-toolbar[data-history-tab=latency] .detail-submenu-divider {margin-inline:4px}
 }
+
+.latency-explanation summary {font-size:0;min-width:44px;min-height:44px;justify-content:center}
+.latency-explanation summary::after {content:"ⓘ";font-size:15px}

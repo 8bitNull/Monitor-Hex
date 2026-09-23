@@ -34,7 +34,7 @@ test('route line and legend styles remain stable through range and selection cha
  await page.setViewportSize({width:1440,height:900});await setup(page,20);await page.getByRole('button',{name:'网络延迟',exact:true}).click();await page.locator('.detail-probe-legend>summary').click();const hidden=page.locator('.probe-options .probe-select[aria-pressed="false"]');while(await hidden.count())await hidden.first().click();await page.keyboard.press('Escape')
  const lines=page.locator('.recharts-line-curve');await expect(lines).toHaveCount(20)
  const styles=()=>lines.evaluateAll(elements=>elements.map(el=>[el.getAttribute('name'),el.getAttribute('stroke'),el.getAttribute('stroke-dasharray')]))
- const before=await styles();expect(new Set(before.map(v=>v.slice(1).join('|'))).size).toBe(20)
+ const before=await styles();expect(new Set(before.map(v=>v[1])).size).toBe(20);expect(before.every(v=>v[2]===null)).toBeTruthy()
  await page.locator('.detail-probe-legend>summary').click()
  for(const [name,color,dash] of before){const line=page.locator('.probe-options').getByRole('button',{name:name!,exact:true}).locator('svg line');expect(await line.getAttribute('stroke')).toBe(color);expect(await line.getAttribute('stroke-dasharray')).toBe(dash)}
  await page.keyboard.press('Escape');await page.getByRole('button',{name:'24 小时',exact:true}).click();await expect(lines).toHaveCount(20);expect(await styles()).toEqual(before)

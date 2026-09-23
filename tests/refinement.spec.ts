@@ -76,7 +76,7 @@ test('zero, unavailable, warning, long facts and failed latency retain honest st
  await expect(cards.nth(0).locator('.bar-number').first()).toHaveText('0.0%')
  for(const i of [1,2,3])await expect(cards.nth(i).locator('.bar-number').first()).toHaveText('—')
  await expect(cards.nth(4).locator('.resource').first()).toHaveClass(/danger/)
- await expect(cards.nth(4).locator('.expiring')).toContainText('已过期')
+ await expect(cards.nth(4).locator('.expiring')).toContainText('已到期');await expect(cards.nth(4).locator('.card-expiry')).toHaveAttribute('data-expiry-state','expired')
  await expect(cards.nth(5).locator('.expiring')).toBeVisible()
  for(const card of await cards.all()){
   await card.scrollIntoViewIfNeeded();expect(await card.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy()

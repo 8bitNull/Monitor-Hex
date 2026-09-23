@@ -1,4 +1,10 @@
 export const english: Record<string, string> = {
+"已到期":"Expired",
+"剩余 {0} 天":"{0} days left",
+"{0}重置":"Resets {0}",
+"{0}条线路":"{0} routes",
+"恢复范围":"Reset range",
+"部分数据缺失":"Some data missing",
 "线路选择":"Routes",
 "采样范围（最小–最大）":"Sample range (min\u2013max)",
 "拖动两端缩放 · 双击恢复全范围":"Drag handles to zoom \u00b7 Double-click to reset",

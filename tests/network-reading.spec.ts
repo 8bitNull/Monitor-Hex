@@ -41,9 +41,9 @@ test('home route count shows the latency indicator for every selected route',asy
   if(count==='3'){const rows=await card.locator('.ping-probe .latency-reading').evaluateAll(els=>els.map(el=>el.getBoundingClientRect().y));expect(rows[1]-rows[0]).toBeLessThanOrEqual(45);expect(rows[2]-rows[1]).toBeLessThanOrEqual(45)}
 }
 })
-test('latency indicator stays close to the route label',async({page})=>{
+test('single route latency indicator fills the available row',async({page})=>{
  await page.setViewportSize({width:428,height:900});await setup(page);await page.goto('/')
- const reading=page.locator('.node-card .ping-probe').first().locator('.latency-reading');const label=reading.locator(':scope > span');const bars=reading.locator(':scope > .latency-bars')
+ const reading=page.locator('.node-card .ping-probe').first().locator('.latency-reading');const label=reading;const bars=reading.locator(':scope > .latency-bars')
  const labelBox=(await label.boundingBox())!,barsBox=(await bars.boundingBox())!;expect(barsBox.x-(labelBox.x+labelBox.width)).toBeLessThanOrEqual(12);expect(barsBox.width).toBeGreaterThan(80);const valueBox=(await reading.locator(".latency-link").boundingBox())!;expect(Math.abs(valueBox.x-barsBox.x-barsBox.width-6)).toBeLessThanOrEqual(1)
  await page.setViewportSize({width:1440,height:900});await page.reload();const desktopBars=page.locator('.node-card .ping-probe').first().locator('.latency-bars');expect((await desktopBars.boundingBox())!.width).toBeGreaterThan(180);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
 })
@@ -123,7 +123,7 @@ test('latency summary keeps raw bucket statistics and clears window loss on zoom
  const summary=page.locator('.latency-summary');await expect(summary).toContainText('16.3 ms');await expect(summary).toContainText('2.5%')
  await page.getByRole('checkbox',{name:'平滑显示'}).check();await expect(summary).toContainText('16.3 ms')
  const handle=page.locator('.latency-brush .recharts-brush-traveller').first();await handle.focus();await page.keyboard.press('ArrowRight')
- await expect(page.getByRole('button',{name:'恢复完整范围'})).toBeVisible();await expect(summary).not.toContainText('2.5%');await expect(summary).toContainText('24.5 ms')
- await page.getByRole('button',{name:'恢复完整范围'}).click();await expect(summary).toContainText('16.3 ms');await expect(summary).toContainText('2.5%')
+ await expect(page.getByRole('button',{name:'恢复范围'})).toBeVisible();await expect(summary).not.toContainText('2.5%');await expect(summary).toContainText('24.5 ms')
+ await page.getByRole('button',{name:'恢复范围'}).click();await expect(summary).toContainText('16.3 ms');await expect(summary).toContainText('2.5%')
  await page.locator('.latency-explanation summary').click();await expect(page.locator('.latency-explanation')).toContainText('原始探测包')
 })

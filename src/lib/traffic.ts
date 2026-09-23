@@ -79,3 +79,10 @@ export function trafficUsage(node: TrafficNode, now = new Date()) {
     isCurrentPeriod: !reportedStart || trafficPeriodKey(reportedStart) === trafficPeriodKey(periodStart),
   }
 }
+
+/** Only show a future reset date when the backend supplied a valid reset day. */
+export function nextTrafficReset(value: unknown, now = new Date()): Date | null {
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < 1 || value > 31) return null
+  const start = trafficPeriodStart(value, now)
+  return periodStartFor(start.getFullYear(), start.getMonth() + 1, value)
+}
