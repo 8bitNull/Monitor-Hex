@@ -1,0 +1,83 @@
+{
+  "conditions": "1.6 Mbps, 150ms latency, 4x CPU, gzip fixture server, six nodes, Chromium disk cache",
+  "results": [
+    {
+      "run": 0,
+      "cache": "cold",
+      "ready": 3203.699999999255,
+      "resource": [
+        {
+          "start": 2383.39999999851,
+          "end": 3062.10000000149,
+          "transfer": 96859,
+          "encoded": 96559
+        }
+      ]
+    },
+    {
+      "run": 0,
+      "cache": "warm",
+      "ready": 1823,
+      "resource": [
+        {
+          "start": 1465.3999999985099,
+          "end": 1465.3999999985099,
+          "transfer": 0,
+          "encoded": 96559
+        }
+      ]
+    },
+    {
+      "run": 1,
+      "cache": "cold",
+      "ready": 3218.5,
+      "resource": [
+        {
+          "start": 2391.300000000745,
+          "end": 3066.699999999255,
+          "transfer": 96859,
+          "encoded": 96559
+        }
+      ]
+    },
+    {
+      "run": 1,
+      "cache": "warm",
+      "ready": 1851.6000000014901,
+      "resource": [
+        {
+          "start": 1477.8999999985099,
+          "end": 1477.8999999985099,
+          "transfer": 0,
+          "encoded": 96559
+        }
+      ]
+    },
+    {
+      "run": 2,
+      "cache": "cold",
+      "ready": 3209.400000002235,
+      "resource": [
+        {
+          "start": 2378.900000002235,
+          "end": 3121.5,
+          "transfer": 96859,
+          "encoded": 96559
+        }
+      ]
+    },
+    {
+      "run": 2,
+      "cache": "warm",
+      "ready": 2187,
+      "resource": [
+        {
+          "start": 1489.2000000029802,
+          "end": 1489.2000000029802,
+          "transfer": 0,
+          "encoded": 96559
+        }
+      ]
+    }
+  ]
+}

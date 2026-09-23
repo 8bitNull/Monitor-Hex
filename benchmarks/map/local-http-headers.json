@@ -1,0 +1,29 @@
+{
+  "checkedAt": "2026-09-23T10:44:11.851Z",
+  "results": [
+    {
+      "url": "http://127.0.0.1:4176/",
+      "status": 200,
+      "encoding": "gzip",
+      "cache": "no-cache",
+      "vary": "Accept-Encoding",
+      "decodedBytes": 456
+    },
+    {
+      "url": "http://127.0.0.1:4176/assets/index-BFMYxXt_.js",
+      "status": 200,
+      "encoding": "gzip",
+      "cache": "public, max-age=31536000, immutable",
+      "vary": "Accept-Encoding",
+      "decodedBytes": 370015
+    },
+    {
+      "url": "http://127.0.0.1:4176/assets/WorldMap-BTJLxTmQ.js",
+      "status": 200,
+      "encoding": "gzip",
+      "cache": "public, max-age=31536000, immutable",
+      "vary": "Accept-Encoding",
+      "decodedBytes": 271631
+    }
+  ]
+}

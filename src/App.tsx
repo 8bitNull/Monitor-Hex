@@ -1,3 +1,4 @@
+import {MapPanel,loadMap} from './components/MapPanel';
 import {MobileSearch} from './components/MobileSearch';
 import {countryName} from './lib/regionNames';
 import {RegionPicker} from './components/RegionPicker';
@@ -33,7 +34,7 @@ type Me = {
 // 188 kB), with the rest fetched immediately after it paints.
 const loadDetail = () => import("@/components/NodeDetail").then((m) => ({ default: m.NodeDetail }));
 const NodeDetail = lazy(loadDetail);
-const WorldMap = lazy(() => import('@/components/WorldMap').then(m => ({ default: m.WorldMap })));
+
 // `/node/{id}` is a real page: it survives a reload, can be linked to, and back
 // leaves the detail view rather than the site. The hub serves index.html for any
 // unknown path, so no server-side route is required.
@@ -119,12 +120,19 @@ export default function App({ siteDefaults = defaults }: {
         return () => removeEventListener('scroll', update);
     }, [open]);
     const mapVisible = prefs.modules.map && !compactViewport;
+    useEffect(()=>{
+        if(open!==null)return;
+        let stopped=false,timer:ReturnType<typeof setTimeout>|undefined,idle:number|undefined;
+        const warmDetail=()=>{if(!stopped)timer=setTimeout(()=>{const run=()=>{if(!stopped)void loadDetail().catch(()=>{})};if('requestIdleCallback' in window)idle=requestIdleCallback(run,{timeout:3000});else run()},4000)};
+        if(mapVisible)void loadMap().then(warmDetail,()=>{});else warmDetail();
+        return()=>{stopped=true;clearTimeout(timer);if(idle!==undefined)cancelIdleCallback(idle)};
+    },[mapVisible,open]);
     const { status, region } = browse;
     const shownColumns=compactViewport?browse.mobileColumns:browse.columns;
     const patchBrowse = (patch: Partial<Browse>) => setBrowse(prev => ({ ...prev, ...patch }));
     const setQuery = (query: string) => patchBrowse({ query });
     const setStatus = (status: string) => patchBrowse({ status });
-    const setRegion = (region: string) => patchBrowse({ region });
+    const setRegion = useCallback((region:string)=>setBrowse(prev=>({...prev,region})),[]);
     const pingVersion = useSyncExternalStore(subscribePing, pingRevision);
     useEffect(() => { try {
         sessionStorage.setItem('monitor-next-browse-v1', JSON.stringify(browse));
@@ -149,11 +157,6 @@ export default function App({ siteDefaults = defaults }: {
     }, []);
     useEffect(() => {
         loadMe();
-        // Warmed here rather than left to Suspense, which requests the chunk only
-        // once a render reaches the detail view, itself waiting on /me. Without this
-        // the split trades its first paint for a full-page skeleton over the first
-        // node opened: 2.6s click-to-chart on 4G against 1.4s unsplit, 1.7s warm.
-        void loadDetail();
     }, [loadMe]);
     // The status page was closed while this tab was open. `me` holds whatever it
     // reported at load, so it is re-queried; the effect below then directs an
@@ -168,6 +171,7 @@ export default function App({ siteDefaults = defaults }: {
             location.assign('/admin/');
     }, [me]);
     const sorted = [...(nodes ?? [])].sort((a, b) => a.sort - b.sort || a.id - b.id);
+    const mapKey=JSON.stringify(sorted.filter(n=>(browse.status==='all'||(browse.status==='online'?n.online:!n.online))&&(system==='all'||systemKey(n.os)===system)).map(({id,name,country,online})=>({id,name,country,online})));
     const selected = sorted.find((n) => n.id === open);
     const filtered = browseNodes(sorted, browse.view === "cards" ? {...browse,sort:"default"} : browse).filter(n => (system === 'all' || systemKey(n.os) === system));
     const pageKey=JSON.stringify([browse.query,browse.status,browse.region,browse.sort,browse.direction,browse.probe,system]);
@@ -249,9 +253,9 @@ export default function App({ siteDefaults = defaults }: {
         {open !== null ? (!nodes ? (<Skeleton className="h-96"/>) : selected ? (<Suspense fallback={<Skeleton className="h-96"/>}>
               <NodeDetail detailInfoMode={prefs.detailInfoMode} onDetailInfoMode={detailInfoMode=>selectDisplay({detailInfoMode})} key={selected.id} node={selected} probe={prefs.probe} nodes={sorted} onSwitch={id=>{const q=new URLSearchParams(location.search);q.delete("eventStart");q.delete("eventEnd");go(id,location.hash.slice(1),q.size?"?"+q:"")}}/>
             </Suspense>) : (<p className="py-16 text-center text-sm text-muted-foreground">{tr("节点不存在或未公开。")}<button className="underline" onClick={() => go(null)}>{tr("返回列表")}</button>
-            </p>)) : !nodes ? (<div className="node-grid home-loading" aria-label={tr("正在加载节点")} aria-busy="true">
+            </p>)) : !nodes ? (<>{mapVisible&&<MapPanel viewSwitch={viewSwitch} nodeSnapshot={mapKey} region={region} onRegion={setRegion} pendingNodes/>}<div className="node-grid home-loading" aria-label={tr("正在加载节点")} aria-busy="true">
             {[0, 1, 2].map((i) => (<div key={i} className="loading-card" aria-hidden="true"><Skeleton className="loading-title"/><div className="loading-metrics">{[0,1,2,3].map(n=><Skeleton key={n}/>)}</div><Skeleton className="loading-speed"/><Skeleton className="loading-route"/></div>))}
-          </div>) : (<>
+          </div></>) : (<>
             <section className="overview-heading"><div className="page-heading"><h1>{tr("服务器总览")}</h1><span className={`live-label connection-${connection}`} role="status" title={[{connecting:tr("正在连接"),realtime:tr("实时连接"),polling:tr("轮询更新"),disconnected:tr("连接中断 \u00B7 数据可能已过期")}[connection],lastUpdated ? new Date(lastUpdated).toLocaleString(locale()) : tr("等待首次数据")].join(" · ")}><Radio size={14}/><span>{{ connecting: tr("正在连接"), realtime: tr("实时连接"), polling: tr("轮询更新"), disconnected: tr("连接中断 \u00B7 数据可能已过期") }[connection]}</span></span></div>
             <p className="update-time">{lastUpdated ? tr("最后更新：{0}", new Date(lastUpdated).toLocaleString(locale())) : tr("等待首次数据")}</p></section>
             <Summary status={status} onStatus={setStatus} onCollapse={summaryCollapsed=>setPrefs(prev=>({...prev,summaryCollapsed}))} nodes={sorted} prefs={prefs} loadAlerts={loadAlerts} onAlert={event=>go(event.nodeId,"",`?eventStart=${event.start}&eventEnd=${event.end??event.last}`)}/>
@@ -271,7 +275,8 @@ export default function App({ siteDefaults = defaults }: {
 
 
              {browse.view === 'table' && ['latency','loss'].includes(browse.sort) && <p className="sort-note">{tr("延迟和丢包按所选线路比较；无效或旧数据排在末尾。已读取")}{sorted.filter(n => getPing(n.id)?.data).length}/{sorted.length}{tr("个节点。")}{tr("各节点所选线路可能不同，延迟比较请注意探测目标。")}</p>}
-            {mapVisible && <Suspense fallback={<div className="map-placeholder"/>}><WorldMap viewSwitch={viewSwitch} nodes={sorted.filter(n=>(status==='all'||(status==='online'?n.online:!n.online))&&(system==='all'||systemKey(n.os)===system))} region={region} onRegion={setRegion}/></Suspense>}
+            {mapVisible && <MapPanel viewSwitch={viewSwitch} nodeSnapshot={mapKey} region={region} onRegion={setRegion}/>}
+
             <div id="node-results" tabIndex={-1}>{sorted.length === 0 ? (<p className="py-16 text-center text-sm text-muted-foreground">{tr("还没有节点")}</p>) : filtered.length === 0 ? (<div className="empty-state"><p>{tr("没有符合条件的节点")}</p><Button variant="outline" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); }}>{tr("清除筛选")}</Button></div>) : browse.view === "table" ? (<NodeTable page={page} onPageChange={page=>setTablePage({key:pageKey,page})} nodes={filtered} browse={{...browse,columns:shownColumns}} onSort={sortBy} onSortChange={(sort,direction)=>patchBrowse({sort,direction})} mobile={compactViewport} warn={prefs.latencyWarn} high={prefs.latencyHigh} onOpen={id => go(id)}/>) : (<div className="node-grid" data-columns={prefs.desktopColumns}>{filtered.map(n=><NodeCard key={n.id} node={n} mobile={mobileCards} prefs={prefs} info={mobileCards && prefs.mobileInfoMode==='custom' ? prefs.mobileCardInfo || prefs.cardInfo : prefs.cardInfo} probe={prefs.probe} onOpen={()=>go(n.id)} onOpenRoutes={route=>go(n.id,"latency",`?routes=${route.kind==="all"?"all":route.id}`)}/>)}</div>)}</div>
           </>)}
       </main>

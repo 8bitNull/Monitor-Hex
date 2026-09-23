@@ -632,5 +632,11 @@ export const english: Record<string, string> = {
   "上一页":"Previous",
   "下一页":"Next",
   "页码":"Page",
-  "第 {0} / {1} 页":"Page {0} of {1}"
+  "第 {0} / {1} 页":"Page {0} of {1}",
+ "地图暂时无法加载":"Map is temporarily unavailable",
+ "地图加载较慢，节点列表仍可使用":"The map is loading slowly. The node list is still available.",
+ "地图加载中…":"Loading map…",
+ "重试地图":"Retry map",
+ "刷新页面":"Reload page",
+ "等待节点数据":"Waiting for node data"
 }

@@ -1,0 +1,86 @@
+{
+  "label": "after",
+  "cpuThrottle": 4,
+  "network": "local fixture server, no artificial latency",
+  "assets": [
+    {
+      "file": "WorldMap-BTJLxTmQ.js",
+      "bytes": 271631,
+      "gzip": 96559
+    }
+  ],
+  "results": [
+    {
+      "count": 20,
+      "run": 0,
+      "ready": 1244.199999999255,
+      "frameP95": 5.600000000000364,
+      "longTasks": 6,
+      "mapStart": 375.19999999925494
+    },
+    {
+      "count": 20,
+      "run": 1,
+      "ready": 1091,
+      "frameP95": 5.7000000000000455,
+      "longTasks": 4,
+      "mapStart": 319.5
+    },
+    {
+      "count": 20,
+      "run": 2,
+      "ready": 1090.5,
+      "frameP95": 5.7999999999999545,
+      "longTasks": 5,
+      "mapStart": 322.6000000014901
+    },
+    {
+      "count": 100,
+      "run": 0,
+      "ready": 1822.800000000745,
+      "frameP95": 16.699999999999818,
+      "longTasks": 7,
+      "mapStart": 326.69999999925494
+    },
+    {
+      "count": 100,
+      "run": 1,
+      "ready": 1823.5999999977648,
+      "frameP95": 16.59999999999991,
+      "longTasks": 7,
+      "mapStart": 308.19999999925494
+    },
+    {
+      "count": 100,
+      "run": 2,
+      "ready": 1843.6000000014901,
+      "frameP95": 16.799999999999727,
+      "longTasks": 7,
+      "mapStart": 314.5
+    },
+    {
+      "count": 500,
+      "run": 0,
+      "ready": 6984.300000000745,
+      "frameP95": 44.5,
+      "longTasks": 31,
+      "mapStart": 330
+    },
+    {
+      "count": 500,
+      "run": 1,
+      "ready": 8474,
+      "frameP95": 50,
+      "longTasks": 55,
+      "mapStart": 311
+    },
+    {
+      "count": 500,
+      "run": 2,
+      "ready": 9912.10000000149,
+      "frameP95": 49.899999999999636,
+      "longTasks": 31,
+      "mapStart": 306.8999999985099
+    }
+  ]
+}

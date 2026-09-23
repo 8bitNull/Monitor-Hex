@@ -1,5 +1,6 @@
 // A separate local-only fixture server. Never included in dist or theme.tar.gz.
 import http from 'node:http'
+import {gzipSync} from 'node:zlib'
 import { readFile } from 'node:fs/promises'
 import { resolve, extname } from 'node:path'
 import { nodes, metrics } from './fixtures.mjs'
@@ -17,6 +18,12 @@ http.createServer(async (req, res) => {
     const file = resolve(root, '.' + name)
     if (!file.startsWith(root + '/') && !file.startsWith(root + '\\')) { res.writeHead(403); return res.end() }
     const data = await readFile(file)
-    res.setHeader('content-type', types[extname(file)] || 'application/octet-stream'); res.end(data)
+    res.setHeader('content-type', types[extname(file)] || 'application/octet-stream')
+    // Optional production-like delivery for cache/transfer acceptance only.
+    if(process.env.THEME_DEMO_HTTP_CACHE==='1') {
+      res.setHeader('cache-control',/^\/assets\/.+-[^/]+\.(js|css)$/.test(url.pathname)?'public, max-age=31536000, immutable':'no-cache')
+      if(['.js','.css','.svg','.json','.html'].includes(extname(file)) && /\bgzip\b/.test(req.headers['accept-encoding']||'')) {res.setHeader('content-encoding','gzip');res.setHeader('vary','Accept-Encoding');return res.end(gzipSync(data))}
+    }
+    res.end(data)
   } catch { res.writeHead(404); res.end('Not found') }
 }).listen(Number(process.env.THEME_DEMO_PORT || 4173), '127.0.0.1', () => console.log(`Demo (sample data only): http://127.0.0.1:${process.env.THEME_DEMO_PORT || 4173}`))

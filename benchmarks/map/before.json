@@ -1,0 +1,86 @@
+{
+  "label": "before",
+  "cpuThrottle": 4,
+  "network": "local fixture server, no artificial latency",
+  "assets": [
+    {
+      "file": "WorldMap-DVN5BmRD.js",
+      "bytes": 787798,
+      "gzip": 246145
+    }
+  ],
+  "results": [
+    {
+      "count": 20,
+      "run": 0,
+      "ready": 2543.39999999851,
+      "frameP95": 177.79999999999927,
+      "longTasks": 52,
+      "mapStart": 521.1999999992549
+    },
+    {
+      "count": 20,
+      "run": 1,
+      "ready": 2904.5,
+      "frameP95": 194.39999999999964,
+      "longTasks": 53,
+      "mapStart": 600.4000000022352
+    },
+    {
+      "count": 20,
+      "run": 2,
+      "ready": 2607.099999997765,
+      "frameP95": 189,
+      "longTasks": 53,
+      "mapStart": 579.1999999992549
+    },
+    {
+      "count": 100,
+      "run": 0,
+      "ready": 3663.60000000149,
+      "frameP95": 200.20000000000073,
+      "longTasks": 54,
+      "mapStart": 811.5
+    },
+    {
+      "count": 100,
+      "run": 1,
+      "ready": 3737.199999999255,
+      "frameP95": 189,
+      "longTasks": 54,
+      "mapStart": 802.5
+    },
+    {
+      "count": 100,
+      "run": 2,
+      "ready": 3442.60000000149,
+      "frameP95": 188.79999999999927,
+      "longTasks": 56,
+      "mapStart": 897.1000000014901
+    },
+    {
+      "count": 500,
+      "run": 0,
+      "ready": 8190.39999999851,
+      "frameP95": 211.20000000000073,
+      "longTasks": 81,
+      "mapStart": 2176.800000000745
+    },
+    {
+      "count": 500,
+      "run": 1,
+      "ready": 8376.400000002235,
+      "frameP95": 200.10000000000218,
+      "longTasks": 81,
+      "mapStart": 2392.400000002235
+    },
+    {
+      "count": 500,
+      "run": 2,
+      "ready": 8278.5,
+      "frameP95": 233.29999999999927,
+      "longTasks": 84,
+      "mapStart": 2232.699999999255
+    }
+  ]
+}

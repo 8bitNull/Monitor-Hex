@@ -13,8 +13,8 @@ export function systemKey(value: string): string {
   if (/macos|darwin|mac os/.test(os)) return 'macOS'
   return 'other'
 }
-export function groupRegions(nodes: Node[]) {
-  const groups = new Map<string, Node[]>()
+export function groupRegions<T extends Pick<Node, 'country'|'online'>>(nodes: T[]) {
+  const groups = new Map<string, T[]>()
   for (const node of nodes) { const key = regionKey(node.country); if (!groups.has(key)) groups.set(key, []); groups.get(key)!.push(node) }
   return [...groups].sort(([a], [b]) => a === UNKNOWN_REGION ? 1 : b === UNKNOWN_REGION ? -1 : a.localeCompare(b)).map(([code, nodes]) => ({ code, nodes, total: nodes.length, online: nodes.filter(n => n.online).length }))
 }
