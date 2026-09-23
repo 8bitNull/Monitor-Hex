@@ -2,7 +2,7 @@
   "name": "Monitor HEX",
   "short": "hex",
   "description": "统一视觉监控主题：单节点线路、延迟历史、资源告警、地图表格与中英界面。",
-  "version": "0.1.26",
+  "version": "0.1.27",
   "author": "Monitor HEX contributors",
   "url": "https://github.com/8bitNull/monitor-theme-hex"
 }

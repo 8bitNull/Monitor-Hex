@@ -1,6 +1,6 @@
 # Monitor HEX
 
-HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.1.26**，主题短名 **hex**。
+HEX 是为 monitor-probe 制作的监控主题。当前版本 **0.1.27**，主题短名 **hex**。
 
 本版本将首页卡片整理为用量、到期、在线时长三等分，三栏内容居中，备注单行省略、费用右对齐；详情页移除重复的线路选择入口，统一通过图例和丢包线路选择操作。验收入口见 `ACCEPTANCE.md`。
 
@@ -18,9 +18,13 @@ v0.1.24 已落实体验审查的 14 项调整。包括手机三列表格、在�
 
 首页备注统一为单行省略显示，悬停或点击查看全文；用量、到期、在线时长三栏内容居中。
 
+## v0.1.27 连接数排版
+
+首页 TCP、UDP 改为两个等宽居中的指标组，名称与数值间距8px，中间使用14px浅色短竖线；桌面与手机保持一致。
+
 ## 安装
 
-升级至 **v0.1.26**：下载安装包并在后台主题管理上传覆盖；可通过 Release 中的 SHA-256 校验文件确认安装包。
+升级至 **v0.1.27**：下载安装包并在后台主题管理上传覆盖；可通过 Release 中的 SHA-256 校验文件确认安装包。
 
 从 [最新 Release](https://github.com/8bitNull/monitor-theme-hex/releases/latest) 下载 **[theme.tar.gz](https://github.com/8bitNull/monitor-theme-hex/releases/latest/download/theme.tar.gz)**。
 
@@ -219,3 +223,8 @@ git push
 | 手机首页卡片 | 桌面首页卡片 |
 |---|---|
 | ![手机卡片](screenshots/card-inline-notes/mobile.png) | ![桌面卡片](screenshots/card-inline-notes/desktop.png) |
+
+
+## v0.1.27 实际截图
+
+[手机卡片](screenshots/card-connections/mobile.png) · [桌面卡片](screenshots/card-connections/desktop.png)

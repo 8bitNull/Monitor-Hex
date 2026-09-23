@@ -153,3 +153,10 @@
 .card-notes-heading h2 {font-size:16px;font-weight:600;margin:0}
 .card-notes-heading button {min-width:44px;min-height:44px;color:var(--tone);font-size:13px}
 .card-notes-dialog p {margin:8px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.8;user-select:text}
+
+/* Compact, centered TCP/UDP pairs share one quiet separator. */
+.node-card.compact-network-card .node-connections {gap:0}
+.node-card .node-connections>div {position:relative;justify-content:center;gap:8px;padding-inline:8px}
+.node-card .node-connections>div+div::before {content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);width:1px;height:14px;background:var(--border);opacity:.7}
+.node-card .node-connections b {min-width:0;overflow-wrap:anywhere;color:var(--foreground)}
+.node-card .node-connections span {flex-shrink:0}
