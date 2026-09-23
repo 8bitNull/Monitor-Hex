@@ -1,7 +1,6 @@
-import {useState,useId,useRef,useEffect} from 'react'
+import {useId,useRef} from 'react'
 import type {OpenRoutes} from '@/lib/routeSelection'
 import {liveMetrics} from '@/lib/freshness'
-import {RemarkTags} from './RemarkTags'
 import {SpeedIndicators} from './SpeedIndicators'
 import {ResourceMetric} from './ResourceMetric'
 import {Status} from './NodeIdentity'
@@ -23,19 +22,9 @@ export function NodeCard({ node, onOpen, onOpenRoutes, probe = 'auto', prefs, in
     mobile?: boolean;
 }) {
     const notes = (info.remarks ? node.remark ?? "" : "").split(/[;；]/).map(text=>text.trim()).filter(Boolean);
-    const shortNotes=notes.filter(text=>Array.from(text).length<=16);
-    const longNotes=notes.filter(text=>Array.from(text).length>16);
-    const [notesExpanded,setNotesExpanded]=useState(false);
     const notesId=useId();
-    const notesRef=useRef<HTMLParagraphElement>(null);
-    const [notesOverflow,setNotesOverflow]=useState(false);
-    const longText=longNotes.join("；");
-    useEffect(()=>{
-        const element=notesRef.current;if(!element||notesExpanded)return;
-        const measure=()=>setNotesOverflow(element.scrollHeight>element.clientHeight+1);
-        const observer=new ResizeObserver(measure);observer.observe(element);
-        return()=>observer.disconnect();
-    },[longText,notesExpanded]);
+    const notesDialog=useRef<HTMLDialogElement>(null);
+    const notesText=notes.join(' · ');
     const m = liveMetrics(node);
     const traffic = trafficUsage(node);
     const used = traffic.value;
@@ -48,7 +37,8 @@ export function NodeCard({ node, onOpen, onOpenRoutes, probe = 'auto', prefs, in
     const hasSecondary = (info.price && node.price > 0) || notes.length > 0;
     const secondary = hasSecondary && <div className="node-secondary"><section className="node-more" aria-label={tr("更多信息")}>
       <div className="node-footer">
-        {notes.length > 0 && <div className="node-remarks" aria-label={tr("备注")}><RemarkTags texts={shortNotes}/>{longNotes.length>0&&<div className="card-long-notes"><p ref={notesRef} id={notesId} className={notesExpanded?"expanded":""}>{longText}</p>{(notesExpanded||notesOverflow)&&<button type="button" aria-expanded={notesExpanded} aria-controls={notesId} onClick={()=>setNotesExpanded(value=>!value)}>{notesExpanded?tr("收起备注"):tr("展开备注")}</button>}</div>}</div>}
+        {notes.length > 0 && <><button type="button" className="node-remarks" aria-label={tr("备注")} title={notesText} aria-haspopup="dialog" onClick={()=>notesDialog.current?.showModal()}>{notesText}</button><dialog ref={notesDialog} className="card-notes-dialog" aria-labelledby={notesId} onClick={event=>{if(event.target===event.currentTarget){const box=event.currentTarget.getBoundingClientRect();if(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom)event.currentTarget.close()}}}><div className="card-notes-heading"><h2 id={notesId}>{tr("备注")}</h2><button type="button" autoFocus onClick={()=>notesDialog.current?.close()}>{tr("关闭")}</button></div><p>{notes.join('\n')}</p></dialog></>}
+
         {info.price && node.price > 0 && <span className="tag node-price">{money(node.price, node.currency)} / {tr(Object.hasOwn(CYCLES, node.billing_cycle) ? CYCLES[node.billing_cycle] : node.billing_cycle)}</span>}
       </div>
     </section></div>;

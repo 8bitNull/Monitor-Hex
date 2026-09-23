@@ -15,7 +15,7 @@ test('compact card keeps billing above latency and three equal columns and remar
   const result=await card.evaluate(el=>{
    const box=(s:string)=>el.querySelector(s)!.getBoundingClientRect()
    const billing=box('.card-billing'),route=box('.route-matrix'),footer=box('.node-footer'),price=box('.node-price'),remarks=box('.node-remarks'),traffic=box('.traffic-summary'),expiry=box('.card-expiry'),uptime=box('.card-uptime')
-   return {order:billing.bottom<=route.top&&route.bottom<=footer.top,priceRight:Math.abs(price.right-footer.right)<1,sameRow:Math.abs(price.top-remarks.top)<2,remarksLeft:Math.abs(remarks.left-footer.left)<1,equal:Math.max(traffic.width,expiry.width,uptime.width)-Math.min(traffic.width,expiry.width,uptime.width)<1,columns:traffic.right<=expiry.left&&expiry.right<=uptime.left,overflow:[...el.querySelectorAll('.card-network,.speed-indicators>div,.node-more,.node-remarks')].some(e=>e.scrollWidth>e.clientWidth+1)}
+   return {order:billing.bottom<=route.top&&route.bottom<=footer.top,priceRight:Math.abs(price.right-footer.right)<1,sameRow:Math.abs((price.top+price.bottom)/2-(remarks.top+remarks.bottom)/2)<2,remarksLeft:Math.abs(remarks.left-footer.left)<1,equal:Math.max(traffic.width,expiry.width,uptime.width)-Math.min(traffic.width,expiry.width,uptime.width)<1,columns:traffic.right<=expiry.left&&expiry.right<=uptime.left,overflow:[...el.querySelectorAll('.card-network,.speed-indicators>div,.node-more')].some(e=>e.scrollWidth>e.clientWidth+1)}
   })
   expect(result).toEqual({order:true,priceRight:true,sameRow:true,remarksLeft:true,equal:true,columns:true,overflow:false})
   if(language==='zh'&&(width===390||width===1440))await card.screenshot({path:`tests/artifacts/card-network/${width}.png`})

@@ -11,7 +11,7 @@ test('mobile remarks share a row with price and native route menu keeps inherita
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
   for(const footer of await page.locator('.node-footer').all()){
    expect(await footer.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy()
-   expect(await footer.evaluate(el=>{const p=el.parentElement?.querySelector('.node-price')?.getBoundingClientRect(),n=el.querySelector('.node-remarks')?.getBoundingClientRect();return !p||!n||n.right<=p.left&&Math.abs(n.top-p.top)<2})).toBeTruthy()
+   expect(await footer.evaluate(el=>{const p=el.parentElement?.querySelector('.node-price')?.getBoundingClientRect(),n=el.querySelector('.node-remarks')?.getBoundingClientRect();return !p||!n||n.right<=p.left&&Math.abs((n.top+n.bottom)/2-(p.top+p.bottom)/2)<2})).toBeTruthy()
   }
  }
  const card=page.locator('.node-card').first(),select=card.locator('.route-select')

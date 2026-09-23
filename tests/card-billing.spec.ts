@@ -28,13 +28,16 @@ test('billing rows align, preserve quota states and fit narrow cards',async({pag
 })
 
 
-test('long notes expand without opening the node and keep price at the top',async({page})=>{
- await page.setViewportSize({width:320,height:900})
- const note='这是一段用于验证两行折叠及展开的很长备注。'.repeat(12)
+for(const width of [320,390,1440])test(`single line notes open complete dialog and restore focus at ${width}`,async({page})=>{
+ await page.setViewportSize({width,height:900})
+ const note='这是一段很长的完整备注。'.repeat(20)
  await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[{...nodes()[0],remark:'国际线路;'+note}]}}))
- await page.goto('/');const card=page.locator('.node-card'),text=card.locator('.card-long-notes p')
- await expect(text).toHaveCSS('-webkit-line-clamp','2');const height=(await text.boundingBox())!.height
- await card.getByRole('button',{name:'展开备注',exact:true}).click();expect((await text.boundingBox())!.height).toBeGreaterThan(height);await expect(page).not.toHaveURL(/node\//)
- await card.getByRole('button',{name:'收起备注',exact:true}).click();expect((await text.boundingBox())!.height).toBe(height)
- await expect(card.locator('.detail-remark-tag')).toHaveText('国际线路')
+ await page.goto('/');const card=page.locator('.node-card'),notes=card.getByRole('button',{name:'备注',exact:true})
+ await expect(notes).toHaveCSS('text-overflow','ellipsis');await expect(notes).toHaveCSS('white-space','nowrap');await expect(notes).toHaveAttribute('title','国际线路 · '+note)
+ await card.locator(".latency-reading").first().waitFor();const height=(await card.boundingBox())!.height
+ await notes.click();const dialog=page.getByRole('dialog',{name:'备注',exact:true});await expect(dialog).toBeVisible();await expect(dialog).toContainText(note)
+ await page.keyboard.press('Escape');await expect(dialog).not.toBeVisible();await expect(notes).toBeFocused();expect((await card.boundingBox())!.height).toBe(height)
+ await notes.click();await dialog.getByRole('button',{name:'关闭',exact:true}).click();await expect(notes).toBeFocused();await expect(page).not.toHaveURL(/node\//)
+ for(const field of await card.locator('.card-billing>div').all()){await expect(field).toHaveCSS('text-align','center');await expect(field).toHaveCSS('justify-items','center')}
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
 })
