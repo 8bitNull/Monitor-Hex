@@ -5,6 +5,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { defaults, parsePreferences } from "./lib/appearance";
+import {loadSiteConfig} from './lib/siteConfig';
 const root = createRoot(document.getElementById('root')!);
 root.render(<div className="bootstrap-loading">{tr("\u6B63\u5728\u52A0\u8F7D\u2026")}</div>);
 async function start() {
@@ -15,6 +16,7 @@ async function start() {
             siteDefaults = parsePreferences(await response.text());
     }
     catch { /* Missing or invalid site defaults never prevent the dashboard loading. */ }
+    siteDefaults = await loadSiteConfig(siteDefaults);
     root.render(<StrictMode><ErrorBoundary><App siteDefaults={siteDefaults}/></ErrorBoundary></StrictMode>);
 }
 void start();
