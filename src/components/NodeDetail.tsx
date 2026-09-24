@@ -310,7 +310,10 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
               <span>{tr("采样均值")} <b>{reading(average)}</b></span>
               <span className="latency-p95">P95 <b>{reading(percentile)}</b></span>
               <span>{tr("丢包")} <b>{!zoomed&&summaryRoute.points.length>0&&summaryRoute.loss!==null?`${summaryRoute.loss.toFixed(1)}%`:'—'}</b>{zoomed&&<small className="loss-unavailable" title={tr("丢包率来自完整查询窗口；缩放范围缺少样本数，暂不计算。")}>{tr("所选范围暂不可统计")}</small>}</span>
-              <details className="latency-explanation"><summary aria-label={tr("统计说明")} title={tr("统计说明")}>{tr("统计说明")}</summary><div><p>{tr("均值和 P95 基于当前范围内各采样桶的中位值，不代表原始探测包统计。")}</p><p>P95: {reading(percentile)}</p><p>{tr("与主图时间轴同步 · 未知留空，超时单独标记")}</p><p>{tr("拖动两端缩放 · 双击恢复全范围")}</p><p>{tr("实线表示采样中位值，阴影表示最小至最大延迟；平滑仅影响曲线。")}</p><p>{tr("丢包率来自完整查询窗口；缩放范围缺少样本数，暂不计算。")}</p></div></details>
+              <div className="latency-summary-tools">
+                <span className="latency-chart-key latency-chart-key-desktop" style={{color:style(summaryRoute.id).stroke}}>{shownProbes.length===1&&<><i className="latency-band-key"/><span title={tr("采样范围（最小–最大）")}>{tr("采样范围")}</span></>}<i className="latency-line-key"/>{smooth?tr("平滑显示"):tr("采样中位值")}</span>
+                <details className="latency-explanation"><summary aria-label={tr("统计说明")} title={tr("统计说明")}>{tr("统计说明")}</summary><div><p>{tr("均值和 P95 基于当前范围内各采样桶的中位值，不代表原始探测包统计。")}</p><p>P95: {reading(percentile)}</p><p>{tr("与主图时间轴同步 · 未知留空，超时单独标记")}</p><p>{tr("拖动两端缩放 · 双击恢复全范围")}</p><p>{tr("实线表示采样中位值，阴影表示最小至最大延迟；平滑仅影响曲线。")}</p><p>{tr("丢包率来自完整查询窗口；缩放范围缺少样本数，暂不计算。")}</p></div></details>
+              </div>
             </div>}
             <div className="latency-chart-caption"><span>{tr("延迟")} · ms</span><span className="latency-chart-key" style={{color:summaryRoute?style(summaryRoute.id).stroke:undefined}}>{shownProbes.length===1&&<><i className="latency-band-key"/><span title={tr("采样范围（最小–最大）")}>{tr("采样范围")}</span></>}<i className="latency-line-key"/>{smooth?tr("平滑显示"):tr("采样中位值")}</span></div>
             <div className="detail-chart-frame text-muted-foreground" title={tr("拖动两端缩放 · 双击恢复全范围")} onDoubleClick={()=>{setZoom(null);tooltipDismiss()}} ref={tooltipFrame} onClickCapture={tooltipClick} onPointerMove={tooltipMove} onKeyDownCapture={tooltipKey}>

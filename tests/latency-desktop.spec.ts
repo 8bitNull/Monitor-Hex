@@ -14,6 +14,12 @@ for(const width of [900,1024,1440])test(`desktop latency proposal keeps routes l
   expect(Math.abs(c.y+c.height/2-s.y-s.height/2)).toBeLessThanOrEqual(1)
   expect(f.height).toBe(378)
   expect(await page.locator('.detail-history').evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy()
+  const key=page.locator('.latency-summary-tools .latency-chart-key'),info=page.locator('.latency-explanation summary')
+  await expect(key).toBeVisible()
+  await expect(page.locator('.latency-chart-caption .latency-chart-key')).toBeHidden()
+  const k=(await key.boundingBox())!,i=(await info.boundingBox())!
+  expect(k.x+k.width).toBeLessThanOrEqual(i.x)
+  expect(Math.abs(k.y+k.height/2-i.y-i.height/2)).toBeLessThanOrEqual(1)
   await expect.poll(()=>page.locator('.detail-chart-frame .recharts-xAxis-tick-labels .recharts-cartesian-axis-tick-value').count()).toBeGreaterThan(1)
   const range=(await page.locator('.latency-range-heading').boundingBox())!,brush=(await page.locator('.latency-brush').boundingBox())!;expect(range.y+range.height).toBeLessThanOrEqual(brush.y)
   await page.locator('.latency-explanation summary').click();await expect(page.locator('.latency-explanation>div')).toBeVisible()

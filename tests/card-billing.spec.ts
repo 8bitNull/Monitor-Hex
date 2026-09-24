@@ -28,12 +28,13 @@ test('billing rows align, preserve quota states and fit narrow cards',async({pag
 })
 
 
-for(const width of [320,390,1440])test(`single line notes open complete dialog and restore focus at ${width}`,async({page})=>{
+for(const width of [320,390,1440])test(`compact note tags open complete dialog and restore focus at ${width}`,async({page})=>{
  await page.setViewportSize({width,height:900})
  const note='这是一段很长的完整备注。'.repeat(20)
- await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[{...nodes()[0],remark:'国际线路;'+note}]}}))
+ await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[{...nodes()[0],remark:'国际线路;'+note+';Backup'}]}}))
  await page.goto('/');const card=page.locator('.node-card'),notes=card.getByRole('button',{name:'备注',exact:true})
- await expect(notes).toHaveCSS('text-overflow','ellipsis');await expect(notes).toHaveCSS('white-space','nowrap');await expect(notes).toHaveAttribute('title','国际线路 · '+note)
+ await expect(notes.locator('.detail-remark-tag')).toHaveCount(2);await expect(notes.locator('.remark-more')).toHaveText('+1')
+ await expect(notes).toHaveAttribute('title','国际线路 · '+note+' · Backup')
  await card.locator(".latency-reading").first().waitFor();const height=(await card.boundingBox())!.height
  await notes.click();const dialog=page.getByRole('dialog',{name:'备注',exact:true});await expect(dialog).toBeVisible();await expect(dialog).toContainText(note)
  await page.keyboard.press('Escape');await expect(dialog).not.toBeVisible();await expect(notes).toBeFocused();expect((await card.boundingBox())!.height).toBe(height)

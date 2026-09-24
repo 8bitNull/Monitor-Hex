@@ -6,6 +6,8 @@
 .latency-summary b {margin-left:6px;color:var(--foreground);font-variant-numeric:tabular-nums;font-weight:600}
 .latency-summary-route {max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .latency-explanation {position:relative;margin-left:auto}
+.latency-summary-tools {display:contents}
+.latency-summary-tools .latency-chart-key-desktop {display:none}
 .latency-explanation summary {cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--tone)}
 .latency-explanation>div {position:absolute;right:0;top:100%;z-index:8;width:min(300px,calc(100vw - 48px));padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px #0002;line-height:1.7}
 .latency-explanation p+p {margin-top:8px}
@@ -89,6 +91,9 @@
  .detail-chart-toolbar[data-history-tab=latency] .detail-refresh {order:6}
  .detail-chart-toolbar[data-history-tab=latency] .detail-update+.detail-ranges {margin-left:0}
  .latency-view>.latency-summary {display:flex;flex-wrap:nowrap;gap:24px}
+ .latency-summary-tools {display:flex;align-items:center;gap:16px;margin-left:auto;white-space:nowrap}
+ .latency-summary-tools .latency-chart-key {display:flex}
+ .latency-chart-caption .latency-chart-key {display:none}
  .latency-summary-route {display:none}
  .latency-explanation summary {font-size:0;min-width:24px;justify-content:center}
  .latency-explanation summary::after {content:'ⓘ';font-size:15px}
