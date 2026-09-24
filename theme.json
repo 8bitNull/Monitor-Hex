@@ -1,8 +1,8 @@
 {
   "name": "HEX",
   "short": "hex",
-  "description": "统一视觉监控主题：单节点线路、延迟历史、资源告警、地图表格与中英界面。",
-  "version": "0.2.8",
+  "description": "HEX，让服务器状态一目了然。",
+  "version": "0.2.9",
   "author": "HEX contributors",
   "url": "https://github.com/8bitNull/monitor-theme-hex",
   "config": [
