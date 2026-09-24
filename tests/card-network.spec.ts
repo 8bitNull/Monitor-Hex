@@ -12,6 +12,13 @@ test('compact card keeps billing above latency and three equal columns and remar
   await expect(card.locator('.card-expiry')).toContainText('2026.10.07')
   await expect(card.locator('.node-connections')).toBeVisible()
   await expect(card.locator('.node-remarks')).toBeVisible()
+  await expect(card.locator('.node-remarks .detail-remark-tag')).toHaveCount(3)
+  await expect(card.locator('.node-remarks .remark-more')).toHaveCount(0)
+  expect(await card.locator('.node-remarks').evaluate(el=>{
+   const tags=[...el.querySelectorAll('.detail-remark-tag')].map(tag=>tag.getBoundingClientRect())
+   return tags.every(tag=>Math.abs(tag.top-tags[0].top)<1)&&el.scrollWidth<=el.clientWidth
+  })).toBeTruthy()
+  expect(await card.locator('.node-remarks').evaluate(el=>[...el.querySelectorAll('.detail-remark-tag')].slice(0,2).every(tag=>tag.scrollWidth<=tag.clientWidth+1))).toBeTruthy()
   const result=await card.evaluate(el=>{
    const box=(s:string)=>el.querySelector(s)!.getBoundingClientRect()
    const billing=box('.card-billing'),route=box('.route-matrix'),footer=box('.node-footer'),price=box('.node-price'),remarks=box('.node-remarks'),traffic=box('.traffic-summary'),expiry=box('.card-expiry'),uptime=box('.card-uptime')

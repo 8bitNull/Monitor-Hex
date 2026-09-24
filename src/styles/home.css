@@ -123,6 +123,7 @@
 .summary-grid .tnum,.summary-grid .summary-total {font-variant-numeric:tabular-nums}
 .summary-grid .text-sm {font-size:12px;font-weight:400}
 .summary-grid .summary-total {white-space:nowrap}
+.summary-node-count {display:flex;align-items:center;gap:2px}
 .load-history-button {border:0;background:transparent!important;box-shadow:none}
 .node-card .node-open:focus-visible,.load-history-button:focus-visible {outline:2px solid var(--tone);outline-offset:-3px}
 @media(prefers-reduced-motion:reduce){.node-card .speed-track i {transition:none}}
@@ -265,6 +266,8 @@
  .summary-grid .summary-flow {display:none}
  .summary-grid>div {min-height:84px}
  .summary-grid .summary-total,.summary-grid .text-xl {margin:5px 0 0}
+ .summary-grid .summary-node-count button {display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:0 4px}
+ .summary-grid .summary-offline-filter {display:inline-flex;align-items:center;min-width:44px;min-height:44px}
  .summary-grid>div>.pt-1:has(svg.h-7) {display:none}
 }
 

@@ -91,12 +91,12 @@ export function Summary({ nodes, prefs, loadAlerts, onAlert, status, onStatus, o
       {!prefs.modules.online&&!prefs.modules.speed&&!prefs.modules.busiest&&<span>{tr("总览已收起")}</span>}
     </div><div className="summary-grid grid gap-3" data-load-alerts={prefs.modules.busiest}>
       {prefs.modules.online && <Tile icon={Server} label={tr("节点")}>
-        <div className="tnum mt-1 text-xl font-semibold">
-          <button aria-label={tr("筛选在线节点")} aria-pressed={status==='online'} onClick={()=>onStatus(status==='online'?'all':'online')}>{online.length}</button> / <button aria-label={tr("显示全部节点")} aria-pressed={status==='all'} onClick={()=>onStatus('all')}>{nodes.length}</button>
+        <div className="summary-node-count tnum mt-1 text-xl font-semibold">
+          <button aria-label={tr("筛选在线节点")} aria-pressed={status==='online'} onClick={()=>onStatus(status==='online'?'all':'online')}>{online.length}</button><span aria-hidden="true">/</span><button aria-label={tr("显示全部节点")} aria-pressed={status==='all'} onClick={()=>onStatus('all')}>{nodes.length}</button>
         </div>
         
         <div className="mt-auto pt-1 text-xs text-muted-foreground">
-          <button aria-label={tr("筛选离线节点")} aria-pressed={status==='offline'} onClick={()=>onStatus(status==='offline'?'all':'offline')}>{unavailable > 0 ? tr("{0} 离线 · {1} 待更新", nodes.length-online.length, unavailable) : nodes.length - online.length > 0 ? tr("{0} 个离线", nodes.length - online.length) : tr("全部在线")}</button>
+          <button className="summary-offline-filter" aria-label={tr("筛选离线节点")} aria-pressed={status==='offline'} onClick={()=>onStatus(status==='offline'?'all':'offline')}>{unavailable > 0 ? tr("{0} 离线 · {1} 待更新", nodes.length-online.length, unavailable) : nodes.length - online.length > 0 ? tr("{0} 个离线", nodes.length - online.length) : tr("全部在线")}</button>
         </div>
       </Tile>}
 

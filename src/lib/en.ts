@@ -59,6 +59,8 @@ export const english: Record<string, string> = {
 "清空搜索":"Clear search",
 "查看 {0} 个结果":"View {0} results",
 "左右滑动查看其余指标":"Swipe to see more metrics",
+"向左查看其他列":"View columns to the left",
+"向右查看其他列":"View columns to the right",
 "显示与偏好":"Display & preferences",
 "已到期":"Expired",
 "剩余 {0} 天":"{0} days left",

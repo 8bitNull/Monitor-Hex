@@ -22,6 +22,7 @@ test('theme settings backup restores durable settings and accepts legacy appeara
  await page.getByRole('button',{name:'显示与偏好'}).click()
  const drawer=page.locator('dialog.settings-drawer')
  await drawer.getByRole('navigation',{name:'设置分类'}).getByRole('button',{name:'显示内容'}).click()
+ await drawer.getByRole('group',{name:'表格显示'}).getByRole('button',{name:'手机表格',exact:true}).click()
  await drawer.getByRole('group',{name:'手机表格'}).getByRole('checkbox',{name:'内存'}).check()
  await drawer.getByRole('navigation',{name:'设置分类'}).getByRole('button',{name:'偏好'}).click()
  await drawer.getByRole('group',{name:'Language / 语言'}).getByRole('button',{name:'English'}).click()

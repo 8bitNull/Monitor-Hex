@@ -14,6 +14,16 @@ test('grouped table fits desktop and sorts each network metric independently',as
  await page.locator('th[data-column=loss] button').click();await page.locator('th[data-column=loss] button').click();await expect(page.locator('.table-node-name').first()).toContainText('Node 2');await expect(page.locator('.table-node-name').last()).toContainText('Node 6')
  await page.locator('th[data-column=latency] button').click();await page.locator('th[data-column=latency] button').click();await expect(page.locator('.table-node-name').last()).toContainText('Node 5')
 })
+test('desktop overflow exposes directional column controls only while needed',async({page})=>{
+ await setup(page);await page.setViewportSize({width:1024,height:820});await table(page)
+ const shell=page.locator('.table-shell'),left=shell.getByRole('button',{name:'向左查看其他列'}),right=shell.getByRole('button',{name:'向右查看其他列'})
+ await expect(shell).toHaveAttribute('data-right','true')
+ await expect(left).toBeVisible();await expect(left).toBeDisabled();await expect(right).toBeEnabled()
+ await right.click();await expect(shell).toHaveAttribute('data-left','true');await expect(right).toBeDisabled()
+ await left.click();await expect(shell).toHaveAttribute('data-right','true');await expect(left).toBeDisabled()
+ await page.setViewportSize({width:1440,height:820});await expect(shell.locator('.table-scroll-controls')).toHaveCount(0)
+ await page.setViewportSize({width:390,height:820});await expect(shell.locator('.table-scroll-controls')).toHaveCount(0)
+})
 test('table toolbar only keeps view controls',async({page})=>{
  await setup(page);await table(page)
  const toolbar=page.locator('.view-toolbar');await expect(toolbar.locator('.table-sort-toolbar')).toHaveCount(0);await expect(toolbar.locator('.view-switch')).toHaveCount(1);await expect(toolbar.locator('.column-options')).toHaveCount(0)

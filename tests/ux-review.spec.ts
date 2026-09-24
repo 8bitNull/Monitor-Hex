@@ -12,6 +12,16 @@ test('offline filter composes with search and compact summary survives reload',a
  await page.getByRole('button',{name:'收起总览',exact:true}).click();await expect(page.locator('.summary-grid')).toBeHidden();await page.reload();await expect(page.locator('.summary-compact')).toBeVisible()
  await page.getByRole('button',{name:'搜索节点',exact:true}).click();await page.getByRole('searchbox',{name:'搜索节点',exact:true}).fill('Tokyo');await page.getByRole('button',{name:'查看 1 个结果',exact:true}).click();await expect(page.locator('.mobile-search-panel')).toHaveCount(0);await expect(page.locator('.node-card')).toHaveCount(1);await expect(page.locator('#node-results')).toBeFocused()
 })
+for(const width of [320,390])test(`mobile summary status targets remain reachable at ${width}px`,async({page})=>{
+ await page.setViewportSize({width,height:844});await setup(page);await page.goto('/')
+ const online=page.getByRole('button',{name:'筛选在线节点',exact:true}),all=page.getByRole('button',{name:'显示全部节点',exact:true}),offline=page.getByRole('button',{name:'筛选离线节点',exact:true})
+ const boxes=await Promise.all([online,all,offline].map(button=>button.boundingBox()))
+ for(const box of boxes){expect(box).not.toBeNull();expect(box!.width).toBeGreaterThanOrEqual(44);expect(box!.height).toBeGreaterThanOrEqual(44)}
+ expect(boxes[0]!.x+boxes[0]!.width).toBeLessThanOrEqual(boxes[1]!.x)
+ await online.click();await expect(page.locator('.node-card')).toHaveCount(5)
+ await all.click();await expect(page.locator('.node-card')).toHaveCount(6)
+ await offline.click();await expect(page.locator('.node-card')).toHaveCount(1)
+})
 for(const width of [320,360,390,430])test(`default mobile table fits ${width}px and keeps status`,async({page})=>{
  await page.setViewportSize({width,height:844});await setup(page);await page.goto('/');await page.getByRole('button',{name:'表格视图',exact:true}).click()
  await expect(page.locator('thead th')).toHaveCount(3);await expect(page.locator('tbody .status-pill')).toHaveCount(6)
