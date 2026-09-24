@@ -18,7 +18,7 @@ for(const appearance of ['light','dark']){
  await page.waitForFunction(()=>!document.querySelector('.node-grid')?.textContent?.includes('正在读取探测记录'))
  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('monitor-next-load-alerts-v1')||'[]').some(e=>e.status==='active' && e.last>e.start))
  if(await page.locator('.map-scale').innerText()!=='169%')throw Error('Incorrect map scale')
- if(!await page.locator('.site-footer').innerText().then(t=>t.includes('Monitor HEX')))throw Error('Incorrect theme name')
+ if(!await page.locator('.site-footer span').first().innerText().then(t=>t.startsWith('HEX ·')))throw Error('Incorrect theme name')
  await page.screenshot({path:`tests/artifacts/monitor-hex-v${version}-home-${appearance}.png`,fullPage:true})
  if(appearance==='light')await page.screenshot({path:'preview.png'})
  await page.getByRole('button',{name:'查看高负载记录',exact:true}).click()

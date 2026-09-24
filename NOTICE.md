@@ -1,6 +1,6 @@
 # 来源与许可
 
-Monitor HEX 是为 monitor-probe 编写的独立适配主题，不是 Komari Next 官方发行版。
+HEX 是为 monitor-probe 编写的独立适配主题，不是 Komari Next 官方发行版。
 
 - 接口、WebSocket 重连/轮询、历史图表、格式化工具及基础组件源自 monitor-probe/monitor-theme-default（MIT），参考提交 `c71d8260d841c97e909649383b5be0eb156c527b`。版权与许可见 LICENSE。
 - 首页视觉、圆环指标和配色方案参考 tonyliuzj/komari-next（MIT），参考提交 `b89598600ac0b595ad21ef4accf580eac954a876`。世界地图数据取自该项目 `src/data/world-countries-50m.json`，版权与许可见 LICENSE.komari-next。该地图为 Natural Earth 数据的 TopoJSON 表示。

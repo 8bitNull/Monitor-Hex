@@ -1,6 +1,6 @@
-# Monitor HEX
+# HEX
 
-Monitor HEX 是为 monitor-probe 制作的监控主题。你可以在首页查看服务器状态、资源占用和网络情况，也可以进入单台服务器的详情页，查看历史曲线、流量用量和设备资料。
+HEX 是为 monitor-probe 制作的监控主题。你可以在首页查看服务器状态、资源占用和网络情况，也可以进入单台服务器的详情页，查看历史曲线、流量用量和设备资料。
 
 主题提供卡片和表格两种视图，支持电脑、手机、深浅色以及简体中文和英文。
 
@@ -25,7 +25,7 @@ Monitor HEX 是为 monitor-probe 制作的监控主题。你可以在首页查�
 
 ## 安装与升级
 
-先准备好正在运行的 monitor-probe，然后从 [最新发布页面](https://github.com/8bitNull/monitor-theme-hex/releases/latest) 下载 `theme.tar.gz`。在后台的主题管理中上传这个文件，再选择 **Monitor HEX** 启用。
+先准备好正在运行的 monitor-probe，然后从 [最新发布页面](https://github.com/8bitNull/monitor-theme-hex/releases/latest) 下载 `theme.tar.gz`。在后台的主题管理中上传这个文件，再选择 **HEX** 启用。
 
 升级时上传新的安装包覆盖即可。GitHub 自动生成的源码 ZIP 不是主题安装包，不能直接用于后台安装。发布页面同时提供 `theme.tar.gz.sha256`，需要时可以用它核对下载文件。
 
@@ -128,4 +128,4 @@ npm run test:e2e
 
 ## 来源与许可
 
-Monitor HEX 是适配 monitor-probe 的独立主题。基础接口与部分组件源自 monitor-theme-default，部分视觉和地图资源参考 Komari Next。项目采用 MIT 许可，来源与第三方声明见 [NOTICE.md](NOTICE.md)、[LICENSE](LICENSE) 和 [LICENSE.komari-next](LICENSE.komari-next)。
+HEX 是适配 monitor-probe 的独立主题。基础接口与部分组件源自 monitor-theme-default，部分视觉和地图资源参考 Komari Next。项目采用 MIT 许可，来源与第三方声明见 [NOTICE.md](NOTICE.md)、[LICENSE](LICENSE) 和 [LICENSE.komari-next](LICENSE.komari-next)。

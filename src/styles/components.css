@@ -5,7 +5,8 @@ button:disabled {cursor:default;opacity:.45}
 :where(button,a,input,:is(select,[data-slot="select"])):focus-visible {outline:2px solid var(--tone);outline-offset:3px}
 .next-theme {position:relative;isolation:isolate;color:var(--foreground)}
 .next-theme :where(:is(select,[data-slot="select"]),input:not([type=checkbox],[type=range],[type=file]),button:not(.node-open,.brand,.table-node-name),a[data-slot=button]) {min-height:var(--control-height);font-size:var(--text-small);border-radius:var(--radius-control)}
-.next-theme :is(select,[data-slot="select"]) {border:1px solid var(--border);background:var(--card);color:var(--foreground);padding:6px 10px;min-width:0;max-width:100%}
+.next-theme input:not([type=checkbox],[type=range],[type=file]),.next-theme :is(select,[data-slot="select"]) {border-color:var(--input)}
+.next-theme :is(select,[data-slot="select"]) {border:1px solid var(--input);background:var(--card);color:var(--foreground);padding:6px 10px;min-width:0;max-width:100%}
 /* Native popup options need an opaque surface even when the trigger is transparent. */
 .next-theme :is(select,[data-slot="select"]) option,.next-theme :is(select,[data-slot="select"]) optgroup {background:var(--card);color:var(--foreground)}
 .next-theme :is(select,[data-slot="select"]) option:checked {background:var(--muted);color:var(--foreground)}

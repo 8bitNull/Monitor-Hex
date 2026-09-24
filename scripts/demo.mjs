@@ -9,7 +9,7 @@ const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost')
   const reply = value => { res.setHeader('content-type', 'application/json'); res.end(JSON.stringify(value)) }
-  if (url.pathname === '/api/me') return reply({ authed: false, github: false, site_name: 'Monitor HEX · 演示', public_page: true })
+  if (url.pathname === '/api/me') return reply({ authed: false, github: false, site_name: 'HEX · 演示', public_page: true })
   if (url.pathname === '/api/nodes') return reply({ nodes: nodes() })
   if (/^\/api\/nodes\/\d+\/metrics$/.test(url.pathname)) return reply(metrics())
   if (url.pathname.startsWith('/api/')) { res.writeHead(404); return res.end() }

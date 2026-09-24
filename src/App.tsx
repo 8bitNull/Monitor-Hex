@@ -198,7 +198,7 @@ export default function App({ siteDefaults = defaults }: {
     useEffect(() => {
         // Updating the browser title is intentional here, inside an effect.
         // oxlint-disable-next-line react/immutability
-        document.title = [selected?.name, me?.site_name || "Monitor HEX"].filter(Boolean).join(" · ");
+        document.title = [selected?.name, me?.site_name || "HEX"].filter(Boolean).join(" · ");
     }, [selected?.name, me?.site_name]);
     // Only while there is nothing else to show. Once `me` has loaded, a later
     // failure belongs beside the page rather than over it.
@@ -215,7 +215,7 @@ export default function App({ siteDefaults = defaults }: {
         <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-4 py-3 sm:px-6">
           {/* The brand and explicit detail navigation share scroll restoration. */}
           <button className="brand" onClick={() => go(null)}>
-            <span>{me.site_name || "Monitor HEX"}<small>MONITOR HEX</small></span>
+            <span>{me.site_name || "HEX"}<small>HEX</small></span>
           </button>
           <div className="flex-1"/>
           {!compactViewport && searchField("desktop-header-search")}

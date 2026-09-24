@@ -3,13 +3,16 @@ import {chooseOption} from './select'
 
 test('hub site settings win over legacy theme overrides while appearance stays personal', async ({page}) => {
   let writes = 0
-  await page.route('**/api/me', route => route.fulfill({json: {authed: true, github: false, site_name: 'Monitor HEX', public_page: true}}))
+  await page.route('**/api/me', route => route.fulfill({json: {authed: true, github: false, site_name: 'My Monitor', public_page: true}}))
   await page.route('**/api/themes/hex/config', route => {
     if (route.request().method() === 'PUT') writes++
     return route.fulfill({json: {palette: 'ocean', module_map: false, latencyScale: '500', desktopColumns: '3'}})
   })
   await page.addInitScript(()=>{if(!sessionStorage.getItem('legacy-seeded')){localStorage.setItem('monitor-next',JSON.stringify({_storageVersion:1,schemaVersion:3,designVersion:1,palette:'rose',appearance:'dark'}));sessionStorage.setItem('legacy-seeded','1')}})
   await page.goto('/')
+  await expect(page).toHaveTitle('My Monitor')
+  await expect(page.locator('.brand small')).toHaveText('HEX')
+  await expect(page.locator('.site-footer')).toContainText('HEX ·')
   await expect(page.locator('.next-theme')).toHaveAttribute('data-palette', 'ocean')
   await expect(page.locator('html')).toHaveClass(/\bdark\b/)
   await expect(page.locator('.node-grid')).toHaveAttribute('data-columns', '3')
