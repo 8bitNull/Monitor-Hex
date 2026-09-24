@@ -24,7 +24,7 @@ test('title picker searches, preserves range/route and returns focus without ove
  await expect(page.locator('.detail-node-switcher')).toHaveCount(0)
 })
 test('route shortcut opens the exact probe without changing home selection',async({page})=>{
- await setup(page,2);await page.addInitScript(()=>localStorage.setItem('monitor-next',JSON.stringify({designVersion:1,homeRoutes:3,modules:{map:false}})))
+ await setup(page,2);await page.route('**/api/themes/hex/config',r=>r.fulfill({json:{homeRoutes:3,module_map:false}}))
  await page.goto('/');const card=page.locator('.node-card').first();await card.getByRole('button',{name:'查看线路：B',exact:true}).click()
  await expect(page).toHaveURL(/node\/1\?.*routes=2.*#latency/)
  await expect(page.locator('.route-chips button[aria-label="B"]')).toHaveAttribute('aria-pressed','true')

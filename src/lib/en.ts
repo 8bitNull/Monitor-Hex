@@ -389,6 +389,7 @@ export const english: Record<string, string> = {
   "线路": "Probe ",
   "（等待数据）": " (waiting for data)",
   "显示列": "Visible columns",
+  "表格列": "Table columns",
   "延迟采用所选线路的最新采样桶；超时、旧记录和无数据排在末尾。已读取": "Uses the latest bucket for the selected probe. Timeouts, stale and missing values appear last. Loaded ",
   "个节点。": " nodes.",
   "当前各节点首条线路可能不同，可选择同一线路进行比较。": "First probes may target different hosts. Select the same probe to compare nodes.",

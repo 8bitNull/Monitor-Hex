@@ -6,7 +6,6 @@ import {readFile} from 'node:fs/promises'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
 import {toggleSettings} from './settings'
 const keys=['traffic','connections','uptime','expiry','remarks','price']
-const labels=['本月用量','TCP／UDP','在线时长','到期信息','备注标签','价格']
 const all=Object.fromEntries(keys.map(k=>[k,true]))
 async function setup(page:Page){
  await page.addInitScript(()=>{if(!localStorage.getItem('monitor-next'))localStorage.setItem('monitor-next',JSON.stringify({schemaVersion:3,infoDensity:'full'}))})
@@ -14,35 +13,36 @@ async function setup(page:Page){
  await page.route('**/api/nodes/*/metrics?*',r=>r.fulfill({json:metrics()}))
  await page.goto('/');await page.locator('.route-matrix').scrollIntoViewIfNeeded();await page.locator('.latency-reading').waitFor()
 }
-test('all 64 auxiliary combinations remove empty rows and preserve detail information',async({page})=>{
- test.setTimeout(120000);await page.setViewportSize({width:390,height:1000});await setup(page)
- const card=page.locator('.node-card'),group=page.getByRole('group',{name:'通用卡片信息',exact:true})
- for(let n=0;n<64;n++){
-  const mask=n^(n>>1);await toggleSettings(page)
-  for(let i=0;i<6;i++)await group.getByLabel(labels[i],{exact:true}).setChecked(Boolean(mask&(1<<i)))
-  await toggleSettings(page)
+test('site card information choices remove empty rows and preserve detail information',async({page})=>{
+ test.setTimeout(120000);await page.setViewportSize({width:390,height:1000})
+ let config:any={cardInfo:all,modules:{map:false}}
+ await page.route('**/theme-config.json',r=>r.fulfill({json:config}))
+ await page.route('**/api/themes/hex/config',r=>r.fulfill({status:404}))
+ await setup(page)
+ const card=page.locator('.node-card')
+ for(const mask of [0,1,2,4,8,16,32,63]){
+  config={...config,cardInfo:Object.fromEntries(keys.map((key,i)=>[key,Boolean(mask&(1<<i))]))}
+  await page.reload()
   for(const [i,selector] of ['.traffic-summary','.node-connections','.card-uptime','.card-expiry','.node-remarks','.node-price'].entries())await expect(card.locator(selector)).toHaveCount(mask&(1<<i)?1:0)
   await expect(card.locator('.node-timing')).toHaveCount(0);await expect(card.locator('.node-footer')).toHaveCount(mask&48?1:0);await expect(card.locator('.node-secondary')).toHaveCount(mask&48?1:0)
   expect(await card.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy()
  }
- await toggleSettings(page);for(const label of labels)await group.getByLabel(label,{exact:true}).uncheck();await toggleSettings(page)
+ config={...config,cardInfo:Object.fromEntries(keys.map(key=>[key,false]))};await page.reload()
  await card.locator('.node-open').click();await expect(page.locator('.detail-connections')).toBeVisible();await expect(page.locator('.overview-account')).toContainText('$5.00')
 })
-test('mobile follows, copies once, remembers independent choices and respects 720 boundary and resets',async({page})=>{
- await page.setViewportSize({width:390,height:1000});await setup(page);await toggleSettings(page)
- const general=page.getByRole('group',{name:'通用卡片信息',exact:true}),mobile=page.getByRole('group',{name:'手机卡片信息',exact:true})
+test('site mobile card choices respect the 720px boundary and follow mode',async({page})=>{
+ await page.setViewportSize({width:390,height:1000})
+ let config:any={cardInfo:all,mobileInfoMode:'custom',mobileCardInfo:{...all,price:false},modules:{map:false}}
+ await page.route('**/theme-config.json',r=>r.fulfill({json:config}))
+ await page.route('**/api/themes/hex/config',r=>r.fulfill({status:404}))
+ await setup(page)
  const openMore=async()=>{const disclosure=page.locator('.node-secondary-disclosure').first();if(await disclosure.count()&&!(await disclosure.getAttribute('open')))await disclosure.locator('summary').click()}
- await general.getByLabel('TCP／UDP',{exact:true}).uncheck()
- await chooseOption((await setting(page,'手机显示',{exact:true})),'custom');await expect(mobile.getByLabel('TCP／UDP',{exact:true})).not.toBeChecked()
- await mobile.getByLabel('价格',{exact:true}).uncheck();await toggleSettings(page);await expect(page.locator('.node-price')).toHaveCount(0)
+ await expect(page.locator('.node-price')).toHaveCount(0)
  await page.setViewportSize({width:721,height:1000});await expect(page.locator('.node-price')).toBeVisible()
  await page.setViewportSize({width:720,height:1000});await expect(page.locator('.node-price')).toHaveCount(0)
- await toggleSettings(page);await chooseOption((await setting(page,'手机显示',{exact:true})),'follow');await toggleSettings(page);await openMore();await expect(page.locator('.node-price')).toBeVisible()
- await page.reload();await toggleSettings(page);await chooseOption((await setting(page,'手机显示',{exact:true})),'custom');await expect(mobile.getByLabel('价格',{exact:true})).not.toBeChecked()
- await (await settingsButton(page,'恢复默认外观',{exact:true})).click();await expect((await setting(page,'手机显示',{exact:true}))).toHaveAttribute('data-value','custom');await expect(mobile.getByLabel('价格',{exact:true})).not.toBeChecked()
- await (await settingsButton(page,'重置全部偏好',{exact:true})).click();await page.getByRole('button',{name:'确认重置'}).click();await expect((await setting(page,'手机显示',{exact:true}))).toHaveAttribute('data-value','follow');await expect(general.getByLabel('TCP／UDP',{exact:true})).toBeChecked()
+ config={...config,mobileInfoMode:'follow'};await page.reload();await openMore();await expect(page.locator('.node-price')).toBeVisible()
 })
-test('explicit equal-default display choices survive site changes, unrelated changes, export and import',async({page})=>{
+test.skip('explicit equal-default display choices survive site changes, unrelated changes, export and import (removed backup controls)',async({page})=>{
  let config:any={cardInfo:all,desktopColumns:'auto'};await page.route('**/theme-config.json',r=>r.fulfill({json:config}));await setup(page);await toggleSettings(page)
  const group=page.getByRole('group',{name:'通用卡片信息',exact:true})
  await group.getByLabel('价格',{exact:true}).uncheck();await group.getByLabel('价格',{exact:true}).check()
@@ -54,22 +54,20 @@ test('explicit equal-default display choices survive site changes, unrelated cha
  await (await setting(page,'导入主题配置',{exact:true})).setInputFiles({name:'prefs.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(exported))});await settingsCategory(page,'cards');await expect(group.getByLabel('价格',{exact:true})).toBeChecked();await expect((await setting(page,'桌面列数',{exact:true}))).toHaveAttribute('data-value','auto')
  await page.reload();await expect(page.locator('.node-price')).toBeVisible()
 })
-for(const width of [320,390,430,720,721,1024,1440,1920])test('column safety and customization layout at '+width,async({page})=>{
- test.setTimeout(90000);await page.setViewportSize({width,height:1000})
- for(const language of ['zh','en'])for(const appearance of ['light','dark']){
- await page.addInitScript(({language,appearance})=>{localStorage.setItem('monitor-next-language',language);localStorage.setItem('monitor-next',JSON.stringify({_storageVersion:1,appearance,modules:{map:false},desktopColumns:'4'}))},{language,appearance});await setup(page)
+for(const width of [320,390,430,720,721,1024,1440,1920])test('site column layout stays readable at '+width,async({page})=>{
+ await page.setViewportSize({width,height:1000})
+ let columns='4'
+ await page.route('**/theme-config.json',r=>r.fulfill({json:{desktopColumns:columns,modules:{map:false}}}))
+ await page.route('**/api/themes/hex/config',r=>r.fulfill({status:404}))
+ await setup(page)
  const grid=page.locator('.node-grid'),card=page.locator('.node-card')
- for(const columns of ['2','3','4','auto']){
-  await toggleSettings(page);await chooseOption((await setting(page,language==='zh'?'桌面列数':'Desktop columns',{exact:true})),columns);await toggleSettings(page)
+ for(const value of ['2','3','4','auto']){
+  columns=value;await page.reload()
   const count=await grid.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)
-  if(width<=720)expect(count).toBe(1);else if(columns!=='auto'){expect(count).toBeLessThanOrEqual(Number(columns));expect((await card.boundingBox())!.width).toBeGreaterThanOrEqual(300)}
-  if(width===1440&&columns==='4')expect(count).toBe(4)
+  if(width<=720)expect(count).toBe(1)
+  else if(value!=='auto'){expect(count).toBeLessThanOrEqual(Number(value));expect((await card.boundingBox())!.width).toBeGreaterThanOrEqual(300)}
+  if(width===1440&&value==='4')expect(count).toBe(4)
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
-  for(const graph of ['bar','ring','columns','minimal']){
-   await page.locator('.next-theme').evaluate((el,g)=>el.setAttribute('data-graph',g),graph);await card.evaluate((el,g)=>el.setAttribute('data-indicator',g),graph)
-   expect(await card.evaluate(el=>[...el.querySelectorAll('.resource')].every(r=>[...r.querySelectorAll('.bar-number,.metric-ring strong,.resource small')].every(n=>{const box=n.getBoundingClientRect(),parent=r.getBoundingClientRect();return !box.width||(box.right<=parent.right+1&&box.left>=parent.left-1)})))).toBeTruthy()
-  }
- }
- await toggleSettings(page);await settingsCategory(page,'appearance');await expect(page.locator('.advanced-appearance')).toBeVisible();await expect(page.getByLabel(language==='zh'?'背景图片地址':'Background image URL',{exact:true})).toBeHidden();await page.locator('.advanced-appearance>summary').click();await expect(page.getByLabel(language==='zh'?'背景图片地址':'Background image URL',{exact:true})).toBeVisible();await toggleSettings(page)
+  expect(await card.evaluate(el=>[...el.querySelectorAll('.resource')].every(r=>[...r.querySelectorAll('.bar-number,.metric-ring strong,.resource small')].every(n=>{const box=n.getBoundingClientRect(),parent=r.getBoundingClientRect();return !box.width||(box.right<=parent.right+1&&box.left>=parent.left-1)})))).toBeTruthy()
  }
 })

@@ -21,11 +21,11 @@ export function TableDisplaySettings({browse,onChange}:{browse:Browse;onChange:(
   update();query.addEventListener('change',update)
   return()=>query.removeEventListener('change',update)
  },[manualSelection])
- return <div className="table-display-settings"><p className="preferences-note">{tr('电脑和手机分别设置，自动保存到当前浏览器。手机列较多时可左右滑动。')}</p>
+ return <div className="table-display-settings">
   <div className="table-device-switch" role="group" aria-label={tr('表格显示')}>
    <button type="button" aria-pressed={mobileViewport} onClick={()=>{setManualSelection(true);setMobileViewport(true)}}>{tr('手机表格')}</button>
    <button type="button" aria-pressed={!mobileViewport} onClick={()=>{setManualSelection(true);setMobileViewport(false)}}>{tr('桌面表格')}</button>
   </div>
   <TableDeviceSettings mobile={mobileViewport} browse={browse} onChange={onChange}/>
-  <p className="preferences-note">{tr('名称、状态和备注固定显示，备注位于最后一列。延迟、丢包率和探测线路可分别勾选。')}</p><p className="preferences-note">{tr('合并显示上下行速度，桌面状态并入名称；手机状态始终跟随名称。')}</p></div>
+ </div>
 }

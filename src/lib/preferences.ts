@@ -1,48 +1,36 @@
 import { useEffect, useState, useMemo, useCallback, type SetStateAction } from 'react'
-import { normalizePreferences, preferenceOverrides, type Preferences, type DisplayPatch, defaultCardInfo } from './appearance'
+import { normalizePreferences, type Preferences, type DisplayPatch } from './appearance'
 export { palettes } from './appearance'
 export type { Preferences } from './appearance'
+const personalKeys = ['appearance', 'probe', 'summaryCollapsed', 'detailInfoMode'] as const
+
 export function usePreferences(siteDefaults: Preferences) {
   const [overrides, setOverrides] = useState<Record<string,unknown>>(() => {
     try {
-      const stored = localStorage.getItem('monitor-next')
-      const saved = JSON.parse(stored || '{}')
-      const modern = saved?._storageVersion === 1
+      const saved = JSON.parse(localStorage.getItem('monitor-next') || '{}')
       const next = normalizePreferences(saved, siteDefaults)
-      if(stored && !Object.hasOwn(saved || {},"infoDensity") && saved?.schemaVersion!==3)next.infoDensity="full"
-      if (!modern && stored && saved && typeof saved === 'object' && !Array.isArray(saved) && Object.keys(saved).length > 0 && saved.designVersion !== 1) { next.skin = "lumina" }
-      if (!modern && !saved?.appearance) {
+      const personal: Record<string,unknown> = {}
+      for (const key of personalKeys) if (Object.hasOwn(saved || {},key) && saved[key] === next[key]) personal[key] = next[key]
+      if (!Object.hasOwn(saved || {},'appearance')) {
         const mode = localStorage.getItem('monitor-next-mode')
-        if (mode === 'dark' || mode === 'light') next.appearance = mode
+        if (mode === 'dark' || mode === 'light') personal.appearance = mode
       }
-      if (!modern && !Object.hasOwn(saved || {}, 'probe')) {
+      if (!Object.hasOwn(saved || {},'probe')) {
         try { const old = JSON.parse(sessionStorage.getItem('monitor-next-browse-v1') || '{}');
-          if (typeof old.probe === 'string' && /^[1-9]\d*$/.test(old.probe) && Number.isSafeInteger(Number(old.probe))) next.probe = old.probe;
+          if (typeof old.probe === 'string' && /^[1-9]\d*$/.test(old.probe) && Number.isSafeInteger(Number(old.probe))) personal.probe = old.probe;
         } catch { /* Old browse storage is optional. */ }
       }
-      const overrides = preferenceOverrides(next,siteDefaults)
-      // A recorded graph choice stays explicit even when it equals the site default.
-      if (Object.hasOwn(saved || {}, 'graph') && ['bar','ring','columns','minimal'].includes(saved.graph)) overrides.graph = next.graph
-      for(const key of ['infoDensity','mobileInfoMode','desktopColumns','mobileCardInfo','detailInfoMode'] as const) if(Object.hasOwn(saved || {},key)) overrides[key]=next[key]
-      if(saved?.cardInfo && typeof saved.cardInfo==='object') overrides.cardInfo=Object.fromEntries(Object.keys(defaultCardInfo).filter(key=>typeof saved.cardInfo[key]==='boolean').map(key=>[key,saved.cardInfo[key]]))
-      return overrides
+      return personal
     } catch { return {} }
   })
   const prefs=useMemo(()=>normalizePreferences(overrides,siteDefaults),[overrides,siteDefaults])
-  const setPrefs=useCallback((next:SetStateAction<Preferences>, resetGraph=false, resetDisplay=false)=>setOverrides(current=>{
+  const setPrefs=useCallback((next:SetStateAction<Preferences>)=>setOverrides(current=>{
     const resolved=typeof next==='function'?next(normalizePreferences(current,siteDefaults)):next
-    const overrides=preferenceOverrides(resolved,siteDefaults)
-    if(!resetGraph && Object.hasOwn(current,'graph')) overrides.graph=resolved.graph
-    if(!resetDisplay){
-      for(const key of ['infoDensity','mobileInfoMode','desktopColumns','mobileCardInfo','detailInfoMode'] as const) if(Object.hasOwn(current,key)) overrides[key]=resolved[key]
-      if(current.cardInfo && typeof current.cardInfo==='object') overrides.cardInfo={...(overrides.cardInfo as object || {}),...Object.fromEntries(Object.keys(current.cardInfo).filter(key=>key in defaultCardInfo).map(key=>[key,resolved.cardInfo[key as keyof typeof defaultCardInfo]]))}
-    }
-    return overrides
+    return Object.fromEntries(personalKeys.filter(key=>Object.hasOwn(current,key) || resolved[key] !== siteDefaults[key]).map(key=>[key,resolved[key]]))
   }),[siteDefaults])
-  const selectGraph=useCallback((graph:Preferences['graph'])=>setOverrides(current=>({...current,graph})),[])
   useEffect(() => { try { localStorage.setItem('monitor-next', JSON.stringify({_storageVersion:1,schemaVersion:3,designVersion:1,...overrides})) } catch { /* Storage may be disabled. */ } }, [overrides])
-  const selectDisplay=useCallback((patch:DisplayPatch)=>setOverrides(current=>({...current,...patch,...(patch.cardInfo?{cardInfo:{...(current.cardInfo as object || {}),...patch.cardInfo}}:{})})),[])
-  return [prefs, setPrefs, selectGraph, selectDisplay] as const
+  const selectDisplay=useCallback((patch:DisplayPatch)=>setOverrides(current=>patch.detailInfoMode ? {...current,detailInfoMode:patch.detailInfoMode} : current),[])
+  return [prefs, setPrefs, selectDisplay] as const
 }
 export function useAppearance(mode: Preferences['appearance']) {
   const [systemDark, setSystemDark] = useState(() => matchMedia('(prefers-color-scheme: dark)').matches)

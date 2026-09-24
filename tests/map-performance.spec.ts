@@ -33,7 +33,7 @@ test('missing map chunk is contained and reload recovers while preserving filter
 for(const mode of ['mobile','disabled','detail'])test(`does not fetch map in ${mode}`,async({page})=>{
  let requests=0;page.on('request',r=>{if(r.url().includes('/WorldMap-'))requests++})
  if(mode==='mobile')await page.setViewportSize({width:390,height:844})
- if(mode==='disabled')await page.addInitScript(()=>localStorage.setItem('monitor-next',JSON.stringify({_storageVersion:1,modules:{map:false}})))
+ if(mode==='disabled')await page.route('**/api/themes/hex/config',r=>r.fulfill({json:{module_map:false}}))
  await page.goto(mode==='detail'?'/node/1':'/');await expect(page.locator(mode==='detail'?'.node-detail':'.node-card').first()).toBeVisible();expect(requests).toBe(0)
 })
 

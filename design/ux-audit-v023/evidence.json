@@ -1,0 +1,246 @@
+[
+  {
+    "device": "desktop",
+    "scrollContainers": [
+      {
+        "class": "restored-regions",
+        "width": 439,
+        "scrollWidth": 588
+      }
+    ]
+  },
+  {
+    "device": "desktop",
+    "legend": [
+      {
+        "attr": "var(--color-chart-1)",
+        "computed": "rgb(53, 109, 204)"
+      },
+      {
+        "attr": "var(--color-chart-3)",
+        "computed": "rgb(134, 100, 197)"
+      },
+      {
+        "attr": "var(--color-chart-2)",
+        "computed": "rgb(35, 131, 100)"
+      }
+    ],
+    "targets": [
+      {
+        "label": "资源",
+        "rect": {
+          "w": 58,
+          "h": 50
+        }
+      },
+      {
+        "label": "网络延迟",
+        "rect": {
+          "w": 58,
+          "h": 50
+        }
+      },
+      {
+        "label": "平滑",
+        "rect": {
+          "w": 51,
+          "h": 40
+        }
+      },
+      {
+        "label": "选择线路",
+        "rect": {
+          "w": 52,
+          "h": 40
+        }
+      },
+      {
+        "label": "浙江电信",
+        "rect": {
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "label": "浙江联通",
+        "rect": {
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "label": "浙江移动",
+        "rect": {
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "label": "1 小时",
+        "rect": {
+          "w": 36,
+          "h": 40
+        }
+      },
+      {
+        "label": "6 小时",
+        "rect": {
+          "w": 36,
+          "h": 40
+        }
+      },
+      {
+        "label": "24 小时",
+        "rect": {
+          "w": 36,
+          "h": 40
+        }
+      },
+      {
+        "label": "刷新历史",
+        "rect": {
+          "w": 40,
+          "h": 44
+        }
+      },
+      {
+        "label": "Min value: undefined, Max value: undefined",
+        "rect": {
+          "w": 12,
+          "h": 44
+        }
+      },
+      {
+        "label": "Min value: undefined, Max value: undefined",
+        "rect": {
+          "w": 12,
+          "h": 44
+        }
+      }
+    ]
+  },
+  {
+    "device": "desktop",
+    "autoRefreshRequests": 1
+  },
+  {
+    "device": "mobile",
+    "scrollContainers": [
+      {
+        "class": "table-scroll",
+        "width": 356,
+        "scrollWidth": 622
+      }
+    ]
+  },
+  {
+    "device": "mobile",
+    "legend": [
+      {
+        "attr": "var(--color-chart-1)",
+        "computed": "rgb(53, 109, 204)"
+      },
+      {
+        "attr": "var(--color-chart-3)",
+        "computed": "rgb(134, 100, 197)"
+      },
+      {
+        "attr": "var(--color-chart-2)",
+        "computed": "rgb(35, 131, 100)"
+      }
+    ],
+    "targets": [
+      {
+        "label": "资源",
+        "rect": {
+          "w": 56,
+          "h": 44
+        }
+      },
+      {
+        "label": "网络延迟",
+        "rect": {
+          "w": 56,
+          "h": 44
+        }
+      },
+      {
+        "label": "平滑",
+        "rect": {
+          "w": 66,
+          "h": 44
+        }
+      },
+      {
+        "label": "选择线路",
+        "rect": {
+          "w": 48,
+          "h": 44
+        }
+      },
+      {
+        "label": "浙江电信",
+        "rect": {
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "label": "浙江联通",
+        "rect": {
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "label": "浙江移动",
+        "rect": {
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "label": "1 小时",
+        "rect": {
+          "w": 44,
+          "h": 44
+        }
+      },
+      {
+        "label": "6 小时",
+        "rect": {
+          "w": 44,
+          "h": 44
+        }
+      },
+      {
+        "label": "24 小时",
+        "rect": {
+          "w": 44,
+          "h": 44
+        }
+      },
+      {
+        "label": "刷新历史",
+        "rect": {
+          "w": 44,
+          "h": 44
+        }
+      },
+      {
+        "label": "Min value: undefined, Max value: undefined",
+        "rect": {
+          "w": 44,
+          "h": 44
+        }
+      },
+      {
+        "label": "Min value: undefined, Max value: undefined",
+        "rect": {
+          "w": 44,
+          "h": 44
+        }
+      }
+    ]
+  }
+]

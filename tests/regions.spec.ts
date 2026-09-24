@@ -1,9 +1,10 @@
-import {setting} from './settings'
 import {test,expect} from '@playwright/test'
-import {toggleSettings} from './settings'
 test.beforeEach(async({page})=>{await page.addInitScript(()=>{if(!localStorage.getItem('monitor-next'))localStorage.setItem('monitor-next',JSON.stringify({schemaVersion:3,infoDensity:'full',modules:{map:true}}))})})
 
 test('country flags appear only without map and retain the selected region',async({page})=>{
+ let mapEnabled=true
+ await page.route('**/theme-config.json',route=>route.fulfill({json:{modules:{map:mapEnabled}}}))
+ await page.route('**/api/themes/hex/config',route=>route.fulfill({status:404}))
  await page.goto('/')
  await expect(page.locator('.region-atlas')).toBeVisible()
  await expect(page.locator('.map-collapse')).toHaveCount(0)
@@ -17,7 +18,7 @@ test('country flags appear only without map and retain the selected region',asyn
  await expect(page.locator('.region-list button[data-region="JP"]')).toHaveAttribute('aria-pressed','true')
  await page.getByLabel('卡片视图').click()
  await expect(regions).toHaveCount(0)
- await toggleSettings(page);await (await setting(page,'首页地图',{exact:true})).uncheck();await toggleSettings(page)
+ mapEnabled=false;await page.reload()
  await expect(regions).toBeVisible()
  await expect(regions.locator('img')).toHaveCount(6)
  await regions.getByRole('button',{name:'所有地区',exact:true}).click()
@@ -26,7 +27,7 @@ test('country flags appear only without map and retain the selected region',asyn
  await page.setViewportSize({width:320,height:900})
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
  await page.screenshot({path:'tests/artifacts/regions-flags-mobile.png'})
- await toggleSettings(page);await (await setting(page,'首页地图',{exact:true})).check();await toggleSettings(page)
+ mapEnabled=true;await page.reload()
  await expect(regions).toBeVisible()
  await expect(page.locator('.region-atlas')).toHaveCount(0)
  await page.getByRole('button',{name:'选择地区',exact:true}).click()

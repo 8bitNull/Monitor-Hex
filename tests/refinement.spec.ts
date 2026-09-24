@@ -1,7 +1,6 @@
-import {settingsButton} from './settings'
 import {test,expect} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
-import {toggleSettings,visualSelect} from './settings'
+import {setSiteDefault} from './settings'
 
 for(const [width,height] of [[320,844],[390,844],[430,932],[768,1024],[1440,1000]]){
  test('refined cards keep readable metrics in every style at '+width,async({page})=>{
@@ -11,7 +10,7 @@ for(const [width,height] of [[320,844],[390,844],[430,932],[768,1024],[1440,1000
    await page.addInitScript(({language,appearance})=>{localStorage.setItem('monitor-next-language',language);localStorage.setItem('monitor-next',JSON.stringify({_storageVersion:1,appearance,modules:{map:false}}))},{language,appearance})
    await page.goto('/')
    for(const graph of ['bar','ring','columns','minimal']){
-    await toggleSettings(page);await visualSelect(page,'graph',graph);await toggleSettings(page)
+    await setSiteDefault(page,'graph',graph)
     const card=page.locator('.node-card').first()
     await expect(card).toHaveAttribute('data-indicator',graph)
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
@@ -41,19 +40,14 @@ for(const [width,height] of [[320,844],[390,844],[430,932],[768,1024],[1440,1000
  })
 }
 
-test('fresh defaults, legacy choices, explicit site-equal choices and resets stay compatible',async({page})=>{
+test('site graph defaults update and legacy browser graph choices are ignored',async({page})=>{
  let config:any={}
  await page.route('**/theme-config.json',r=>r.fulfill({json:config}))
  await page.goto('/');await expect(page.locator('.next-theme')).toHaveAttribute('data-graph','bar')
  config={graph:'ring'};await page.reload();await expect(page.locator('.next-theme')).toHaveAttribute('data-graph','ring')
- await toggleSettings(page);await visualSelect(page,'graph','ring');await toggleSettings(page)
- config={graph:'columns'};await page.reload();await expect(page.locator('.next-theme')).toHaveAttribute('data-graph','ring')
- await toggleSettings(page);await (await settingsButton(page,'恢复默认外观',{exact:true})).click();await toggleSettings(page)
- await expect(page.locator('.next-theme')).toHaveAttribute('data-graph','columns')
  for(const modern of [false,true])for(const graph of ['ring','bar','columns','minimal']){
   await page.evaluate(({modern,graph})=>localStorage.setItem('monitor-next',JSON.stringify(modern?{_storageVersion:1,graph}:{graph})),{modern,graph})
-  config={graph};await page.reload();await expect(page.locator('.next-theme')).toHaveAttribute('data-graph',graph)
-  config={graph:graph==='bar'?'ring':'bar'};await page.reload();await expect(page.locator('.next-theme')).toHaveAttribute('data-graph',graph)
+  config={graph:graph==='bar'?'ring':'bar'};await page.reload();await expect(page.locator('.next-theme')).toHaveAttribute('data-graph',config.graph)
  }
 })
 

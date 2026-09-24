@@ -1,4 +1,16 @@
 import type {Page} from '@playwright/test'
+export async function setStoredPreference(page:Page,key:string,value:unknown){
+ await page.evaluate(({key,value})=>{
+  const current=JSON.parse(localStorage.getItem('monitor-next')||'{}')
+  localStorage.setItem('monitor-next',JSON.stringify({...current,_storageVersion:1,schemaVersion:3,designVersion:1,[key]:value}))
+ },{key,value})
+ await page.reload()
+}
+export async function setSiteDefault(page:Page,key:string,value:unknown){
+ await page.route('**/theme-config.json',route=>route.fulfill({json:{[key]:value}}))
+ await page.route('**/api/themes/hex/config',route=>route.fulfill({status:404}))
+ await page.reload()
+}
 export async function toggleSettings(page:Page) {
  const drawer=page.locator('dialog.settings-drawer')
  if(await drawer.isVisible()) await drawer.getByRole('button',{name:/^(关闭设置|Close settings)$/}).click()

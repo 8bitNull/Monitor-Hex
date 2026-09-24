@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
-import {toggleSettings,visualSelect,settingsCategory} from './settings'
+import {setSiteDefault} from './settings'
 
 for(const width of [320,390,430,768,1024,1440])test('detail and settings polish remain usable at '+width,async({page})=>{
  await page.setViewportSize({width,height:844})
@@ -16,7 +16,7 @@ for(const width of [320,390,430,768,1024,1440])test('detail and settings polish 
   }
   if(width===390){const cpu=await page.locator('.detail-live .resource').first().boundingBox();expect(cpu!.y+cpu!.height).toBeLessThan(844)}
   for(const graph of ['bar','ring','columns','minimal']){
-   await toggleSettings(page);await visualSelect(page,'graph',graph);await toggleSettings(page)
+   await setSiteDefault(page,'graph',graph)
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
    expect(await page.locator('.detail-live').evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy()
    const overflow=await page.locator('.detail-live .resource').evaluateAll(els=>els.some(el=>{const r=el.getBoundingClientRect();return [...el.querySelectorAll('.bar-number,.metric-ring strong')].some(n=>{const b=n.getBoundingClientRect();return b.width>0&&(b.right>r.right+1||b.left<r.left-1)})}))
@@ -28,19 +28,6 @@ for(const width of [320,390,430,768,1024,1440])test('detail and settings polish 
   await page.mouse.move(chart!.x+chart!.width-20,chart!.y+120)
   const tip=page.locator('.recharts-tooltip-wrapper').first()
   if(await tip.isVisible()){const box=await tip.boundingBox();expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.x+box!.width).toBeLessThanOrEqual(width)}
-  await toggleSettings(page)
-  const drawer=page.locator('.settings-drawer')
-  await expect(drawer.locator('[data-settings=home] input[type=checkbox]')).toHaveCount(7)
-  expect(await drawer.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy()
-  await drawer.locator('.settings-nav button').nth(1).click()
-  const alert=drawer.getByLabel(language==='zh'?'高负载提示':'High load alerts',{exact:true})
-  await alert.scrollIntoViewIfNeeded()
-  await expect(alert).toBeInViewport();await alert.uncheck();await expect(alert).not.toBeChecked()
-  await settingsCategory(page,'other')
-  await drawer.getByRole('button',{name:language==='zh'?'重置全部偏好':'Reset all preferences',exact:true}).scrollIntoViewIfNeeded()
-  const close=drawer.getByRole('button',{name:language==='zh'?'关闭设置':'Close settings',exact:true})
-  await expect(close).toBeInViewport();expect((await close.boundingBox())!.height).toBeGreaterThanOrEqual(44)
-  await close.click();await expect(drawer).not.toBeVisible()
-  await expect(page.locator('header').getByRole('button',{name:language==='zh'?'显示与偏好':'Display & preferences',exact:true})).toBeFocused()
+  await expect(page.locator('.settings-drawer')).toHaveCount(0)
  }
 })

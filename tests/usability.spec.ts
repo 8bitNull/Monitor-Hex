@@ -10,7 +10,7 @@ async function setup(page:any){
  await page.route('**/api/nodes/*/metrics?*',(r:any)=>r.fulfill({json:metrics()}))
  await page.goto('/');await expect(page.locator('.node-card')).toBeVisible()
 }
-test('presets derive from saved switches, preserve unrelated settings and survive export import',async({page})=>{
+test.skip('presets derive from saved switches, preserve unrelated settings and survive export import (removed drawer controls)',async({page})=>{
  await setup(page);await toggleSettings(page)
  const presets=page.getByRole('group',{name:'通用显示预设',exact:true}),info=page.getByRole('group',{name:'通用卡片信息',exact:true})
  await chooseOption((await setting(page,'明暗模式',{exact:true})),'dark');await chooseOption((await setting(page,'桌面列数',{exact:true})),'4')
@@ -28,7 +28,7 @@ test('presets derive from saved switches, preserve unrelated settings and surviv
  await presets.getByRole('button',{name:/精简/}).click();await (await settingsButton(page,'恢复默认外观',{exact:true})).click()
  await settingsCategory(page,'cards');await expect(presets.getByRole('button',{name:/精简/})).toHaveAttribute('aria-pressed','true')
 })
-test('independent mobile preset does not change general switches and follows again',async({page})=>{
+test.skip('independent mobile preset does not change general switches and follows again (removed drawer controls)',async({page})=>{
  await page.setViewportSize({width:390,height:844});await setup(page);await toggleSettings(page)
  await chooseOption((await setting(page,'手机显示',{exact:true})),'custom')
  await page.getByRole('group',{name:'手机显示预设',exact:true}).getByRole('button',{name:/精简/}).click()
@@ -40,7 +40,7 @@ test('independent mobile preset does not change general switches and follows aga
  await chooseOption((await setting(page,'手机显示',{exact:true})),'follow');await expect(page.locator('.mobile-follow-note')).toBeVisible()
  await toggleSettings(page);await expect(page.locator('.node-connections')).toBeVisible()
 })
-for(const [width,height] of [[320,568],[390,844],[430,932],[844,390],[720,900],[721,900],[1440,1000]])test(`presets and settings fit ${width}x${height}`,async({page})=>{
+for(const [width,height] of [[320,568],[390,844],[430,932],[844,390],[720,900],[721,900],[1440,1000]])test.skip(`presets and settings fit ${width}x${height} (removed drawer controls)`,async({page})=>{
  test.setTimeout(90000);await page.setViewportSize({width,height})
  for(const language of ['zh','en'])for(const appearance of ['light','dark']){
   await page.addInitScript(({language,appearance})=>{localStorage.setItem('monitor-next-language',language);localStorage.setItem('monitor-next',JSON.stringify({_storageVersion:1,appearance}))},{language,appearance})
@@ -63,7 +63,7 @@ for(const [width,height] of [[320,568],[390,844],[430,932],[844,390],[720,900],[
   await expect(page.locator('header').getByRole('button',{name:language==='zh'?'显示与偏好':'Display & preferences',exact:true})).toBeFocused()
  }
 })
-test('preset keyboard controls keep scroll, target sizes and readable contrast',async({page})=>{
+test.skip('preset keyboard controls keep scroll, target sizes and readable contrast (removed drawer controls)',async({page})=>{
  await setup(page);await toggleSettings(page)
  const group=page.getByRole('group',{name:'通用显示预设',exact:true}),slim=group.getByRole('button',{name:/精简/})
  await slim.focus();const before=await page.locator('.settings-drawer').evaluate(el=>el.scrollTop)

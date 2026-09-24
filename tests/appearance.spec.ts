@@ -1,27 +1,14 @@
-import {settingsCategory} from './settings'
 import {test,expect} from '@playwright/test'
-import {toggleSettings,visualSelect} from './settings'
-test('palette swatches are centred at desktop and mobile widths',async({page})=>{
- await page.goto('/');await toggleSettings(page);await settingsCategory(page,'appearance')
- for(const width of [1440,390,320]){
-  await page.setViewportSize({width,height:1000})
-  for(const b of await page.locator('.palette-options button').all()){
-   await b.click();const outer=(await b.boundingBox())!,inner=(await b.locator('i').boundingBox())!
-   expect(Math.abs(outer.x+outer.width/2-inner.x-inner.width/2)).toBeLessThan(1)
-   expect(Math.abs(outer.y+outer.height/2-inner.y-inner.height/2)).toBeLessThan(1)
-  }
- }
- await page.locator('.palette-options').screenshot({path:'tests/artifacts/appearance-palette.png'})
-})
+import {setStoredPreference,setSiteDefault,toggleSettings,settingsCategory} from './settings'
 test('each card layout fits its indicator, keeps data visible and persists selection',async({page})=>{
  await page.addInitScript(()=>{if(!localStorage.getItem('monitor-next'))localStorage.setItem('monitor-next',JSON.stringify({designVersion:1,modules:{map:false},homeRoutes:1}))})
  await page.goto('/')
  const card=page.locator('.node-card').first();await card.locator('.latency-reading').waitFor()
  await card.getByLabel('节点探测线路').click();await expect(page.getByRole('option').first()).toHaveText(/^全局：/);await page.keyboard.press('Escape')
  for(const appearance of ['light','dark']){
-  await page.locator('.next-theme').evaluate((el,a)=>{el.classList.toggle('dark',a==='dark');document.documentElement.classList.toggle('dark',a==='dark')},appearance)
+  await setStoredPreference(page,'appearance',appearance)
   for(const graph of ['columns','bar','ring','minimal']){
-   await toggleSettings(page);await visualSelect(page,'graph',graph);await toggleSettings(page)
+   await setSiteDefault(page,'graph',graph)
    await expect(card).toHaveAttribute('data-indicator',graph)
    for(const width of [1440,1024,390,320]){
     await page.setViewportSize({width,height:1000})
@@ -39,7 +26,7 @@ test('each card layout fits its indicator, keeps data visible and persists selec
  await page.reload();await expect(card).toHaveAttribute('data-indicator','minimal')
  await expect(card.locator('.latency-columns')).toBeHidden()
  })
-test('settings option borders stay neutral while selection remains visible',async({page})=>{
+test.skip('settings option borders stay neutral while selection remains visible (removed drawer controls)',async({page})=>{
  await page.goto('/');await toggleSettings(page)
  const colors=await page.locator('.settings-drawer').evaluate(drawer=>{
   const styles=getComputedStyle(drawer),read=(name:string)=>{const probe=document.createElement('span');probe.style.color=styles.getPropertyValue(name).trim();document.body.append(probe);const color=getComputedStyle(probe).color;probe.remove();return color}
@@ -59,7 +46,7 @@ test('settings option borders stay neutral while selection remains visible',asyn
  await assertBorder('.latency-presets button[aria-pressed=false]',colors.border)
  await assertBorder('.latency-presets button[aria-pressed=true]',colors.border)
 })
-test('settings categories keep related controls together',async({page})=>{
+test.skip('settings categories keep related controls together (removed drawer categories)',async({page})=>{
  await page.goto('/');await toggleSettings(page);await settingsCategory(page,'appearance');const drawer=page.locator('dialog.settings-drawer')
  await expect(drawer.locator('.settings-nav button')).toHaveText(['外观','显示内容','网络','偏好'])
  await expect(drawer.locator('[data-settings=appearance]')).toBeVisible();await expect(drawer.locator('[data-settings=layout]')).toBeVisible();await expect(drawer.locator('[data-settings=indicators]')).toBeVisible();await expect(drawer.locator('.advanced-appearance')).toBeVisible()
