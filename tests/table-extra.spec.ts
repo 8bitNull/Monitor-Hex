@@ -1,7 +1,6 @@
 import {test,expect} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
 import {availableTableColumns} from '../src/lib/browse'
-import {toggleSettings,settingsCategory} from './settings'
 
 test('all extra metrics preserve zero, offline and missing values',async({page})=>{
  await page.addInitScript(columns=>sessionStorage.setItem('monitor-next-browse-v1',JSON.stringify({columnsVersion:5,columns,tableLayout:'grouped',view:'table'})),availableTableColumns)
@@ -21,7 +20,7 @@ test('all extra metrics preserve zero, offline and missing values',async({page})
 test('mobile can show only packet loss or only the probe route and retains selection',async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.addInitScript(()=>{if(!sessionStorage.getItem('monitor-next-browse-v1'))sessionStorage.setItem('monitor-next-browse-v1',JSON.stringify({columnsVersion:5,mobileColumns:['loss'],view:'table',mobileTableLayout:'grouped'}))})
  await page.route('**/api/nodes/*/metrics?*',r=>r.fulfill({json:{...metrics(),loss:{1:0}}}));await page.goto('/');await expect(page.locator('thead th')).toHaveCount(2);await expect(page.locator('td[data-column=loss]').first()).toContainText('0.0%')
- await toggleSettings(page);await settingsCategory(page,'cards');const group=page.getByRole('group',{name:'手机表格',exact:true});await expect(group.getByRole('checkbox')).toHaveCount(20);await group.getByLabel('丢包率',{exact:true}).uncheck();await group.getByLabel('探测线路',{exact:true}).check();await toggleSettings(page)
+ await page.locator('details.table-options summary').click();const group=page.getByRole('group',{name:'手机表格',exact:true});await expect(group.getByRole('checkbox')).toHaveCount(20);await group.getByLabel('丢包率',{exact:true}).uncheck();await group.getByLabel('探测线路',{exact:true}).check();await page.locator('details.table-options summary').click()
  await expect(page.locator('thead [data-column=loss]')).toHaveCount(0);await expect(page.locator('td[data-column=probe]').first()).toContainText('Tokyo gateway');await expect(page.locator('thead th')).toHaveCount(2)
  await page.reload();await expect(page.locator('thead [data-column=probe]')).toHaveCount(1);await expect(page.locator('thead [data-column=latency]')).toHaveCount(0)
 })

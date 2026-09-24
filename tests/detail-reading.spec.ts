@@ -1,10 +1,7 @@
-import {chooseOption} from './select'
 import {expandRoutes} from './routes'
-import {settingsCategory} from './settings'
-import {setting,settingsButton} from './settings'
 import {test,expect} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
-import {toggleSettings,visualSelect} from './settings'
+import {setSiteDefault} from './settings'
 async function setup(page:any,count=3){
  await page.route('**/api/nodes',(r:any)=>r.fulfill({json:{nodes:[{...nodes()[0],agent_version:'1.2.3',ipv4:'192.0.2.1',remark:'国际线路;Backup',expires_at:'2027-01-01'}]}}))
  await page.route('**/api/nodes/*/metrics?*',(r:any)=>{const d=metrics();return r.fulfill({json:{...d,probes:Object.fromEntries(Array.from({length:count},(_,i)=>[i+1,`Route ${i+1}`])),ping:d.ping.flatMap(p=>Array.from({length:count},(_,i)=>({...p,task_id:i+1,latency:p.latency+i*10})))}})})
@@ -22,7 +19,7 @@ for(const width of [320,390,430,720,899,900,1024,1440,1920])test(`detail reading
   await page.addInitScript(({language,appearance})=>{localStorage.setItem('monitor-next-language',language);localStorage.setItem('monitor-next',JSON.stringify({_storageVersion:1,appearance}))},{language,appearance})
   await setup(page)
   for(const graph of ['bar','ring','columns','minimal']){
-   await toggleSettings(page);await visualSelect(page,'graph',graph);await toggleSettings(page);await page.evaluate(()=>scrollTo(0,0))
+   await setSiteDefault(page,'graph',graph);await page.evaluate(()=>scrollTo(0,0))
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
    if(width===390){const b=(await page.locator('.detail-chart-toolbar').boundingBox())!,live=(await page.locator('.detail-live').boundingBox())!;expect(b.y).toBeGreaterThan(live.y+live.height);expect(b.height).toBeLessThanOrEqual(116)}
   }
@@ -44,17 +41,13 @@ for(const width of [320,390,430,720,899,900,1024,1440,1920])test(`detail reading
   else {await expect(page.locator('.detail-facts-toggle')).toHaveCount(0);await expect(page.locator('#detail-fact-groups')).toBeVisible()}
  }
 })
-test('device information preference persists, exports, inherits and resets',async({page})=>{
+test('device information disclosure persists across reload and viewport changes',async({page})=>{
  await page.setViewportSize({width:899,height:900});await setup(page)
  const toggle=page.locator('.detail-facts-toggle');await expect(toggle).toHaveAttribute('aria-expanded','false')
  await page.setViewportSize({width:900,height:900});await expect(toggle).toHaveCount(0);await expect(page.locator('#detail-fact-groups')).toBeVisible()
  await page.setViewportSize({width:899,height:900});await expect(toggle).toHaveAttribute('aria-expanded','false');await toggle.click();await page.reload();await expect(toggle).toHaveAttribute('aria-expanded','true')
- await toggleSettings(page);const select=(await setting(page,'设备资料展开方式',{exact:true}));await expect(select).toHaveAttribute('data-value','expanded')
- const download=page.waitForEvent('download');await (await settingsButton(page,'导出主题配置',{exact:true})).click();const path=await (await download).path()
- await (await settingsButton(page,'恢复默认外观',{exact:true})).click();await expect(select).toHaveAttribute('data-value','expanded')
- await (await settingsButton(page,'重置全部偏好',{exact:true})).click();await page.getByRole('button',{name:'确认重置'}).click();await expect(select).toHaveAttribute('data-value','auto')
- await (await setting(page,'导入主题配置',{exact:true})).setInputFiles(path!);await expect(select).toHaveAttribute('data-value','expanded')
- await settingsCategory(page,'cards');await chooseOption(select,'expanded');await toggleSettings(page);await page.setViewportSize({width:390,height:844});await expect(toggle).toHaveAttribute('aria-expanded','true')
+ await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('monitor-next')||'{}').detailInfoMode)).toBe('expanded')
+ await page.setViewportSize({width:390,height:844});await expect(toggle).toHaveAttribute('aria-expanded','true')
  await expect(page.getByRole('region',{name:'硬件与系统',exact:true})).toContainText('1.2.3')
 })
 test('loading empty failure and success share the same history canvas',async({page})=>{

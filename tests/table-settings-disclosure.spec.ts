@@ -1,10 +1,7 @@
 import {test,expect} from '@playwright/test'
-import {toggleSettings,settingsCategory} from './settings'
-
-async function openTableSettings(page:Parameters<typeof toggleSettings>[0]) {
+async function openTableSettings(page:import('@playwright/test').Page) {
  await page.getByLabel('表格视图',{exact:true}).click()
- await toggleSettings(page)
- await settingsCategory(page,'cards')
+ await page.locator('details.table-options summary').click()
 }
 
 test('table settings select the current device and show only its controls',async({page})=>{
@@ -26,13 +23,9 @@ test('table settings select the current device and show only its controls',async
 
  await page.setViewportSize({width:1440,height:1000})
  await expect(desktop).toBeVisible()
- await settingsCategory(page,'network')
- await settingsCategory(page,'cards')
- await expect(desktop).toBeVisible()
-
- await toggleSettings(page)
+ await page.locator('details.table-options summary').click()
  await page.setViewportSize({width:1440,height:1000})
- await openTableSettings(page)
+ await page.locator('details.table-options summary').click()
  await expect(desktop).toBeVisible()
  await expect(mobile).toHaveCount(0)
  await expect(deviceSwitch.getByRole('button',{name:'桌面表格',exact:true})).toHaveAttribute('aria-pressed','true')

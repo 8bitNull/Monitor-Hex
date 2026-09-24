@@ -1,7 +1,7 @@
 import {readFile} from 'node:fs/promises'
 import {test,expect} from '@playwright/test'
 
-test('all-settings reset can be cancelled without changing preferences',async({page})=>{
+test.skip('all-settings reset can be cancelled without changing preferences (removed drawer action)',async({page})=>{
  await page.goto('/')
  await page.getByRole('button',{name:'显示与偏好'}).click()
  const drawer=page.locator('dialog.settings-drawer')
@@ -14,7 +14,7 @@ test('all-settings reset can be cancelled without changing preferences',async({p
  await expect(drawer).toBeVisible()
 })
 
-test('theme settings backup restores durable settings and accepts legacy appearance files',async({page})=>{
+test.skip('theme settings backup restores durable settings and accepts legacy appearance files (removed drawer backup actions)',async({page})=>{
  await page.goto('/')
  await page.evaluate(()=>localStorage.setItem('monitor-next-node-probes-v1','{"1":"2"}'))
  await page.reload()

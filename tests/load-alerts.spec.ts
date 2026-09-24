@@ -1,9 +1,7 @@
-import {setting} from './settings'
 import {test,expect} from '@playwright/test'
 import {nodes} from '../scripts/fixtures.mjs'
-import {toggleSettings} from './settings'
 const key='monitor-next-load-alerts-v1'
-test('load records persist across recovery, reload, disabled monitoring and stale data',async({page})=>{
+test('load records persist across recovery, reload and stale data',async({page})=>{
  await page.clock.install()
  await page.addInitScript(()=>{if(!localStorage.getItem('monitor-next'))localStorage.setItem('monitor-next',JSON.stringify({designVersion:1,modules:{busiest:true,map:false}}))})
  let cpu=92,fail=false
@@ -20,9 +18,6 @@ test('load records persist across recovery, reload, disabled monitoring and stal
  await page.reload();await expect(tile).toContainText('已恢复')
  cpu=97;await page.clock.runFor(6000);await expect(tile.locator('.summary-total')).toHaveText('2告警中')
  fail=true;await page.clock.runFor(22000);await expect(tile.locator('.summary-total')).toHaveText('0告警中');await expect(tile).toContainText('监测中断')
- expect(await page.evaluate(k=>JSON.parse(localStorage.getItem(k)!).length,key)).toBe(4)
- await toggleSettings(page);await (await setting(page,'高负载提示',{exact:true})).uncheck();await toggleSettings(page)
- await expect(tile).toHaveCount(0)
  expect(await page.evaluate(k=>JSON.parse(localStorage.getItem(k)!).length,key)).toBe(4)
 })
 test('load overview and history fit light/dark layouts and restore keyboard focus',async({page})=>{

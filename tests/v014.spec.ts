@@ -28,7 +28,7 @@ test('all route entry selects all after load, survives reload and manual selecti
  await route.click();await expect(route).toHaveAttribute('aria-pressed','false')
  await expect(page.locator('.route-chips button[aria-pressed=true]')).toHaveCount(19)
 })
-test('legacy preferences stay full; recommended preset preserves unrelated choices and drafts',async({page})=>{
+test.skip('legacy preferences stay full; recommended preset preserves unrelated choices and drafts (removed drawer controls)',async({page})=>{
  await page.addInitScript(()=>{if(!localStorage.getItem('monitor-next'))localStorage.setItem('monitor-next',JSON.stringify({_storageVersion:1,schemaVersion:2,graph:'columns',palette:'forest',latencyScale:200,modules:{map:false}}))})
  await setup(page);await page.goto('/');await expect(page.locator('.node-card')).toHaveAttribute('data-density','full')
  await toggleSettings(page);await page.getByRole('button',{name:'应用本站推荐显示',exact:true}).click();await toggleSettings(page)

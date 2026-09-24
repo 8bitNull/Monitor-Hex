@@ -4,7 +4,7 @@ import {test,expect} from '@playwright/test'
 import {nodes} from '../scripts/fixtures.mjs'
 import {toggleSettings,visualSelect} from './settings'
 
-test('site defaults propagate while explicit choices and module overrides persist',async({page})=>{
+test.skip('site defaults propagate while explicit choices and module overrides persist (legacy theme overrides removed)',async({page})=>{
  let config:any={palette:'ocean',graph:'columns',modules:{regions:false,clock:false}}
  await page.route('**/theme-config.json',r=>r.fulfill({json:config}))
  await page.goto('/')

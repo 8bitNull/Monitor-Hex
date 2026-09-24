@@ -1,7 +1,7 @@
 import {expandRoutes} from './routes'
 import {test,expect} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
-import {toggleSettings,visualSelect} from './settings'
+import {setSiteDefault} from './settings'
 async function setup(page:any,{many=false,empty=false,error=false}={}){
  await page.route('**/api/nodes',(r:any)=>r.fulfill({json:{nodes:[{...nodes()[0],name:'Tokyo · 东京主节点',ipv4_pin:true,ipv6_pin:true,agent_version:'1.0.0',remark:'2.5Gbps 国际线路;Anti-DDoS;应用与备份服务',expires_at:'2026-09-22'}]}}))
  await page.route('**/api/nodes/*/metrics?*',(r:any)=>{if(error)return r.fulfill({status:503});const d=metrics();const count=many?18:3;return r.fulfill({json:empty?{metrics:[],ping:[],probes:{}}:{...d,probes:Object.fromEntries(Array.from({length:count},(_,i)=>[i+1,`线路 ${i+1}`])),ping:d.ping.flatMap(p=>Array.from({length:count},(_,i)=>({...p,task_id:i+1,latency:p.latency+i*20})))}})})
@@ -46,7 +46,7 @@ test('responsive composition and stable hover with many routes in light and dark
 test('all graph styles fit the compact sidebar and narrow screen',async({page})=>{
  await setup(page)
  for(const graph of ['columns','bar','ring','minimal']){
-  await toggleSettings(page);await visualSelect(page,'graph',graph);await toggleSettings(page)
+  await setSiteDefault(page,'graph',graph)
   for(const width of [320,1024]){
    await page.setViewportSize({width,height:1000})
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()

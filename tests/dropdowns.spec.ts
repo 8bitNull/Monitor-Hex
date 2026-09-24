@@ -1,10 +1,11 @@
 import {test,expect} from '@playwright/test'
-import {toggleSettings,setting} from './settings'
 import {metrics} from '../scripts/fixtures.mjs'
 
 for(const width of [320,390,1440])for(const appearance of ['light','dark'])test(`dropdown menus stay bounded and readable ${width} ${appearance}`,async({page})=>{
  await page.setViewportSize({width,height:800})
- await page.addInitScript(appearance=>localStorage.setItem('monitor-next',JSON.stringify({appearance,palette:'forest',modules:{map:false}})),appearance)
+ await page.addInitScript(appearance=>localStorage.setItem('monitor-next',JSON.stringify({appearance})),appearance)
+ await page.route('**/theme-config.json',r=>r.fulfill({json:{palette:'forest',modules:{map:false}}}))
+ await page.route('**/api/themes/hex/config',r=>r.fulfill({status:404}))
  await page.route('**/api/nodes/*/metrics?*',r=>{const data=metrics();return r.fulfill({json:{...data,probes:Object.fromEntries(Array.from({length:30},(_,i)=>[i+1,`Route ${i+1} · 跨境线路名称 ${'LongName'.repeat(8)}`]))}})})
  await page.goto('/');await page.locator('.next-theme').evaluate(el=>el.setAttribute('data-glass','true'));const route=page.getByLabel('节点探测线路',{exact:true}).first();await expect(route).not.toContainText('正在读取')
  await route.click();const menu=page.getByRole('listbox');await expect(menu).toBeVisible()
@@ -13,13 +14,13 @@ for(const width of [320,390,1440])for(const appearance of ['light','dark'])test(
  expect(await page.getByRole('option').first().evaluate(el=>{const b=el.getBoundingClientRect();return el.contains(document.elementFromPoint(b.x+b.width/2,b.y+b.height/2))})).toBe(true)
  await page.screenshot({path:`tests/artifacts/dropdown-routes-${width}-${appearance}.png`})
  await page.keyboard.press('Escape');await expect(route).toBeFocused()
- await toggleSettings(page);const mode=await setting(page,'明暗模式',{exact:true});await mode.click();await expect(menu).toBeVisible()
- await page.screenshot({path:`tests/artifacts/dropdown-settings-${width}-${appearance}.png`})
- await page.keyboard.press('Escape');await expect(page.locator('.settings-drawer')).toBeVisible();await expect(mode).toBeFocused()
- await mode.click();await page.getByRole('option',{name:appearance==='dark'?'浅色':'深色',exact:true}).click();await expect(menu).toHaveCount(0)
- await expect(mode).toHaveAttribute('data-value',appearance==='dark'?'light':'dark')
- expect(await mode.evaluate(el=>getComputedStyle(el).outlineStyle)).toBe('none')
- await toggleSettings(page)
+ const global=page.getByLabel('主要探测线路',{exact:true})
+ await global.click();await expect(menu).toBeVisible()
+ const globalBox=(await menu.boundingBox())!;expect(globalBox.x).toBeGreaterThanOrEqual(0);expect(globalBox.x+globalBox.width).toBeLessThanOrEqual(width)
+ await page.screenshot({path:`tests/artifacts/dropdown-global-route-${width}-${appearance}.png`})
+ await page.keyboard.press('Escape');await expect(global).toBeFocused()
+ await global.click();await page.getByRole('option').nth(1).click();await expect(menu).toHaveCount(0)
+ await expect(global).not.toHaveAttribute('data-value','auto')
 })
 
 test('table sorting supports keyboard selection, dismissal and neutral borders',async({page})=>{

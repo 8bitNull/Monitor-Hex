@@ -1,7 +1,7 @@
 import {expandRoutes} from './routes'
 import {test,expect} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
-import {toggleSettings,visualSelect} from './settings'
+import {setSiteDefault} from './settings'
 async function setup(page:any,long=false){
  await page.route('**/api/nodes',(r:any)=>r.fulfill({json:{nodes:[{...nodes()[0],name:long?'Tokyo 东京超长名称 '.repeat(18):'Tokyo',cpu_name:'AMD EPYC Processor '.repeat(long?12:1),ipv6:'2001:db8:1234:5678:abcd:1234:5678:abcd',remark:long?Array.from({length:8},(_,i)=>`备注 ${i} ${'Long text '.repeat(8)}`).join(';'):'国际线路;Production'}]}}))
  await page.route('**/api/nodes/*/metrics?*',(r:any)=>{const d=metrics();return r.fulfill({json:{...d,probes:Object.fromEntries(Array.from({length:12},(_,i)=>[i+1,`Route ${i+1}`])),ping:d.ping.flatMap(p=>Array.from({length:12},(_,i)=>({...p,task_id:i+1,latency:p.latency+i*10})))}})})
@@ -16,7 +16,7 @@ for(const width of [320,390,1024,1440])test(`primary metrics and long identity f
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();await page.getByRole('button',{name:'收起备注',exact:true}).click()
  if(width<900)await page.locator('.detail-facts-toggle').click()
  const cpuRow=page.locator('section[aria-label="硬件与系统"] .detail-facts>div').filter({hasText:'CPU'}).first();await expect(cpuRow.getByRole('button',{name:'复制：CPU',exact:true})).toHaveCount(0);await expect(cpuRow.locator('.fact-value')).toBeVisible()
- for(const graph of ['bar','ring','columns','minimal']){await toggleSettings(page);await visualSelect(page,'graph',graph);await toggleSettings(page);expect(await page.locator('.detail-live').evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy();if(graph==='bar'){const bottoms=await page.locator('.detail-resources .resource-bar').evaluateAll(elements=>elements.map(el=>el.getBoundingClientRect().bottom));expect(Math.abs(bottoms[0]-bottoms[1])).toBeLessThanOrEqual(1);expect(Math.abs(bottoms[2]-bottoms[3])).toBeLessThanOrEqual(1)}}
+ for(const graph of ['bar','ring','columns','minimal']){await setSiteDefault(page,'graph',graph);expect(await page.locator('.detail-live').evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy();if(graph==='bar'){const bottoms=await page.locator('.detail-resources .resource-bar').evaluateAll(elements=>elements.map(el=>el.getBoundingClientRect().bottom));expect(Math.abs(bottoms[0]-bottoms[1])).toBeLessThanOrEqual(1);expect(Math.abs(bottoms[2]-bottoms[3])).toBeLessThanOrEqual(1)}}
 })
 test('tooltip follows route list order using stable catalog order',async({page})=>{
  await page.setViewportSize({width:1440,height:900});await setup(page);await page.getByRole('button',{name:'网络延迟',exact:true}).click()

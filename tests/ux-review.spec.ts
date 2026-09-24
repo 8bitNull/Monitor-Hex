@@ -39,10 +39,10 @@ test('empty history offers recovery and a failed first request never remains loa
  await setup(page);await page.route('**/api/nodes/*/metrics?*',r=>r.fulfill({status:503}));await page.goto('/node/1#latency');await expect(page.locator('.history-empty')).toBeVisible();await expect(page.locator('.history-loading')).toHaveCount(0)
  await page.route('**/api/nodes/*/metrics?*',r=>r.fulfill({json:{metrics:[],ping:[],probes:{}}}));await page.locator('.detail-history').getByRole('button',{name:'重试',exact:true}).click();await page.getByRole('button',{name:'调整时间范围',exact:true}).click();await expect(page.getByRole('button',{name:'1 小时',exact:true})).toBeFocused()
 })
-test('resource toolbar text and desktop-only settings are explicit on mobile',async({page})=>{
+test('resource toolbar controls remain explicit on mobile',async({page})=>{
  await page.setViewportSize({width:320,height:844});await setup(page);await page.goto('/node/1');await expect(page.locator('.detail-tabs').getByText('资源',{exact:true})).toBeVisible();await expect(page.locator('.detail-resource-metric-mobile summary')).toContainText('CPU')
  for(const l of [page.locator('.detail-ranges'),page.locator('.detail-refresh'),page.locator('.detail-resource-metric-mobile summary')]){const box=await l.boundingBox();expect(box!.x+box!.width).toBeLessThanOrEqual(320)}
- await page.getByRole('button',{name:'显示与偏好',exact:true}).click();await expect(page.getByLabel('资料密度',{exact:true})).toHaveCount(0);await expect(page.getByText('仅桌面生效',{exact:true}).first()).toBeVisible();await expect(page.getByLabel('背景图片地址',{exact:true})).toBeHidden();await page.getByText('高级外观',{exact:true}).click();await expect(page.getByLabel('背景图片地址',{exact:true})).toBeVisible()
+ await expect(page.locator('.settings-drawer')).toHaveCount(0)
 })
 
 for(const width of [320,390,1440])test(`one loss selector owns summary and hidden routes cannot reclaim it at ${width}`,async({page})=>{
