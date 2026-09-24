@@ -14,13 +14,7 @@ for(const width of [320,390,1440])for(const appearance of ['light','dark'])test(
  expect(await page.getByRole('option').first().evaluate(el=>{const b=el.getBoundingClientRect();return el.contains(document.elementFromPoint(b.x+b.width/2,b.y+b.height/2))})).toBe(true)
  await page.screenshot({path:`tests/artifacts/dropdown-routes-${width}-${appearance}.png`})
  await page.keyboard.press('Escape');await expect(route).toBeFocused()
- const global=page.getByLabel('主要探测线路',{exact:true})
- await global.click();await expect(menu).toBeVisible()
- const globalBox=(await menu.boundingBox())!;expect(globalBox.x).toBeGreaterThanOrEqual(0);expect(globalBox.x+globalBox.width).toBeLessThanOrEqual(width)
- await page.screenshot({path:`tests/artifacts/dropdown-global-route-${width}-${appearance}.png`})
- await page.keyboard.press('Escape');await expect(global).toBeFocused()
- await global.click();await page.getByRole('option').nth(1).click();await expect(menu).toHaveCount(0)
- await expect(global).not.toHaveAttribute('data-value','auto')
+ await expect(page.getByLabel('主要探测线路',{exact:true})).toHaveCount(0)
 })
 
 test('table sorting supports keyboard selection, dismissal and neutral borders',async({page})=>{

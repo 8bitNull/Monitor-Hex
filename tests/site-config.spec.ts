@@ -1,5 +1,4 @@
 import {test, expect} from '@playwright/test'
-import {chooseOption} from './select'
 
 test('hub site settings win over legacy theme overrides while appearance stays personal', async ({page}) => {
   let writes = 0
@@ -43,23 +42,15 @@ test('header dark and language controls persist without a settings drawer',async
   await expect(page.locator('html')).not.toHaveClass(/\bdark\b/)
 })
 
-test('global probe selection persists and table columns are contextual',async({page})=>{
+test('home route and table column settings are absent from the public page',async({page})=>{
   await page.goto('/')
-  const probe=page.getByLabel('主要探测线路',{exact:true})
-  await expect(probe).toHaveAttribute('data-value','auto')
-  await expect(page.locator('.table-options')).toHaveCount(0)
-  await chooseOption(probe,{index:1})
-  const selected=await probe.getAttribute('data-value')
-  expect(selected).not.toBe('auto')
+  await expect(page.getByLabel('主要探测线路',{exact:true})).toHaveCount(0)
   await page.getByLabel('表格视图',{exact:true}).click()
-  const table=page.locator('details.table-options')
-  await expect(table).toBeVisible()
-  await table.locator('summary').click()
-  await expect(table).toHaveAttribute('open','')
-  await expect(table.getByRole('group',{name:'桌面表格'})).toBeVisible()
+  await expect(page.locator('details.table-options')).toHaveCount(0)
+  await expect(page.locator('thead [data-column=cpu]')).toBeVisible()
   await page.reload()
-  await expect(page.getByLabel('主要探测线路',{exact:true})).toHaveAttribute('data-value',selected!)
-  await expect(page.locator('details.table-options')).toBeVisible()
+  await expect(page.getByLabel('主要探测线路',{exact:true})).toHaveCount(0)
+  await expect(page.locator('details.table-options')).toHaveCount(0)
 })
 
 test('an unavailable hub config silently falls back to packaged defaults', async ({page}) => {

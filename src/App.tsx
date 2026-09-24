@@ -10,16 +10,13 @@ import { tr, locale, getLanguage, subscribeLanguage, setLanguage } from './lib/i
 import { readCollection } from '@/lib/collection';
 import { groupRegions, systemKey, UNKNOWN_REGION } from '@/lib/groups';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, useRef, useLayoutEffect, useSyncExternalStore } from "react";
-import {  Moon, Sun, Wrench, Globe, LayoutGrid, ArrowLeft, Radio, Table2, Search, X, ArrowUp, Columns3 } from "lucide-react";
+import {  Moon, Sun, Wrench, Globe, LayoutGrid, ArrowLeft, Radio, Table2, Search, X, ArrowUp } from "lucide-react";
 import { usePreferences, useAppearance } from '@/lib/preferences';
 import { type Preferences as ThemePreferences, defaults } from '@/lib/appearance';
 import { Background, useBackground } from '@/components/Background';
 import { readBrowse, browseNodes, type Browse, type SortKey } from '@/lib/browse';
-import {tableSettings} from '@/lib/settingsBackup';
-import { getPing, watchPing, pingRevision, subscribePing, probeCatalog } from '@/lib/ping';
+import { getPing, watchPing, pingRevision, subscribePing } from '@/lib/ping';
 import { NodeTable } from '@/components/NodeTable';
-import {TableDisplaySettings} from '@/components/TableControls';
-import {Select} from '@/components/ui/select';
 import { NodeCard } from "@/components/NodeCard";
 import { Summary } from "@/components/Summary";
 import { Button } from "@/components/ui/button";
@@ -131,11 +128,6 @@ export default function App({ siteDefaults = defaults }: {
     const { status, region } = browse;
     const shownColumns=compactViewport?browse.mobileColumns:browse.columns;
     const patchBrowse = (patch: Partial<Browse>) => setBrowse(prev => ({ ...prev, ...patch }));
-    const changeTableDisplay=(patch:Partial<Browse>)=>{
-        const next={...browse,...patch};
-        setBrowse(next);
-        try {localStorage.setItem('monitor-next-table-columns-v1',JSON.stringify(tableSettings(next)))} catch {/* Optional storage. */}
-    };
     const setQuery = (query: string) => patchBrowse({ query });
     const setStatus = (status: string) => patchBrowse({ status });
     const setRegion = useCallback((region:string)=>setBrowse(prev=>({...prev,region})),[]);
@@ -183,9 +175,6 @@ export default function App({ siteDefaults = defaults }: {
     const pageKey=JSON.stringify([browse.query,browse.status,browse.region,browse.sort,browse.direction,browse.probe,system]);
     const [tablePage,setTablePage]=useState({key:pageKey,page:1});
     const page=Math.min(tablePage.key===pageKey?tablePage.page:1,Math.max(1,Math.ceil(filtered.length/20)));
-    const probes = new Map<number, string>();
-    sorted.forEach(n => { const d = getPing(n.id)?.data; if (d)
-        probeCatalog(d).forEach(p => probes.set(p.id, p.name)); });
     const viewSwitch = <div className="view-toolbar"><div className="view-switch"><button className={browse.view === 'cards' ? 'active' : ''} onClick={() => patchBrowse({view:'cards'})} aria-label={tr("卡片视图")} aria-pressed={browse.view === 'cards'}><LayoutGrid size={17}/>{tr("卡片")}</button><button className={browse.view === 'table' ? 'active' : ''} onClick={() => patchBrowse({view:'table'})} aria-label={tr("表格视图")} aria-pressed={browse.view === 'table'}><Table2 size={17}/>{tr("表格")}</button></div></div>;
     const searchField = (className = '') => <div className={`node-search-control ${className}`.trim()}>
       <Search size={16} aria-hidden="true"/>
@@ -267,8 +256,6 @@ export default function App({ siteDefaults = defaults }: {
 
              {browse.view === 'table' && ['latency','loss'].includes(browse.sort) && <p className="sort-note">{tr("延迟和丢包按所选线路比较；无效或旧数据排在末尾。已读取")}{sorted.filter(n => getPing(n.id)?.data).length}/{sorted.length}{tr("个节点。")}{tr("各节点所选线路可能不同，延迟比较请注意探测目标。")}</p>}
             {mapVisible && <MapPanel viewSwitch={viewSwitch} nodeSnapshot={mapKey} region={region} onRegion={setRegion}/>}
-
-            <div className="results-preferences"><label>{tr("线路")}<Select aria-label={tr("主要探测线路")} value={prefs.probe} onChange={event=>setPrefs(previous=>({...previous,probe:event.target.value}))}><option value="auto">{tr("各节点首条线路")}</option>{[...probes].map(([id,name])=><option key={id} value={id}>{name}</option>)}{prefs.probe!=="auto"&&!probes.has(Number(prefs.probe))&&<option value={prefs.probe}>{tr("线路")}{prefs.probe}{tr("（等待数据）")}</option>}</Select></label>{browse.view==='table'&&<details className="table-options"><summary><Columns3 size={16}/>{tr("表格列")}</summary><div className="table-options-content"><TableDisplaySettings browse={browse} onChange={changeTableDisplay}/></div></details>}</div>
 
             <div id="node-results" tabIndex={-1}>{sorted.length === 0 ? (<p className="py-16 text-center text-sm text-muted-foreground">{tr("还没有节点")}</p>) : filtered.length === 0 ? (<div className="empty-state"><p>{tr("没有符合条件的节点")}</p><Button variant="outline" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); }}>{tr("清除筛选")}</Button></div>) : browse.view === "table" ? (<NodeTable page={page} onPageChange={page=>setTablePage({key:pageKey,page})} nodes={filtered} browse={{...browse,columns:shownColumns}} onSort={sortBy} onSortChange={(sort,direction)=>patchBrowse({sort,direction})} mobile={compactViewport} warn={prefs.latencyWarn} high={prefs.latencyHigh} onOpen={id => go(id)}/>) : (<div className="node-grid" data-columns={prefs.desktopColumns}>{filtered.map(n=><NodeCard key={n.id} node={n} mobile={mobileCards} prefs={prefs} info={mobileCards && prefs.mobileInfoMode==='custom' ? prefs.mobileCardInfo || prefs.cardInfo : prefs.cardInfo} probe={prefs.probe} onOpen={()=>go(n.id)} onOpenRoutes={route=>go(n.id,"latency",`?routes=${route.kind==="all"?"all":route.id}`)}/>)}</div>)}</div>
           </>)}
