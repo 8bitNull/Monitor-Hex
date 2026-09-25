@@ -12,6 +12,7 @@ import { probeCatalog, windowLoss } from '@/lib/ping'
 import { tr, locale } from '../lib/i18n.ts'
 import { useEffect, useMemo, useState, useRef } from "react";
 import { median } from "d3-array";
+import { Info } from "lucide-react";
 import { Area, AreaChart, Brush, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, } from "recharts";
 import {HistoryState} from "./HistoryState";
 import { api, type Node } from "@/lib/api";
@@ -110,6 +111,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
     const legend=useRef<HTMLDivElement>(null);
     const [retry, setRetry] = useState(0);
     const [smooth, setSmooth] = useState(false);
+    const [showLatencyExplanation, setShowLatencyExplanation] = useState(false);
     useEffect(()=>{if(location.hash === "#latency"){const frame=requestAnimationFrame(()=>document.getElementById("latency")?.scrollIntoView());return ()=>cancelAnimationFrame(frame)}},[]);
     // Probes switched off. Hiding a slow one is what makes the fast ones readable,
     // as the axis rescales to what remains.
@@ -302,15 +304,17 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
       <div className="detail-history-body" data-history={tab}>
       {!data ? (<HistoryState loading={!failed} failed={!!failed} message={failed?tr("暂无可用历史数据"):tr("正在读取历史数据")}/>) : failed && !data.metrics?.length && !data.ping?.length ? (<HistoryState failed message={tr("暂无可用历史数据")}/>) : tab === "latency" ? (pingSeries.length === 0 ? (<HistoryState message={tr("这段时间没有延迟数据")} action={tr("调整时间范围")} onAction={chooseRange}/>) : (
          <div className="latency-view">
-            {summaryRoute&&<div className="latency-summary" title={summaryRoute.name}>
+            {summaryRoute&&<div className="latency-summary">
               <span className="latency-summary-route" style={{color:style(summaryRoute.id).stroke}}>{summaryRoute.name}</span>
               <span>{tr("采样均值")} <b>{reading(average)}</b></span>
               <span className="latency-p95">P95 <b>{reading(percentile)}</b></span>
               <span>{tr("丢包")} <b>{!zoomed&&summaryRoute.points.length>0&&summaryRoute.loss!==null?`${summaryRoute.loss.toFixed(1)}%`:'—'}</b>{zoomed&&<small className="loss-unavailable" title={tr("丢包率来自完整查询窗口；缩放范围缺少样本数，暂不计算。")}>{tr("所选范围暂不可统计")}</small>}</span>
-              <div className="latency-summary-tools">
-                <span className="latency-chart-key latency-chart-key-desktop" style={{color:style(summaryRoute.id).stroke}}>{shownProbes.length===1&&<><i className="latency-band-key"/><span title={tr("采样范围（最小–最大）")}>{tr("采样范围")}</span></>}<i className="latency-line-key"/>{smooth?tr("抑制尖峰"):tr("采样中位值")}</span>
-                <details className="latency-explanation"><summary aria-label={tr("统计说明")} title={tr("统计说明")}>{tr("统计说明")}</summary><div><p>{tr("均值和 P95 基于当前范围内各采样桶的中位值，不代表原始探测包统计。")}</p><p>P95: {reading(percentile)}</p><p>{tr("与主图时间轴同步 · 未知留空，超时单独标记")}</p><p>{tr("拖动两端缩放 · 双击恢复全范围")}</p><p>{tr("实线表示采样中位值，阴影表示最小至最大延迟；抑制尖峰仅影响曲线。")}</p><p>{tr("丢包率来自完整查询窗口；缩放范围缺少样本数，暂不计算。")}</p></div></details>
-              </div>
+              <button type="button" className="latency-explanation-toggle" aria-label={tr("统计说明")} title={tr("统计说明")} aria-expanded={showLatencyExplanation} aria-controls={showLatencyExplanation?"latency-stat-explanation":undefined} onClick={()=>setShowLatencyExplanation(value=>!value)}><Info size={16} aria-hidden="true"/></button>
+            </div>}
+            {summaryRoute&&showLatencyExplanation&&<div id="latency-stat-explanation" className="latency-explanation-panel">
+              <p>{tr("均值和 P95 基于当前范围内各采样桶的中位值，不代表原始探测包统计。")}</p>
+              <p>{tr("实线表示采样中位值，阴影表示最小至最大延迟；抑制尖峰仅影响曲线。")}</p>
+              <p>{tr("丢包率来自完整查询窗口；缩放范围缺少样本数，暂不计算。")}</p>
             </div>}
             <div ref={legend} className="route-chips" role="group" aria-label={tr("线路图例")}>
               {(expandedRoutes?pingSeries:pingSeries.filter(s=>s.id===previewRoute)).map(s=>{const latest=s.points.at(-1),shown=visibleIds.includes(s.id);return <button key={s.id} aria-label={s.name} aria-pressed={shown} title={`${s.name} · ${latest?tr("采样：{0}",new Date(latest.ts*1000).toLocaleString(locale())):tr("暂无探测记录")}`} onMouseEnter={()=>setHighlightProbe(s.id)} onMouseLeave={()=>setHighlightProbe(null)} onFocus={()=>setHighlightProbe(s.id)} onBlur={()=>setHighlightProbe(null)} onClick={()=>{setExpandedRoutes(true);setSelectedProbes(shown?visibleIds.filter(id=>id!==s.id):[...visibleIds,s.id])}}><i className="route-chip-check" aria-hidden="true">{shown?'✓':''}</i><svg width="20" height="8" aria-hidden="true"><line x1="0" y1="4" x2="20" y2="4" stroke={style(s.id).stroke} strokeWidth="2"/></svg><span>{s.name}</span><b>{!latest?'—':latest.latency===null?tr("超时"):`${Math.round(latest.latency)} ms`}</b></button>})}

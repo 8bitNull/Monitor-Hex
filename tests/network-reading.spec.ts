@@ -142,5 +142,5 @@ test('latency summary keeps raw bucket statistics and clears window loss on zoom
  const handle=page.locator('.latency-brush .recharts-brush-traveller').first();await handle.focus();await page.keyboard.press('ArrowRight')
  await expect(page.getByRole('button',{name:'恢复范围'})).toBeVisible();await expect(summary).not.toContainText('2.5%');await expect(summary).toContainText('24.5 ms')
  await page.getByRole('button',{name:'恢复范围'}).click();await expect(summary).toContainText('16.3 ms');await expect(summary).toContainText('2.5%')
- await page.locator('.latency-explanation summary').click();await expect(page.locator('.latency-explanation')).toContainText('原始探测包')
+ await page.getByRole('button',{name:'统计说明'}).click();await expect(page.locator('.latency-explanation-panel')).toContainText('原始探测包')
 })

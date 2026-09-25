@@ -5,12 +5,6 @@
 .latency-summary {display:flex;align-items:center;flex-wrap:wrap;gap:12px 24px;padding:12px 0;border-top:1px solid var(--border);font-size:12px;color:var(--muted-foreground)}
 .latency-summary b {margin-left:6px;color:var(--foreground);font-variant-numeric:tabular-nums;font-weight:600}
 .latency-summary-route {max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.latency-explanation {position:relative;margin-left:auto}
-.latency-summary-tools {display:contents}
-.latency-summary-tools .latency-chart-key-desktop {display:none}
-.latency-explanation summary {cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--tone)}
-.latency-explanation>div {position:absolute;right:0;top:100%;z-index:8;width:min(300px,calc(100vw - 48px));padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px #0002;line-height:1.7}
-.latency-explanation p+p {margin-top:8px}
 .latency-chart-caption,.latency-range-caption {display:flex;justify-content:space-between;align-items:center;gap:8px;color:var(--muted-foreground);font-size:11px;padding:8px 0}
 .latency-range-caption {min-height:44px;padding-left:52px;font-variant-numeric:tabular-nums}
 .latency-range-caption button {min-height:44px;padding:0 10px;color:var(--tone)}
@@ -41,7 +35,6 @@
  .latency-summary>span:nth-child(2) {grid-column:1;grid-row:2}
  .latency-summary>span:nth-child(4) {grid-column:2;grid-row:2}
  .latency-summary .latency-p95 {display:none}
- .latency-explanation {grid-column:3;grid-row:1/3;font-size:11px}
  .latency-summary b {margin-left:3px}
  .latency-view .detail-chart-frame {height:310px;min-height:310px}
  .latency-chart-caption {font-size:10px}
@@ -59,7 +52,6 @@
  .latency-summary-route {grid-column:1/4;max-width:240px;font-size:10px}
  .latency-summary>span:nth-child(2),.latency-summary>span:nth-child(3),.latency-summary>span:nth-child(4) {grid-row:2;white-space:nowrap;font-size:11px}
  .latency-summary b {font-size:17px;font-weight:500}
- .latency-explanation {grid-column:4;grid-row:1/3;font-size:11px}
  .latency-view>.latency-chart-caption,.latency-view>.detail-chart-frame,.latency-view>.latency-range-caption,.latency-view>.loss-track {grid-column:1/-1}
  .latency-view>.latency-chart-caption {margin-top:8px;padding:0;min-height:24px}
  .latency-view>.detail-chart-frame {height:340px;min-height:340px}
@@ -91,12 +83,7 @@
  .detail-chart-toolbar[data-history-tab=latency] .detail-refresh {order:6}
  .detail-chart-toolbar[data-history-tab=latency] .detail-update+.detail-ranges {margin-left:0}
  .latency-view>.latency-summary {display:flex;flex-wrap:nowrap;gap:24px}
- .latency-summary-tools {display:flex;align-items:center;gap:16px;margin-left:auto;white-space:nowrap}
- .latency-summary-tools .latency-chart-key {display:flex}
- .latency-chart-caption .latency-chart-key {display:none}
  .latency-summary-route {display:none}
- .latency-explanation summary {font-size:0;min-width:24px;justify-content:center}
- .latency-explanation summary::after {content:'ⓘ';font-size:15px}
  .latency-view .route-chips button[aria-pressed=false] {opacity:1;background:var(--card);color:var(--muted-foreground)}
  .latency-view>.detail-chart-frame {position:relative;height:378px;min-height:378px}
  .latency-range-heading {position:absolute;bottom:51px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted-foreground);min-height:28px}
@@ -119,9 +106,6 @@
  .detail-chart-toolbar[data-history-tab=latency] .detail-submenu-divider {margin-inline:4px}
 }
 
-.latency-explanation summary {font-size:0;min-width:44px;min-height:44px;justify-content:center}
-.latency-explanation summary::after {content:"ⓘ";font-size:15px}
-
 /* Lead with the selected route's result; keep comparisons behind one control. */
 .node-detail .latency-view {display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
 .node-detail .latency-view>.latency-summary {grid-column:1;grid-row:1;display:flex;align-items:center;flex-wrap:wrap;gap:8px 22px;padding:0 0 12px;border-top:0;border-bottom:1px solid var(--detail-line)}
@@ -131,14 +115,12 @@
 .node-detail .latency-summary-route small {font-size:10px;color:var(--muted-foreground);font-weight:400}
 .node-detail .latency-summary>span:nth-child(2),.node-detail .latency-summary>span:nth-child(3),.node-detail .latency-summary>span:nth-child(4) {display:flex;flex-direction:column;gap:3px;font-size:11px}
 .node-detail .latency-summary b {margin:0;font-size:16px;font-weight:600}
-.node-detail .latency-summary-tools {margin-left:auto}
 .node-detail .latency-view .route-chips button {max-width:min(240px,100%)}
 .node-detail .latency-view .route-chips .expand-routes {width:auto;max-width:100%;padding:0 12px;border:1px solid var(--detail-line);border-radius:6px;color:var(--tone);background:var(--card);font-size:11px}
 .node-detail .latency-view .route-chips .expand-routes:hover {background:var(--muted)}
 @media(max-width:899px){
  .node-detail .latency-view>.latency-summary {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 10px}
  .node-detail .latency-summary-route {grid-column:1/3;grid-row:1;max-width:100%}
- .node-detail .latency-summary-tools {grid-column:3;grid-row:1;justify-self:end;margin:0}
  .node-detail .latency-summary>span:nth-child(2),.node-detail .latency-summary>span:nth-child(3),.node-detail .latency-summary>span:nth-child(4) {grid-row:2;white-space:normal}
  .node-detail .latency-summary>span:nth-child(2) {grid-column:1}
  .node-detail .latency-summary>span:nth-child(3) {grid-column:2}
@@ -181,4 +163,25 @@
  .node-detail .latency-view>.detail-chart-frame {height:284px;min-height:284px}
  .node-detail .latency-view>.latency-range-caption {min-height:44px;padding-block:0}
  .node-detail .latency-view>.loss-track {padding-top:8px}
+}
+
+.node-detail .latency-view>.route-chips {grid-row:auto}
+.node-detail .latency-view .latency-summary-route {align-items:flex-start}
+.node-detail .latency-explanation-toggle {display:grid;place-items:center;flex:none;width:44px;height:44px;margin-left:auto;border-radius:6px;color:var(--muted-foreground)}
+.node-detail .latency-explanation-toggle:hover,.node-detail .latency-explanation-toggle[aria-expanded=true] {color:var(--tone);background:var(--tone-soft)}
+.node-detail .latency-explanation-toggle:focus-visible {outline:2px solid var(--tone);outline-offset:2px}
+.node-detail .latency-view>.latency-explanation-panel {grid-column:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:12px 14px;border-top:1px solid var(--detail-line);border-bottom:1px solid var(--detail-line);background:color-mix(in srgb,var(--tone) 3%,var(--card));color:var(--muted-foreground);font-size:11px;line-height:1.6}
+.node-detail .latency-chart-caption .latency-chart-key {display:flex;gap:6px}
+.node-detail .latency-chart-caption .latency-line-key {margin-left:8px}
+@media(min-width:900px){
+ .node-detail .latency-view>.latency-summary {display:grid;grid-template-columns:minmax(180px,1.2fr) repeat(3,minmax(95px,1fr)) 44px;column-gap:16px}
+ .node-detail .latency-summary-route {grid-column:1;grid-row:1}
+ .node-detail .latency-summary>span:nth-child(2) {grid-column:2;grid-row:1}
+ .node-detail .latency-summary>span:nth-child(3) {grid-column:3;grid-row:1}
+ .node-detail .latency-summary>span:nth-child(4) {grid-column:4;grid-row:1}
+ .node-detail .latency-explanation-toggle {grid-column:5;grid-row:1;margin:0}
+}
+@media(max-width:899px){
+ .node-detail .latency-view>.latency-explanation-panel {grid-template-columns:minmax(0,1fr);gap:6px;padding:10px 12px}
+ .node-detail .latency-explanation-toggle {grid-column:3;grid-row:1;justify-self:end;margin:0}
 }
