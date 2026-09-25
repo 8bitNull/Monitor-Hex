@@ -5,7 +5,7 @@ async function setup(page:any,count=10){
  await page.route('**/api/nodes',(r:any)=>r.fulfill({json:{nodes:Array.from({length:count},(_,i)=>({...nodes()[0],id:i+1,name:`Node ${i+1}`,ipv4:'192.0.2.1'}))}}))
  await page.route('**/api/nodes/*/metrics?*',(r:any)=>{const d=metrics();return r.fulfill({json:{...d,probes:{1:'A',2:'B'},ping:d.ping.flatMap(p=>[p,{...p,task_id:2,latency:80}])}})})
 }
-test('title picker searches, preserves range/route and returns focus without overflow',async({page})=>{
+test('title picker searches, preserves range, resets route and returns focus without overflow',async({page})=>{
  await setup(page);await page.goto('/node/1?rh=24&lh=1&routes=2#latency')
  await expect(page.locator('.route-chips button[aria-label="B"]')).toHaveAttribute('aria-pressed','true')
  await page.getByRole('button',{name:'切换节点',exact:true}).click()
@@ -13,7 +13,8 @@ test('title picker searches, preserves range/route and returns focus without ove
  await page.getByRole('textbox',{name:'搜索节点'}).fill('Node 2')
  await page.getByRole('dialog').getByRole('button',{name:/Node 2/}).click()
  await expect(page).toHaveURL(/node\/2\?.*lh=1.*#latency/)
- await expect(page.locator('.route-chips button[aria-label="B"]')).toHaveAttribute('aria-pressed','true')
+ await expect(page).not.toHaveURL(/routes=/)
+ await expect(page.locator('.route-chips button[aria-label="A"]')).toHaveAttribute('aria-pressed','true')
  await expect(page.getByRole('button',{name:'1 小时',exact:true})).toHaveAttribute('aria-pressed','true')
  for(const width of [1440,390,320]){
   await page.setViewportSize({width,height:900});await page.getByRole('button',{name:'切换节点',exact:true}).click()

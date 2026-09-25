@@ -56,11 +56,11 @@ for(const width of [320,360,390,430])test(`default mobile table fits ${width}px 
  await expect(page.locator('.table-sort-toolbar,.column-options')).toHaveCount(0)
 })
 test('all routes have legends, summary follows loss route, keyboard zoom has readable dates',async({page})=>{
- await setup(page);await page.goto('/node/1?routes=all#latency');await expect(page.locator('.route-chips button')).toHaveCount(2)
- await page.getByRole('button',{name:'展开其余 7 条线路',exact:true}).click();await expect(page.locator('.route-chips button')).toHaveCount(9)
+ await setup(page);await page.goto('/node/1?routes=all#latency');await expect(page.locator('.route-chips button[aria-pressed=true]')).toHaveCount(8)
+ await expect(page.locator('.route-chips .expand-routes')).toHaveCount(0)
  await expect(page.getByLabel('统计线路',{exact:true})).toHaveCount(0);await chooseOption(page.getByLabel('丢包线路',{exact:true}),'3');await expect(page.locator('.latency-summary-route')).toHaveText('线路 3')
  const start=page.getByRole('slider',{name:'开始时间',exact:true});await expect(start).toHaveAttribute('aria-valuenow','0');await start.focus();await page.keyboard.press('ArrowRight');await expect(start).toHaveAttribute('aria-valuenow','1');await expect(start).toHaveAttribute('aria-valuetext',/\d/);await expect(page.locator('.loss-unavailable')).toBeVisible();await page.getByRole('button',{name:'恢复范围',exact:true}).click();await expect(page.locator('.loss-unavailable')).toHaveCount(0)
- await page.setViewportSize({width:390,height:844});await expect(page.locator('.route-chips button')).toHaveCount(9)
+ await page.setViewportSize({width:390,height:844});await expect(page.locator('.route-chips button[aria-pressed=true]')).toHaveCount(8)
 })
 test('empty history offers recovery and a failed first request never remains loading',async({page})=>{
  await setup(page);await page.route('**/api/nodes/*/metrics?*',r=>r.fulfill({status:503}));await page.goto('/node/1#latency');await expect(page.locator('.history-empty')).toBeVisible();await expect(page.locator('.history-loading')).toHaveCount(0)

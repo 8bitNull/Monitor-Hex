@@ -427,10 +427,11 @@ main:has(>.node-detail)>.detail-navigation {margin-bottom:4px}
  .detail-title-row .detail-title {flex-basis:100%;min-width:0}
 }
 @media(max-width:360px){
- .detail-facts>div {display:flex;flex-direction:column;align-items:stretch;gap:5px}
+ .detail-information .detail-facts>div {display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:start;gap:5px 8px}
+ .detail-information .detail-facts>div.fact-long {grid-template-columns:minmax(0,1fr);gap:0}
  .detail-facts dt {white-space:nowrap}
- .detail-facts .detail-fact {text-align:left;justify-content:space-between;min-width:0}
- .detail-facts .fact-value {overflow-wrap:anywhere}
+ .detail-facts .detail-fact {text-align:left;justify-content:start;min-width:0}
+ .detail-facts .fact-value {justify-self:start;text-align:left;overflow-wrap:anywhere}
 }
 
 .fact-section-heading h3 {display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}

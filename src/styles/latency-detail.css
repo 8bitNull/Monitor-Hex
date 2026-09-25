@@ -152,6 +152,14 @@
  .node-detail .detail-history .detail-chart-toolbar[data-history-tab=resources] .detail-resource-metric {grid-column:3;justify-self:end}
  .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-smooth {grid-column:3;justify-self:end}
 }
+@media(min-width:360px) and (max-width:899px){
+ .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] {grid-template-columns:auto minmax(0,1fr) 44px;grid-template-rows:44px 44px;min-height:100px}
+ .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-ranges {grid-column:1;grid-row:2}
+ .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-update {grid-column:2;grid-row:2;justify-self:end;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+ .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-refresh {grid-column:3;grid-row:2}
+ .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency]:has(.detail-update[data-failed=true]) {grid-template-rows:44px 44px 20px;min-height:116px}
+ .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-update[data-failed=true] {grid-column:1/-1;grid-row:3}
+}
 
 /* Keep the route summary, curve, and time range visually connected on phones. */
 @media(max-width:899px){
@@ -184,4 +192,31 @@
 @media(max-width:899px){
  .node-detail .latency-view>.latency-explanation-panel {grid-template-columns:minmax(0,1fr);gap:6px;padding:10px 12px}
  .node-detail .latency-explanation-toggle {grid-column:3;grid-row:1;justify-self:end;margin:0}
+}
+
+.node-detail .route-chip-list {display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-width:0}
+.node-detail .route-expand-compact {display:none}
+.node-detail .latency-view>.latency-explanation-panel {font-size:12px}
+@media(max-width:899px){
+ .node-detail .latency-view>.route-chips[data-expanded=false] {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+ .node-detail .latency-view>.route-chips[data-expanded=false] .route-chip-list {grid-column:1;grid-row:1;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;gap:6px}
+ .node-detail .latency-view>.route-chips[data-expanded=false] .route-chip-list::-webkit-scrollbar {display:none}
+ .node-detail .latency-view>.route-chips[data-expanded=false] .route-chip-list button {flex:none;width:auto;max-width:none}
+ .node-detail .latency-view>.route-chips[data-expanded=false] .route-chip-list button>span {max-width:none}
+ .node-detail .latency-view>.route-chips[data-expanded=false] .expand-routes {grid-column:2;grid-row:1}
+ .node-detail .latency-view>.route-chips[data-expanded=true] {display:grid;grid-template-columns:minmax(0,1fr)}
+ .node-detail .latency-view>.route-chips[data-expanded=true] .route-chip-list {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+ .node-detail .latency-view>.route-chips[data-expanded=true] .route-chip-list button {width:100%;min-width:0;max-width:none}
+ .node-detail .latency-view .route-chips .expand-routes {min-height:44px;white-space:nowrap}
+ .node-detail .route-expand-wide {display:none}
+ .node-detail .route-expand-compact {display:flex;align-items:center;gap:5px}
+ .node-detail .route-expand-compact b {font-size:10px;font-weight:500;color:var(--muted-foreground)}
+ .node-detail .latency-view>.detail-chart-frame {overflow:visible}
+ .node-detail .latency-view>.detail-chart-frame[data-tooltip-open=true] {margin-bottom:190px}
+ .node-detail .latency-view .detail-chart-frame .recharts-tooltip-wrapper {left:0!important;top:calc(100% + 8px)!important;transform:none!important;width:100%!important}
+ .node-detail .latency-view .chart-tooltip {width:100%;max-width:none;height:180px;box-shadow:none}
+ .node-detail .latency-view .chart-tooltip .recharts-default-tooltip {max-height:132px;overflow:auto}
+}
+@media(max-width:359px){
+ .node-detail .latency-view>.route-chips[data-expanded=true] .route-chip-list {grid-template-columns:minmax(0,1fr)}
 }

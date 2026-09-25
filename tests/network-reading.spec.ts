@@ -7,7 +7,7 @@ async function setup(page:Page){
  await page.route('**/theme-config.json',r=>r.fulfill({json:config}))
  await page.route('**/api/themes/hex/config',r=>r.fulfill({status:404}))
  await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[nodes()[0]]}}))
- await page.route('**/api/nodes/*/metrics?*',r=>{const ts=Math.floor(Date.now()/1000),d=metrics();return r.fulfill({json:{...d,probes:{1:'Tokyo primary route',2:'Hong Kong backup route',3:'No packet statistics'},loss:{1:2.5,2:0},ping:[1,2,3].flatMap(id=>[{task_id:id,ts:ts-180,latency:0,loss:0},{task_id:id,ts:ts-120,latency:21,loss:undefined},{task_id:id,ts:ts-60,latency:null,loss:id===3?undefined:100},{task_id:id,ts,latency:28,loss:id===3?undefined:25}])}})})
+ await page.route('**/api/nodes/*/metrics?*',r=>{const ts=Math.floor(Date.now()/1000),d=metrics();return r.fulfill({json:{...d,probes:{1:'Tokyo primary route',2:'Hong Kong backup route',3:'No packet statistics'},loss:{1:2.5,2:0},ping:[1,2,3].flatMap(id=>[{task_id:id,ts:ts-180,latency:0,loss:id===3?undefined:0},{task_id:id,ts:ts-120,latency:21,loss:undefined},{task_id:id,ts:ts-60,latency:null,loss:id===3?undefined:100},{task_id:id,ts,latency:28,loss:id===3?undefined:25}])}})})
  return config
 }
 for(const width of [320,390,720,900,1200,1350,1360,1440])test(`network readings fit in both languages and themes at ${width}`,async({page})=>{
@@ -77,11 +77,11 @@ test('home latency window defaults to one hour and can show six or twenty-four h
 test('loss timeline preserves zero, unknown and timeout and follows selected routes',async({page})=>{
  await setup(page);await page.goto('/node/1?routes=1,2,3#latency')
  const track=page.locator('.loss-track'),reading=track.locator('.loss-track-reading'),slider=track.locator('input')
- await expect(reading).toContainText('25%');await expect(track.locator('rect')).toHaveCount(2)
+ await expect(reading).toContainText('25%');await expect(track.locator('rect')).toHaveCount(2);await expect(track.locator('circle')).toHaveCount(1)
  await slider.focus();await page.keyboard.press('Home');await expect(reading).toContainText('0 ms');await expect(reading).toContainText('丢包 0%')
  await page.keyboard.press('ArrowRight');await expect(reading).toContainText('丢包 —')
  await page.keyboard.press('ArrowRight');await expect(reading).toContainText('超时');await expect(reading).toContainText('100%')
- await chooseOption(track.locator('[data-slot=select]'),'3');await expect(reading).toContainText('丢包 —')
+ await chooseOption(track.locator('[data-slot=select]'),'3');await expect(reading).toContainText('丢包 —');await expect(track.locator('.loss-track-plot')).toHaveCount(0);await expect(track).toContainText('逐点丢包暂无统计');await expect(slider).toBeVisible()
  await expandRoutes(page);await page.getByRole('button',{name:'No packet statistics',exact:true}).click();await page.keyboard.press('Escape');await expect(track.locator('[data-slot=select]')).toHaveAttribute('data-value','1')
  await expandRoutes(page);await page.getByRole('button',{name:'Hong Kong backup route',exact:true}).click();await page.keyboard.press('Escape');await expect(track.locator('[data-slot=select]')).toHaveCount(0);await expect(track).toContainText('Tokyo primary route')
  await page.getByRole('button',{name:'1 小时',exact:true}).click();await expect(reading).toContainText('25%')

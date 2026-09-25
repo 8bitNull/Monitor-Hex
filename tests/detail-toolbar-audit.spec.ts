@@ -17,11 +17,17 @@ for(const width of [320,390])test(`mobile history status and controls fit at ${w
   expect(time.y).toBeGreaterThanOrEqual(right.y+right.height)
   expect(time.x+time.width).toBeLessThanOrEqual(width)
   expect(await toolbar.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy()
+  if(tab==='latency'&&width===390){
+   const ranges=(await toolbar.locator('.detail-ranges').boundingBox())!,refresh=(await toolbar.getByRole('button',{name:'刷新历史'}).boundingBox())!
+   expect(Math.abs(time.y+time.height/2-ranges.y-ranges.height/2)).toBeLessThan(2)
+   expect(Math.abs(time.y+time.height/2-refresh.y-refresh.height/2)).toBeLessThan(2)
+  }
  }
  await page.unroute('**/api/nodes/*/metrics?*')
  await page.route('**/api/nodes/*/metrics?*',route=>route.fulfill({status:503}))
  await toolbar.getByRole('button',{name:'刷新历史'}).click()
  await expect(status).toContainText(/上次成功更新：\d{2}:\d{2}:\d{2}/)
+ expect(await toolbar.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy()
 })
 
 test('English last-success status fits a 320px detail toolbar',async({page})=>{

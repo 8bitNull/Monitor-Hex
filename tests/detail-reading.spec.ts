@@ -2,8 +2,8 @@ import {expandRoutes} from './routes'
 import {test,expect} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
 import {setSiteDefault} from './settings'
-async function setup(page:any,count=3){
- await page.route('**/api/nodes',(r:any)=>r.fulfill({json:{nodes:[{...nodes()[0],agent_version:'1.2.3',ipv4:'192.0.2.1',remark:'国际线路;Backup',expires_at:'2027-01-01'}]}}))
+async function setup(page:any,count=3,overrides:Record<string,unknown>={}){
+ await page.route('**/api/nodes',(r:any)=>r.fulfill({json:{nodes:[{...nodes()[0],agent_version:'1.2.3',ipv4:'192.0.2.1',remark:'国际线路;Backup',expires_at:'2027-01-01',...overrides}]}}))
  await page.route('**/api/nodes/*/metrics?*',(r:any)=>{const d=metrics();return r.fulfill({json:{...d,probes:Object.fromEntries(Array.from({length:count},(_,i)=>[i+1,`Route ${i+1}`])),ping:d.ping.flatMap(p=>Array.from({length:count},(_,i)=>({...p,task_id:i+1,latency:p.latency+i*10})))}})})
  await page.goto('/node/1');await expect(page.locator('.detail-resource-charts')).toBeVisible()
 }
@@ -50,6 +50,19 @@ test('device information disclosure persists across reload and viewport changes'
  await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem('monitor-next')||'{}').detailInfoMode)).toBe('expanded')
  await page.setViewportSize({width:390,height:844});await expect(toggle).toHaveAttribute('aria-expanded','true')
  await expect(page.getByRole('region',{name:'硬件与系统',exact:true})).toContainText('1.2.3')
+})
+test('320px facts keep short labels beside values and wrap long facts without overflow',async({page})=>{
+ await page.setViewportSize({width:320,height:844});await setup(page,3,{cpu_name:'AMD EPYC 7B13 '.repeat(5)})
+ await page.locator('.detail-facts-toggle').click()
+ for(const label of ['Agent','系统','交换空间','流量重置']){
+  const row=page.locator('.detail-facts>div').filter({has:page.locator(`dt:text-is("${label}")`)}),dt=await row.locator('dt').boundingBox(),dd=await row.locator('dd').boundingBox()
+  expect(Math.abs(dt!.y-dd!.y)).toBeLessThanOrEqual(1)
+ }
+ const cpu=page.locator('.detail-facts>div.fact-long').filter({has:page.locator('dt:text-is("CPU")')}),cpuLabel=await cpu.locator('dt').boundingBox(),cpuValue=await cpu.locator('.fact-value').boundingBox()
+ expect(cpuValue!.y).toBeGreaterThan(cpuLabel!.y)
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+ await page.setViewportSize({width:390,height:844});const agent=page.locator('.detail-facts>div').filter({has:page.locator('dt:text-is("Agent")')}),agentLabel=await agent.locator('dt').boundingBox(),agentValue=await agent.locator('dd').boundingBox()
+ expect(Math.abs(agentLabel!.y-agentValue!.y)).toBeLessThanOrEqual(1)
 })
 test('loading empty failure and success share the same history canvas',async({page})=>{
  await page.setViewportSize({width:390,height:844});await setup(page);const body=page.locator('.detail-history-body');const height=(await body.boundingBox())!.height
