@@ -1,11 +1,11 @@
 import {useId,useRef} from 'react'
 import type {OpenRoutes} from '@/lib/routeSelection'
-import {liveMetrics} from '@/lib/freshness'
+import {liveMetrics,nodeState} from '@/lib/freshness'
 import {SpeedIndicators} from './SpeedIndicators'
 import {ResourceMetric} from './ResourceMetric'
 import {Status} from './NodeIdentity'
 import { locale, tr } from '../lib/i18n.ts'
-import { Clock3, Server,  ArrowDownUp, CalendarDays } from 'lucide-react';
+import { Clock3, Server, ArrowDownUp, CalendarDays } from 'lucide-react';
 import type { Node } from '@/lib/api';
 import type { Preferences, CardInfo } from '@/lib/appearance';
 import { Flag, OsIcon } from './NodeIcons';
@@ -13,7 +13,7 @@ import { PingStats } from '@/components/PingStats';
 import { RemarkTags } from './RemarkTags';
 import { bytes, daysUntil, FOREVER, osName, pair, percent, uptime, money, CYCLES } from '@/lib/format';
 import { trafficPeriodLabel, trafficUsage } from '@/lib/traffic';
-export function NodeCard({ node, onOpen, onOpenRoutes, probe = 'auto', prefs, info = prefs.cardInfo }: {
+export function NodeCard({ node, onOpen, onOpenRoutes, probe = 'auto', prefs, info = prefs.cardInfo, mobile = false }: {
     node: Node;
     onOpen: () => void;
     onOpenRoutes: (route:OpenRoutes) => void;
@@ -35,6 +35,8 @@ export function NodeCard({ node, onOpen, onOpenRoutes, probe = 'auto', prefs, in
     const quotaState = quotaPercent === null ? 'unlimited' : quotaPercent > 100 ? 'over' : quotaPercent >= 80 ? 'near' : 'normal';
     const days = daysUntil(node.expires_at);
     const expiry = days === null ? tr("未设到期") : days < 0 ? tr("已到期") : days === 0 ? tr("今天到期") : tr("剩余 {0} 天", days);
+    const highCpu = m !== null && m.cpu >= 85;
+    const expiring = days !== null && days <= 7;
     const offline = !node.online;
     const reported = node.last_seen > 0 ? new Date(node.last_seen * 1000) : null;
     const reportTime = reported && Number.isFinite(reported.getTime()) ? reported : null;
@@ -51,17 +53,17 @@ export function NodeCard({ node, onOpen, onOpenRoutes, probe = 'auto', prefs, in
       {info.expiry && <div className={`card-expiry ${days !== null && days <= 7 ? 'expiring' : ''}`} data-expiry-state={days===null?'unknown':days<0?'expired':days<=7?'soon':'normal'}><span className="billing-label"><CalendarDays size={12} aria-hidden="true"/>{tr("到期时间")}</span><b>{days !== null && node.expires_at ? node.expires_at.replaceAll('-','.') : '—'}</b><small>{days!==null&&days>=0&&days<=7&&<i className="expiry-dot" aria-hidden="true"/>}{expiry}</small></div>}
       {!offline && info.uptime && <div className="card-uptime"><span className="billing-label"><Clock3 size={12} aria-hidden="true"/>{tr("在线时长")}</span><b>{m ? uptime(m.uptime) : '—'}</b></div>}
     </div>;
-    return <article data-density={prefs.layout==='compact'?'overview':'full'} data-indicator={prefs.graph} className={`node-card compact-network-card graphic-card ${offline ? 'node-offline' : ''}`}>
+    return <article data-density={prefs.layout==='compact'?'overview':'full'} data-indicator={prefs.graph} data-metric-state={nodeState(node)} className={`node-card compact-network-card graphic-card ${offline ? 'node-offline' : ''}`}>
     <button data-node-id={node.id} className="node-open" onClick={onOpen} aria-label={tr("查看 {0}", node.name)}>
-      <div className="node-heading"><div className="node-symbol">{node.country ? (prefs.icons ? <Flag code={node.country} key={node.country}/> : node.country) : <Server size={20}/>}</div><div className="node-identity"><h3 title={node.name}>{node.name}</h3><p>{prefs.icons && node.os && <OsIcon os={node.os} key={node.os}/>}{node.os ? osName(node.os) : tr("等待首次上报")}</p></div><div className="node-status-group">{(node.ipv4 || node.ipv4_pin || node.ipv6 || node.ipv6_pin) && <div className="node-ip-tags" aria-label={tr("IP 协议")} >{(node.ipv4 || node.ipv4_pin) && <span className="tag">V4</span>}{(node.ipv6 || node.ipv6_pin) && <span className="tag">V6</span>}</div>}<Status node={node}/></div></div>
-      {offline ? <div className="offline-summary"><div className="offline-last-report"><span><Clock3 size={12} aria-hidden="true"/>{tr("最近上报时间")}</span>{reportTime ? <time dateTime={reportTime.toISOString()}>{reportTime.toLocaleString(locale())}</time> : <b>{tr("上次上报时间未知")}</b>}</div>{billing}</div> : <><div className="resources"><ResourceMetric label="CPU" value={m?.cpu ?? null} foot={tr("{0} 核", node.cpu_cores)}/><ResourceMetric label={tr("内存")} value={m ? percent(m.mem_used, m.mem_total) : null} foot={m ? (prefs.showTotals ? pair(m.mem_used, m.mem_total) : bytes(m.mem_used)) : tr("容量 {0}", bytes(node.mem_total))}/><ResourceMetric label={tr("硬盘")} value={m ? percent(m.disk_used, m.disk_total) : null} foot={m ? (prefs.showTotals ? pair(m.disk_used, m.disk_total) : bytes(m.disk_used)) : tr("容量 {0}", bytes(node.disk_total))}/><ResourceMetric label={tr("负载")} value={m && node.cpu_cores > 0 ? m.load[0] / node.cpu_cores * 100 : null} displayValue={m ? m.load[0].toFixed(2) : "—"} foot={tr("1 分钟 · {0} 核",node.cpu_cores)}/></div>
+      <div className="node-heading"><div className="node-symbol">{node.country ? (prefs.icons ? <Flag code={node.country} key={node.country}/> : node.country) : <Server size={20}/>}</div><div className="node-identity"><div className="node-name-row"><h3 title={node.name}>{node.name}</h3>{(highCpu || expiring) && <span className="card-issue">{highCpu && <span>{tr("高负载")} · CPU {Math.round(m!.cpu)}%</span>}{expiring && <span className={days!==null&&days<0?'is-expired':undefined}>{days!==null&&days>0&&<>{tr("即将到期")} · </>}{expiry}</span>}</span>}</div><p>{prefs.icons && node.os && <OsIcon os={node.os} key={node.os}/>}{node.os ? osName(node.os) : tr("等待首次上报")}</p></div><div className="node-status-group">{(node.ipv4 || node.ipv4_pin || node.ipv6 || node.ipv6_pin) && <div className="node-ip-tags" aria-label={tr("IP 协议")} >{(node.ipv4 || node.ipv4_pin) && <span className="tag">V4</span>}{(node.ipv6 || node.ipv6_pin) && <span className="tag">V6</span>}</div>}<Status node={node}/></div></div>
+      {offline ? <div className="offline-summary"><div className="offline-last-report"><span><Clock3 size={12} aria-hidden="true"/>{tr("最近上报时间")}</span>{reportTime ? <time dateTime={reportTime.toISOString()}>{reportTime.toLocaleString(locale())}</time> : <b>{tr("上次上报时间未知")}</b>}</div>{!mobile&&billing}</div> : <><div className="resources"><ResourceMetric label="CPU" value={m?.cpu ?? null} foot={tr("{0} 核", node.cpu_cores)}/><ResourceMetric label={tr("内存")} value={m ? percent(m.mem_used, m.mem_total) : null} foot={m ? (prefs.showTotals ? pair(m.mem_used, m.mem_total) : bytes(m.mem_used)) : tr("容量 {0}", bytes(node.mem_total))}/><ResourceMetric label={tr("硬盘")} value={m ? percent(m.disk_used, m.disk_total) : null} foot={m ? (prefs.showTotals ? pair(m.disk_used, m.disk_total) : bytes(m.disk_used)) : tr("容量 {0}", bytes(node.disk_total))}/><ResourceMetric label={tr("负载")} value={m && node.cpu_cores > 0 ? m.load[0] / node.cpu_cores * 100 : null} displayValue={m ? m.load[0].toFixed(2) : "—"} foot={tr("1 分钟 · {0} 核",node.cpu_cores)}/></div>
       <div className="card-network">
         <SpeedIndicators key={node.id} node={node}/>
         {info.connections && <div className="node-connections">{([['TCP',m?.tcp],['UDP',m?.udp]] as const).map(([label,value])=><div key={label}><span>{label}</span><b>{value === undefined ? '—' : value.toLocaleString()}</b></div>)}</div>}
-        {billing}
+        {!mobile&&billing}
       </div></>}
     </button>
       <PingStats scale={prefs.latencyScale} latencyWindow={prefs.latencyWindow} warn={prefs.latencyWarn} high={prefs.latencyHigh} count={prefs.homeRoutes} online={node.online} id={node.id} probe={probe} onOpenRoutes={onOpenRoutes}/>
-      {secondary}
+      {mobile ? (billing || secondary) && <div className="mobile-card-extra">{billing}{secondary}</div> : secondary}
   </article>;
 }

@@ -18,6 +18,7 @@ for(const [width,height] of [[320,844],[390,844],[430,932],[768,1024],[1440,1000
      const issues:string[]=[]
      for(const resource of el.querySelectorAll('.resource')){
       const r=resource.getBoundingClientRect()
+      if(!r.width||!r.height)continue
       for(const part of resource.querySelectorAll('.resource-label,.resource small,.bar-number,.metric-ring strong')){
        const b=part.getBoundingClientRect();if(!b.width||!b.height)continue
        if(b.left<r.left-1||b.right>r.right+1)issues.push('metric overflows: '+part.textContent)
@@ -71,7 +72,13 @@ test('zero, unavailable, warning, long facts and failed latency retain honest st
  await expect(cards.nth(1).locator('.offline-last-report')).toBeVisible();await expect(cards.nth(1).locator('.resources,.card-network,.card-uptime')).toHaveCount(0);await expect(cards.nth(1).locator('.card-billing,.route-matrix')).toHaveCount(2)
  for(const i of [2,3])await expect(cards.nth(i).locator('.bar-number').first()).toHaveText('—')
  await expect(cards.nth(4).locator('.resource').first()).toHaveClass(/danger/)
+ await expect(cards.nth(4).locator('.card-issue')).toContainText('已到期')
+ await expect(cards.nth(4).locator('.node-secondary-disclosure')).toHaveCount(0)
+ await expect(cards.nth(4).locator('.card-expiry')).toBeVisible()
  await expect(cards.nth(4).locator('.expiring')).toContainText('已到期');await expect(cards.nth(4).locator('.card-expiry')).toHaveAttribute('data-expiry-state','expired')
+ await expect(cards.nth(5).locator('.card-issue')).toContainText('剩余')
+ await expect(cards.nth(5).locator('.node-secondary-disclosure')).toHaveCount(0)
+ await expect(cards.nth(5).locator('.card-expiry')).toBeVisible()
  await expect(cards.nth(5).locator('.expiring')).toBeVisible()
  for(const card of await cards.all()){
   await card.scrollIntoViewIfNeeded();expect(await card.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy()

@@ -15,9 +15,9 @@ for(const width of [320,390,768,1024,1440])test(`overview groups and full-width 
   const geometry=await page.evaluate(()=>{
    const box=(s:string)=>document.querySelector(s)!.getBoundingClientRect()
    const live=box('.detail-live'),history=box('.detail-history'),remarks=box('.overview-remarks'),groups=box('.detail-overview-grid'),footer=box('.overview-account-footer'),price=box('.overview-price')
-   return {order:history.top>=live.bottom&&remarks.top>=groups.bottom-1,fullWidth:Math.abs(history.width-live.width)<2,priceRight:Math.abs(footer.right-price.right)<1,overflow:document.documentElement.scrollWidth>innerWidth||[...document.querySelectorAll('.detail-overview-grid section,.detail-resources .resource,.detail-speed>div,.overview-billing>div')].some(el=>el.scrollWidth>el.clientWidth+1)}
+   return {order:history.top>=live.bottom&&remarks.top>=groups.bottom-1,fullWidth:Math.abs(history.width-live.width)<2,priceContained:price.left>=footer.left&&price.right<=footer.right,overflow:document.documentElement.scrollWidth>innerWidth||[...document.querySelectorAll('.detail-overview-grid section,.detail-resources .resource,.detail-speed>div,.overview-billing>div')].some(el=>el.scrollWidth>el.clientWidth+1)}
   })
-  expect(geometry).toEqual({order:true,fullWidth:true,priceRight:true,overflow:false})
+  expect(geometry).toEqual({order:true,fullWidth:true,priceContained:true,overflow:false})
   await page.locator('.detail-remarks-toggle').click()
   await expect(page.locator('.overview-remarks')).toContainText('更多备注用于检查展开后的完整内容')
   if(width<900)await page.locator('.detail-facts-toggle').click()

@@ -84,3 +84,22 @@
  .compact-network-card .speed-direction {grid-column:3}
  .compact-network-card[data-indicator] .speed-indicators strong {justify-self:center}
 }
+
+/* Clear section rhythm without adding nested panels to the cards. */
+.node-card.compact-network-card .resources {padding-bottom:10px}
+.node-card.compact-network-card .card-network {padding-top:6px;border-top:1px solid var(--border)}
+.node-card.compact-network-card .card-network .card-billing {border-top:1px solid var(--border);padding-top:8px}
+.node-card.compact-network-card .card-network .node-connections {padding-bottom:8px}
+.node-card.compact-network-card .card-network .speed-indicators strong {font-weight:650}
+.node-card.compact-network-card .card-billing .billing-label {font-weight:500}
+.node-card.compact-network-card .card-billing :is(.billing-used,.card-expiry b,.card-uptime b) {font-variant-numeric:tabular-nums}
+.node-card.compact-network-card .resource-label .bar-number {font-variant-numeric:tabular-nums}
+.node-card.compact-network-card[data-metric-state=missing] :is(.bar-number,.metric-ring strong,.speed-amount,.node-connections b) {font-size:0;color:transparent}
+.node-card.compact-network-card[data-metric-state=missing] :is(.bar-number,.metric-ring strong,.speed-amount,.node-connections b)::after {content:"";display:inline-block;width:38px;max-width:100%;height:12px;border-radius:3px;background:var(--muted);vertical-align:middle}
+.node-card.compact-network-card[data-metric-state=missing] .speed-amount::after {width:44px;height:14px}
+.node-card.compact-network-card .ping-loading {display:flex;flex-direction:column;justify-content:center;gap:12px;min-height:65px;padding:8px 0}
+.node-card.compact-network-card .ping-loading-line {display:block;width:100%;height:10px;border-radius:3px;background:var(--muted)}
+.node-card.compact-network-card .ping-loading>.ping-loading-line:last-child {width:58%}
+.node-card.compact-network-card .route-matrix[data-loading=true] .route-select .select-value {font-size:0}
+.node-card.compact-network-card .route-matrix[data-loading=true] .route-select .select-value::after {content:"";display:inline-block;width:68px;height:11px;border-radius:3px;background:var(--muted);vertical-align:middle}
+@media(max-width:720px){.node-card.compact-network-card .mobile-card-extra .card-billing {border-top:1px solid var(--border);padding-top:8px}}

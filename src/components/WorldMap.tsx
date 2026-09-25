@@ -1,6 +1,6 @@
 import {Flag} from './NodeIcons'
 import {tr} from '../lib/i18n.ts'
-import {RotateCcw,Plus,Minus,Scan,Maximize,Minimize,Globe,HelpCircle,ChevronDown,ChevronUp} from 'lucide-react'
+import {RotateCcw,Plus,Minus,Scan,Maximize,Minimize,Globe,HelpCircle,ChevronDown,ChevronUp,X} from 'lucide-react'
 import {useMemo,useState,useRef,useEffect,memo,useCallback,type ReactNode} from 'react'
 import geometry from '@/data/map-paths.json'
 import {groupRegions,UNKNOWN_REGION} from '@/lib/groups'
@@ -10,7 +10,7 @@ const coordinates=geometry.points as Record<string,number[]>
 const countryCodes=new Set(countries.map(c=>c.code))
 import {countryName} from '@/lib/regionNames'
 export {countryName} from '@/lib/regionNames'
-export const WorldMap=memo(function WorldMap({nodes,region='all',onRegion,viewSwitch,expanded=false,onExpandedChange}:{nodes:MapNode[];region?:string;onRegion:(code:string)=>void;viewSwitch?:ReactNode;expanded?:boolean;onExpandedChange?:()=>void}){
+export const WorldMap=memo(function WorldMap({nodes,region='all',onRegion,viewSwitch,expanded=false,onExpandedChange,onClose}:{nodes:MapNode[];region?:string;onRegion:(code:string)=>void;viewSwitch?:ReactNode;expanded?:boolean;onExpandedChange?:()=>void;onClose?:()=>void}){
  const regions=useMemo(()=>groupRegions(nodes),[nodes])
  const panel=useRef<HTMLElement>(null),svg=useRef<SVGSVGElement>(null)
  // Initial framing favours the northern node belt, matching the homepage composition.
@@ -45,7 +45,7 @@ export const WorldMap=memo(function WorldMap({nodes,region='all',onRegion,viewSw
      <title>{tr("{0}：{1} / {2} 在线",countryName(r.code),r.online,r.total)}</title><circle className="small-region-hit" r={14}/><circle r={4}/>
     </g>)}
    </svg>
-   <div className="map-tools">{onExpandedChange&&<button className="map-height-toggle" title={tr(expanded?"收起地图":"展开地图")} aria-label={tr(expanded?"收起地图":"展开地图")} aria-pressed={expanded} onClick={onExpandedChange}>{expanded?<ChevronUp size={18}/>:<ChevronDown size={18}/>}</button>}<button aria-label={tr("操作说明")} aria-expanded={help} onClick={()=>setHelp(v=>!v)}><HelpCircle size={18}/></button><button aria-label={tr("恢复默认位置")} title={tr("恢复默认位置")} onClick={()=>setView({x:-363,y:-34.6,k:1.69})}><RotateCcw size={18}/></button><button title={tr("放大地图")} aria-label={tr("放大地图")} onClick={()=>zoom(1.3)}><Plus size={18}/></button><button title={tr("缩小地图")} aria-label={tr("缩小地图")} onClick={()=>zoom(1/1.3)}><Minus size={18}/></button><button title={tr("适配全部")} aria-label={tr("适配全部")} onClick={()=>setView({x:0,y:0,k:1})}><Scan size={18}/></button><button title={tr(full?"退出全屏":"全屏地图")} aria-label={tr(full?"退出全屏":"全屏地图")} onClick={fullscreen}>{full?<Minimize size={18}/>:<Maximize size={18}/>}</button></div>
+   <div className="map-tools">{onExpandedChange&&<button className="map-height-toggle" title={tr(expanded?"缩小地图高度":"增大地图高度")} aria-label={tr(expanded?"缩小地图高度":"增大地图高度")} aria-pressed={expanded} onClick={onExpandedChange}>{expanded?<ChevronUp size={18}/>:<ChevronDown size={18}/>}</button>}<button aria-label={tr("操作说明")} aria-expanded={help} onClick={()=>setHelp(v=>!v)}><HelpCircle size={18}/></button><button aria-label={tr("恢复默认位置")} title={tr("恢复默认位置")} onClick={()=>setView({x:-363,y:-34.6,k:1.69})}><RotateCcw size={18}/></button><button title={tr("放大地图")} aria-label={tr("放大地图")} onClick={()=>zoom(1.3)}><Plus size={18}/></button><button title={tr("缩小地图")} aria-label={tr("缩小地图")} onClick={()=>zoom(1/1.3)}><Minus size={18}/></button><button title={tr("适配全部")} aria-label={tr("适配全部")} onClick={()=>setView({x:0,y:0,k:1})}><Scan size={18}/></button><button title={tr(full?"退出全屏":"全屏地图")} aria-label={tr(full?"退出全屏":"全屏地图")} onClick={fullscreen}>{full?<Minimize size={18}/>:<Maximize size={18}/>}</button>{onClose&&!full&&<button className="map-close" title={tr("收起地图")} aria-label={tr("收起地图")} onClick={onClose}><X size={18}/></button>}</div>
    {selected&&view.k>=1.8&&<div className="map-node-preview"><strong>{countryName(selected.code)}</strong><div>{selected.nodes.slice(0,6).map(n=><span key={n.id}><i className={n.online?'dot online':'dot'}/>{n.name}</span>)}</div>{selected.total>6&&<small>+{selected.total-6}</small>}</div>}
    <output className="map-scale">{Math.round(view.k*100)}%</output>
   </div>

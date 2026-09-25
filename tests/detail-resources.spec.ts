@@ -38,7 +38,7 @@ test('responsive composition and stable hover with many routes in light and dark
   await expect(page.locator('.route-chips button[aria-pressed]')).toHaveCount(18)
   const frame=page.locator('.detail-chart-frame'),before=(await frame.boundingBox())!
   await frame.hover({position:{x:100,y:100}});expect((await frame.boundingBox())!.height).toBe(before.height)
-  await page.getByLabel('平滑显示').check();expect((await frame.boundingBox())!.height).toBe(before.height)
+  await page.getByLabel('抑制尖峰').check();expect((await frame.boundingBox())!.height).toBe(before.height)
   await expandRoutes(page);const selected=page.locator('.route-chips button[aria-pressed][aria-pressed="true"]');while(await selected.count())await selected.first().click();await expect(frame).toContainText('没有选中任何探测');expect((await frame.boundingBox())!.height).toBe(before.height)
   await page.getByRole('button',{name:'资源',exact:true}).click()
  }

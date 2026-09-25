@@ -13,8 +13,7 @@ for(const width of [899,900,1024,1199,1200,1440,1920])test(`detail proportions a
  const resources=(await page.locator('.overview-resources').boundingBox())!,live=(await page.locator('.detail-live').boundingBox())!,history=(await page.locator('.detail-history').boundingBox())!
  await expect(sections).toHaveCount(2)
  if(width>=900){expect(Math.abs(hardware.width-network.width)).toBeLessThanOrEqual(1);expect(Math.abs(hardware.y-network.y)).toBeLessThanOrEqual(1)}
- if(width>=1200)expect(Math.abs(billing.y-resources.y)).toBeLessThanOrEqual(1)
- else expect(billing.y).toBeGreaterThan(resources.y+resources.height)
+ expect(billing.y).toBeGreaterThanOrEqual(resources.y+resources.height-1)
  expect(history.y).toBeGreaterThan(live.y+live.height);expect(hardware.y).toBeGreaterThan(history.y+history.height)
  expect(Math.abs(history.width-live.width)).toBeLessThanOrEqual(1)
  if(width===1440)expect((await page.locator('.detail-chart-frame').boundingBox())!.height).toBeGreaterThanOrEqual(340)

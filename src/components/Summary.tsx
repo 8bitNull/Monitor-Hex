@@ -92,7 +92,7 @@ export function Summary({ nodes, prefs, loadAlerts, onAlert, status, onStatus, o
     </div><div className="summary-grid grid gap-3" data-load-alerts={prefs.modules.busiest}>
       {prefs.modules.online && <Tile icon={Server} label={tr("节点")}>
         <div className="summary-node-count tnum mt-1 text-xl font-semibold">
-          <button aria-label={tr("筛选在线节点")} aria-pressed={status==='online'} onClick={()=>onStatus(status==='online'?'all':'online')}>{online.length}</button><span aria-hidden="true">/</span><button aria-label={tr("显示全部节点")} aria-pressed={status==='all'} onClick={()=>onStatus('all')}>{nodes.length}</button>
+          <button aria-label={tr("筛选在线节点")} aria-pressed={status==='online'} onClick={()=>onStatus(status==='online'?'all':'online')}><span>{tr("在线")}</span><b>{online.length}</b></button><span aria-hidden="true">/</span><button aria-label={tr("显示全部节点")} aria-pressed={status==='all'} onClick={()=>onStatus('all')}><span>{tr("全部")}</span><b>{nodes.length}</b></button>
         </div>
         
         <div className="mt-auto pt-1 text-xs text-muted-foreground">

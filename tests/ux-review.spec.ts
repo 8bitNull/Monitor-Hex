@@ -5,6 +5,20 @@ async function setup(page:Page){
  await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:nodes()}}))
  await page.route('**/api/nodes/*/metrics?*',r=>r.fulfill({json:{...metrics(),probes:Object.fromEntries(Array.from({length:8},(_,i)=>[i+1,`线路 ${i+1}`])),ping:Array.from({length:8},(_,i)=>metrics().ping.map(p=>({...p,task_id:i+1,latency:p.latency+i*20}))).flat()}}))
 }
+for(const width of [320,390])test(`mobile header actions have reachable targets at ${width}px`,async({page})=>{
+ await page.setViewportSize({width,height:844});await setup(page);await page.goto('/')
+ const actions=[page.getByRole('button',{name:'搜索节点',exact:true}),page.getByRole('button',{name:'Language / 语言'}),page.getByRole('link',{name:'登录',exact:true}),page.getByRole('button',{name:'切换明暗模式'})]
+ for(const action of actions){const box=await action.boundingBox();expect(box).not.toBeNull();expect(box!.width).toBeGreaterThanOrEqual(44);expect(box!.height).toBeGreaterThanOrEqual(44)}
+ await expect(page.getByRole('link',{name:'登录',exact:true}).locator('svg.lucide-log-in')).toHaveCount(1)
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+})
+test('empty node list gives the next step for the current visitor',async({page})=>{
+ await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[]}}))
+ await page.route('**/api/me',r=>r.fulfill({json:{authed:false,github:false,site_name:'HEX',public_page:true}}))
+ await page.goto('/');await expect(page.locator('#node-results')).toContainText('还没有节点');await expect(page.locator('#node-results')).toContainText('请联系管理员添加节点。')
+ await page.route('**/api/me',r=>r.fulfill({json:{authed:true,github:false,site_name:'HEX',public_page:true}}))
+ await page.reload();await expect(page.locator('#node-results').getByRole('link',{name:'前往后台添加节点'})).toHaveAttribute('href','/admin/')
+})
 test('offline filter composes with search and compact summary survives reload',async({page})=>{
  await page.setViewportSize({width:390,height:844});await setup(page);await page.goto('/')
  await page.getByRole('button',{name:'筛选离线节点',exact:true}).click();await expect(page.locator('.node-card')).toHaveCount(1);await expect(page.locator('.filter-match-count')).toContainText('1')
@@ -30,10 +44,11 @@ for(const width of [320,360,390,430])test(`default mobile table fits ${width}px 
  await expect(page.locator('.table-sort-toolbar,.column-options')).toHaveCount(0)
 })
 test('all routes have legends, summary follows loss route, keyboard zoom has readable dates',async({page})=>{
- await setup(page);await page.goto('/node/1?routes=all#latency');await expect(page.locator('.route-chips button')).toHaveCount(8)
+ await setup(page);await page.goto('/node/1?routes=all#latency');await expect(page.locator('.route-chips button')).toHaveCount(2)
+ await page.getByRole('button',{name:'展开其余 7 条线路',exact:true}).click();await expect(page.locator('.route-chips button')).toHaveCount(9)
  await expect(page.getByLabel('统计线路',{exact:true})).toHaveCount(0);await chooseOption(page.getByLabel('丢包线路',{exact:true}),'3');await expect(page.locator('.latency-summary-route')).toHaveText('线路 3')
  const start=page.getByRole('slider',{name:'开始时间',exact:true});await expect(start).toHaveAttribute('aria-valuenow','0');await start.focus();await page.keyboard.press('ArrowRight');await expect(start).toHaveAttribute('aria-valuenow','1');await expect(start).toHaveAttribute('aria-valuetext',/\d/);await expect(page.locator('.loss-unavailable')).toBeVisible();await page.getByRole('button',{name:'恢复范围',exact:true}).click();await expect(page.locator('.loss-unavailable')).toHaveCount(0)
- await page.setViewportSize({width:390,height:844});await expect(page.locator('.route-chips button')).toHaveCount(5);await page.getByRole('button',{name:'展开其余 4 条线路',exact:true}).click();await expect(page.locator('.route-chips button')).toHaveCount(9)
+ await page.setViewportSize({width:390,height:844});await expect(page.locator('.route-chips button')).toHaveCount(9)
 })
 test('empty history offers recovery and a failed first request never remains loading',async({page})=>{
  await setup(page);await page.route('**/api/nodes/*/metrics?*',r=>r.fulfill({status:503}));await page.goto('/node/1#latency');await expect(page.locator('.history-empty')).toBeVisible();await expect(page.locator('.history-loading')).toHaveCount(0)

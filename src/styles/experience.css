@@ -68,7 +68,7 @@
  .next-theme header>div>.flex-1 {display:none}
  .next-theme header a[data-slot=button] {font-size:0;padding:6px;gap:0}
  .next-theme header .language-select {max-width:74px;font-size:11px;padding:4px}
- .next-theme header [data-slot=button] {min-width:32px;width:32px;padding:6px}
+ .next-theme header [data-slot=button] {min-width:44px;width:44px;height:44px;padding:0}
  .next-theme main {padding-top:14px}
  .page-heading h1 {font-size:18px}
  .summary-grid {grid-template-columns:repeat(3,minmax(0,1fr));gap:0}
@@ -214,7 +214,8 @@
 .region-atlas .map-land .populated-region {fill:color-mix(in srgb,var(--tone) 38%,var(--card));cursor:pointer;outline:none;stroke:var(--card);stroke-width:1}
 .region-atlas .map-land .populated-region[data-tone=mixed] {fill:color-mix(in srgb,var(--warn) 48%,var(--card))}
 .region-atlas .map-land .populated-region[data-tone=offline] {fill:color-mix(in srgb,var(--muted-foreground) 40%,var(--card))}
-.region-atlas .map-land .populated-region[aria-pressed=true],.region-atlas .map-land .populated-region:focus-visible {fill:var(--tone);stroke:var(--foreground);stroke-width:1.5}
+.region-atlas .map-land .populated-region[aria-pressed=true] {fill:var(--tone);stroke:var(--card);stroke-width:1}
+.region-atlas .map-land .populated-region:focus-visible {fill:var(--tone);stroke:var(--card);stroke-width:2;filter:drop-shadow(0 0 3px var(--tone))}
 .region-atlas .map-cluster circle {fill:var(--tone);stroke:var(--card);stroke-width:1.5;filter:none}
 .region-atlas .map-cluster .small-region-hit {fill:transparent;stroke:none}
 .region-atlas .region-list {flex-wrap:nowrap;overflow-x:auto;gap:8px}

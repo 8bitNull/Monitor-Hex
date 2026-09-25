@@ -16,6 +16,7 @@
 @import "./styles/latency-detail.css";
 @import "./styles/ux-review.css";
 @import "./styles/select.css";
+@import "./styles/home-refresh.css";
 
 @source "../index.html";
 @source "../src";

@@ -1,4 +1,4 @@
-import {MapPanel,loadMap} from './components/MapPanel';
+import {MapPanel} from './components/MapPanel';
 import {MobileSearch} from './components/MobileSearch';
 import {countryName} from './lib/regionNames';
 import {RegionPicker} from './components/RegionPicker';
@@ -10,7 +10,7 @@ import { tr, locale, getLanguage, subscribeLanguage, setLanguage } from './lib/i
 import { readCollection } from '@/lib/collection';
 import { groupRegions, systemKey, UNKNOWN_REGION } from '@/lib/groups';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, useRef, useLayoutEffect, useSyncExternalStore } from "react";
-import {  Moon, Sun, Wrench, Globe, LayoutGrid, ArrowLeft, Radio, Table2, Search, X, ArrowUp } from "lucide-react";
+import {  Moon, Sun, Wrench, LogIn, Globe, LayoutGrid, ArrowLeft, Radio, Table2, Search, X, ArrowUp } from "lucide-react";
 import { usePreferences, useAppearance } from '@/lib/preferences';
 import { type Preferences as ThemePreferences, defaults } from '@/lib/appearance';
 import { Background, useBackground } from '@/components/Background';
@@ -120,11 +120,10 @@ export default function App({ siteDefaults = defaults }: {
     const mapVisible = prefs.modules.map && !compactViewport;
     useEffect(()=>{
         if(open!==null)return;
-        let stopped=false,timer:ReturnType<typeof setTimeout>|undefined,idle:number|undefined;
-        const warmDetail=()=>{if(!stopped)timer=setTimeout(()=>{const run=()=>{if(!stopped)void loadDetail().catch(()=>{})};if('requestIdleCallback' in window)idle=requestIdleCallback(run,{timeout:3000});else run()},4000)};
-        if(mapVisible)void loadMap().then(warmDetail,()=>{});else warmDetail();
+        let stopped=false,idle:number|undefined;
+        const timer=setTimeout(()=>{const run=()=>{if(!stopped)void loadDetail().catch(()=>{})};if('requestIdleCallback' in window)idle=requestIdleCallback(run,{timeout:3000});else run()},4000);
         return()=>{stopped=true;clearTimeout(timer);if(idle!==undefined)cancelIdleCallback(idle)};
-    },[mapVisible,open]);
+    },[open]);
     const { status, region } = browse;
     const shownColumns=compactViewport?browse.mobileColumns:browse.columns;
     const patchBrowse = (patch: Partial<Browse>) => setBrowse(prev => ({ ...prev, ...patch }));
@@ -204,7 +203,7 @@ export default function App({ siteDefaults = defaults }: {
         <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-4 py-3 sm:px-6">
           {/* The brand and explicit detail navigation share scroll restoration. */}
           <button className="brand" onClick={() => go(null)}>
-            <span>{me.site_name || "HEX"}<small>HEX</small></span>
+            <span>{me.site_name || "HEX"}</span>
           </button>
           <div className="flex-1"/>
           {!compactViewport && searchField("desktop-header-search")}
@@ -214,7 +213,7 @@ export default function App({ siteDefaults = defaults }: {
             theme, so this is a navigation rather than a route. */}
           <Button variant="ghost" size="sm" asChild>
             <a href="/admin/">
-              <Wrench /> {me.authed ? tr("进入后台") : tr("登录")}
+              {me.authed ? <Wrench /> : <LogIn />} {me.authed ? tr("进入后台") : tr("登录")}
             </a>
           </Button>
           <Button variant="ghost" size="icon" onClick={toggleTheme} title={tr("切换主题")} aria-label={tr("切换明暗模式")}>
@@ -240,24 +239,24 @@ export default function App({ siteDefaults = defaults }: {
             <p className="update-time">{lastUpdated ? tr("最后更新：{0}", new Date(lastUpdated).toLocaleString(locale())) : tr("等待首次数据")}</p></section>
             <Summary status={status} onStatus={setStatus} onCollapse={summaryCollapsed=>setPrefs(prev=>({...prev,summaryCollapsed}))} nodes={sorted} prefs={prefs} loadAlerts={loadAlerts} onAlert={event=>go(event.nodeId,"",`?eventStart=${event.start}&eventEnd=${event.end??event.last}`)}/>
             <>{compactViewport&&<div className="mobile-node-toolbar"><div className="mobile-toolbar-main"><RegionPicker nodes={sorted} region={region} onChange={setRegion}/><div className="mobile-toolbar-actions">{viewSwitch}</div></div></div>}</>
-            <section hidden={status==='all' && region==='all' && !browse.query && (compactViewport || mapVisible) && system==='all' && new Set(sorted.map(n=>systemKey(n.os))).size<2} className="node-browser streamlined-browser" aria-label={tr("节点浏览")}>
+            <section hidden={status==='all' && (region==='all' || mapVisible) && !browse.query && (compactViewport || mapVisible) && system==='all' && new Set(sorted.map(n=>systemKey(n.os))).size<2} className="node-browser streamlined-browser" aria-label={tr("节点浏览")}>
             <div className="filters">{!compactViewport && !mapVisible && <div className="restored-regions" role="group" aria-label={tr("地区快速筛选")}><button className="all-regions-icon" aria-label={tr("所有地区")} title={tr("所有地区")} aria-pressed={region==='all'} onClick={()=>setRegion('all')}><Globe size={17}/></button>{groupRegions(sorted).map(r=><button key={r.code} aria-pressed={region===r.code} title={r.code} onClick={()=>setRegion(r.code)}>{r.code!==UNKNOWN_REGION&&<Flag code={r.code}/>}<span>{r.code===UNKNOWN_REGION?tr("未知地区"):countryName(r.code)}</span><small>{r.total}</small></button>)}</div>}<div className="filter-categories"><div className="system-pills" hidden={new Set(sorted.map(n=>systemKey(n.os))).size < 2 && system==='all'} role="group" aria-label={tr("系统快速筛选")}>{['all',...new Set(sorted.map(n=>systemKey(n.os)))].map(key=><button key={key} aria-pressed={system===key} onClick={()=>setSystem(key)}>{key==='all'?tr("所有系统"):key==='other'?tr("其他 / 未知系统"):key}</button>)}</div>
 </div>
-{!compactViewport && !mapVisible && viewSwitch}</div>
+</div>
             <div className="active-filters">
 {status!=='all'&&<button aria-label={tr("清除状态筛选")} onClick={()=>setStatus('all')}>{tr(status==='offline'?"离线":"在线")} ×</button>}
-{(status!=='all'||browse.query||region!=='all'||system!=='all')&&<span className="filter-match-count">{tr("匹配 {0} 个节点",filtered.length)}</span>}
+{(status!=='all'||browse.query||region!=='all'||system!=='all')&&!(mapVisible&&!compactViewport&&region!=='all')&&<span className="filter-match-count">{tr("匹配 {0} 个节点",filtered.length)}</span>}
 {!compactViewport && !mapVisible && region !== 'all' && <button aria-label={tr("清除地区筛选")} onClick={()=>setRegion('all')}>{region===UNKNOWN_REGION?tr("未知地区"):countryName(region)} ×</button>}
 {system !== 'all' && <button aria-label={tr("清除系统筛选")} onClick={()=>setSystem('all')}>{system} ×</button>}
 {browse.query && <button aria-label={tr("清除搜索筛选")} onClick={()=>setQuery('')}>{tr("搜索节点")}：{browse.query} ×</button>}
-{(status!=='all' || browse.query || region !== 'all' || system !== 'all') && <button className="clear-all-filters" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); }}>{tr("清除筛选")}</button>}
+{(status!=='all' || browse.query || region !== 'all' || system !== 'all') && !(mapVisible&&!compactViewport&&region!=='all') && <button className="clear-all-filters" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); }}>{tr("清除筛选")}</button>}
 </div></section>
 
 
              {browse.view === 'table' && ['latency','loss'].includes(browse.sort) && <p className="sort-note">{tr("延迟和丢包按所选线路比较；无效或旧数据排在末尾。已读取")}{sorted.filter(n => getPing(n.id)?.data).length}/{sorted.length}{tr("个节点。")}{tr("各节点所选线路可能不同，延迟比较请注意探测目标。")}</p>}
-            {mapVisible && <MapPanel viewSwitch={viewSwitch} nodeSnapshot={mapKey} region={region} onRegion={setRegion}/>}
+            {mapVisible && <MapPanel viewSwitch={viewSwitch} nodeSnapshot={mapKey} region={region} onRegion={setRegion} matchedCount={filtered.length} onClearFilters={()=>{setQuery('');setStatus('all');setRegion('all');setSystem('all')}}/>}
 
-            <div id="node-results" tabIndex={-1}>{sorted.length === 0 ? (<p className="py-16 text-center text-sm text-muted-foreground">{tr("还没有节点")}</p>) : filtered.length === 0 ? (<div className="empty-state"><p>{tr("没有符合条件的节点")}</p><Button variant="outline" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); }}>{tr("清除筛选")}</Button></div>) : browse.view === "table" ? (<NodeTable page={page} onPageChange={page=>setTablePage({key:pageKey,page})} nodes={filtered} browse={{...browse,columns:shownColumns}} onSort={sortBy} onSortChange={(sort,direction)=>patchBrowse({sort,direction})} mobile={compactViewport} warn={prefs.latencyWarn} high={prefs.latencyHigh} onOpen={id => go(id)}/>) : (<div className="node-grid" data-columns={prefs.desktopColumns}>{filtered.map(n=><NodeCard key={n.id} node={n} mobile={mobileCards} prefs={prefs} info={mobileCards && prefs.mobileInfoMode==='custom' ? prefs.mobileCardInfo || prefs.cardInfo : prefs.cardInfo} probe={prefs.probe} onOpen={()=>go(n.id)} onOpenRoutes={route=>go(n.id,"latency",`?routes=${route.kind==="all"?"all":route.id}`)}/>)}</div>)}</div>
+            <div id="node-results" tabIndex={-1}>{!compactViewport&&<div className="desktop-results-toolbar"><div><h2>{tr("节点")}</h2><span>{tr("匹配 {0} 个节点",filtered.length)}</span></div>{viewSwitch}</div>}{sorted.length === 0 ? (<div className="empty-state"><p>{tr("还没有节点")}</p>{me.authed ? <Button variant="outline" asChild><a href="/admin/">{tr("前往后台添加节点")}</a></Button> : <p>{tr("请联系管理员添加节点。")}</p>}</div>) : filtered.length === 0 ? (<div className="empty-state"><p>{tr("没有符合条件的节点")}</p><Button variant="outline" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); }}>{tr("清除筛选")}</Button></div>) : browse.view === "table" ? (<NodeTable page={page} onPageChange={page=>setTablePage({key:pageKey,page})} nodes={filtered} browse={{...browse,columns:shownColumns}} onSort={sortBy} onSortChange={(sort,direction)=>patchBrowse({sort,direction})} mobile={compactViewport} warn={prefs.latencyWarn} high={prefs.latencyHigh} onOpen={id => go(id)}/>) : (<div className="node-grid" data-columns={prefs.desktopColumns}>{filtered.map(n=><NodeCard key={n.id} node={n} mobile={mobileCards} prefs={prefs} info={mobileCards && prefs.mobileInfoMode==='custom' ? prefs.mobileCardInfo || prefs.cardInfo : prefs.cardInfo} probe={prefs.probe} onOpen={()=>go(n.id)} onOpenRoutes={route=>go(n.id,"latency",`?routes=${route.kind==="all"?"all":route.id}`)}/>)}</div>)}</div>
           </>)}
       </main>
       {open === null && showScrollTop && <button type="button" className="back-to-top" aria-label={tr("返回顶部")} title={tr("返回顶部")} onClick={() => window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}><ArrowUp size={17}/></button>}

@@ -8,18 +8,18 @@ async function setup(page:any) {
  })
  await page.route('**/api/nodes/*/metrics?*',(r:any)=>{const d=metrics();return r.fulfill({json:{...d,ping:[{task_id:1,ts:Date.now()/1000-60,latency:20},{task_id:1,ts:Date.now()/1000,latency:25},{task_id:2,ts:Date.now()/1000-60,latency:80},{task_id:2,ts:Date.now()/1000,latency:90}],probes:{1:'Route A',2:'Route B',3:'Empty route'},loss:{2:2.5}}})})
  await page.goto('/node/1#latency')
- await expect(page.locator('.route-chips button[aria-pressed]')).toHaveCount(3);await expandRoutes(page)
+ await expect(page.locator('.route-chips button[aria-pressed]')).toHaveCount(1);await expandRoutes(page);await expect(page.locator('.route-chips button[aria-pressed]')).toHaveCount(3)
 }
 test('detail route legends keep the home route, supports comparison and keeps height stable',async({page})=>{
  await setup(page)
  const a=page.locator('.route-chips button[aria-label="Route A"]'),b=page.locator('.route-chips button[aria-label="Route B"]')
  await expect(a).toHaveAttribute('aria-pressed','false');await expect(b).toHaveAttribute('aria-pressed','true')
- await expect(page.getByLabel('平滑显示')).not.toBeChecked()
+ await expect(page.getByLabel('抑制尖峰')).not.toBeChecked()
  const frame=page.locator('.detail-chart-frame');const height=(await frame.boundingBox())!.height
  await a.click();await expect(a).toHaveAttribute('aria-pressed','true');await expandRoutes(page)
  await frame.hover({position:{x:100,y:100}})
  expect((await frame.boundingBox())!.height).toBe(height)
- await page.getByLabel('平滑显示').check()
+ await page.getByLabel('抑制尖峰').check()
  expect((await frame.boundingBox())!.height).toBe(height)
  await expandRoutes(page);await expect(page.locator('.probe-bulk-actions,.route-search,.probe-solo,.probe-restore')).toHaveCount(0)
  const empty=page.locator('.route-chips button[aria-label="Empty route"]');await empty.click();await expect(empty).toHaveAttribute('aria-pressed','true')

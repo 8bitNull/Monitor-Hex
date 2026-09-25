@@ -18,6 +18,17 @@ test('billing rows align, preserve quota states and fit narrow cards',async({pag
   await expect(cards.nth(2).locator('.quota')).toHaveCount(0);await expect(cards.nth(2).locator('.billing-allowance')).toContainText('∞')
   await expect(cards.nth(3).locator('.traffic-reset')).toHaveCount(0)
   await expect(cards.nth(4).locator('.traffic-summary')).toHaveAttribute('data-quota-state','near')
+  if(width<=720){
+   for(const card of await cards.all()){
+    await expect(card.locator('.resources .resource')).toHaveCount(4)
+    await expect(card.locator('.speed-pair')).toBeVisible()
+    await expect(card.locator('.node-secondary-disclosure')).toHaveCount(0)
+    await expect(card.locator('.card-billing')).toBeVisible()
+   }
+  }else{
+   await expect(cards.first().locator('.node-secondary-disclosure')).toHaveCount(0)
+   await expect(cards.first().locator('.card-billing')).toBeVisible()
+  }
   await expect(cards.first().locator('.billing-used')).toBeVisible()
   for(const card of await cards.all()){
    const layout=await card.evaluate(el=>{const a=el.querySelector('.traffic-summary b')!.getBoundingClientRect(),b=el.querySelector('.card-expiry b')!.getBoundingClientRect();return {delta:Math.abs(a.y-b.y),overflow:el.scrollWidth>el.clientWidth+1}})
@@ -33,6 +44,15 @@ for(const width of [320,390,1440])test(`compact note tags open complete dialog a
  const note='这是一段很长的完整备注。'.repeat(20)
  await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[{...nodes()[0],remark:'国际线路;'+note+';Backup;Production'}]}}))
  await page.goto('/');const card=page.locator('.node-card'),notes=card.getByRole('button',{name:'备注',exact:true})
+ if(width<=720){
+  await expect(card.locator('.resources .resource')).toHaveCount(4)
+  await expect(card.locator('.speed-pair')).toBeVisible()
+  await expect(card.locator('.node-secondary-disclosure')).toHaveCount(0)
+  await expect(notes).toBeVisible()
+ }else{
+  await expect(card.locator('.node-secondary-disclosure')).toHaveCount(0)
+  await expect(card.locator('.card-billing')).toBeVisible()
+ }
  await expect(notes.locator('.detail-remark-tag')).toHaveCount(3);await expect(notes.locator('.remark-more')).toHaveText('+1')
  expect(await notes.evaluate(el=>{const count=el.querySelector('.remark-more')!.getBoundingClientRect(),button=el.getBoundingClientRect();return count.left>=button.left&&count.right<=button.right})).toBeTruthy()
  await expect(notes).toHaveAttribute('title','国际线路 · '+note+' · Backup · Production')

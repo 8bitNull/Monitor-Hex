@@ -2,7 +2,13 @@
 .table-shell {position:relative;min-width:0}
 .table-scroll {max-width:100%;overflow:auto;border:1px solid var(--border);border-radius:var(--radius-panel);background:var(--card);scrollbar-width:none}
 .table-scroll:focus-visible {outline:2px solid var(--tone);outline-offset:3px}
-.table-scroll-controls {display:flex;justify-content:flex-end;gap:6px;padding-bottom:8px}
+@media(min-width:721px) {
+ .table-shell[data-right=true]:after {content:'';position:absolute;right:0;top:0;bottom:0;width:32px;pointer-events:none;background:linear-gradient(90deg,transparent,var(--card) 65%);border-radius:0 var(--radius-panel) var(--radius-panel) 0}
+ .node-table th[data-partial] {color:transparent;pointer-events:none}
+ .node-table th[data-partial] > * {visibility:hidden}
+}
+.table-scroll-controls {display:flex;align-items:center;gap:4px;padding:0}
+.view-toolbar .table-scroll-controls {margin-left:2px}
 .table-scroll-controls button {display:grid;place-items:center;width:36px;height:36px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--foreground)}
 .table-scroll-controls button:hover:not(:disabled) {background:var(--muted)}
 .table-scroll-controls button:focus-visible {outline:2px solid var(--tone);outline-offset:2px}

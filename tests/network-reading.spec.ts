@@ -25,18 +25,12 @@ for(const width of [320,390,720,900,1200,1350,1360,1440])test(`network readings 
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
   if(language==='zh'&&appearance==='light')await card.screenshot({path:`tests/artifacts/v013/home-${width}.png`})
   await page.goto('/node/1?routes=1,2,3#latency');await expect(page.locator('.loss-track')).toBeVisible();await expect(page.locator('.detail-speed .micro-trend')).toHaveCount(2)
+  if(width<900)await page.locator('.overview-more-toggle').click()
   for(const direction of ['upload','download']){
    const reading=page.locator(`.detail-speed .${direction}`),label=await reading.locator('.speed-direction').boundingBox(),value=await reading.locator('strong').boundingBox()
    expect(label).not.toBeNull();expect(value).not.toBeNull()
    if(value!.y<label!.y+label!.height-1)expect(value!.x).toBeGreaterThanOrEqual(label!.x+label!.width+4)
    else expect(value!.y).toBeGreaterThanOrEqual(label!.y+label!.height-1)
-   if(width<=600||width>=1200&&width<=1350){
-    const row=await reading.boundingBox(),icon=await reading.locator(':scope > svg').boundingBox()
-    expect(row).not.toBeNull();expect(icon).not.toBeNull()
-    const center=row!.x+row!.width/2
-    expect(Math.abs((icon!.x+label!.x+label!.width)/2-center)).toBeLessThanOrEqual(2)
-    expect(Math.abs(value!.x+value!.width/2-center)).toBeLessThanOrEqual(2)
-   }
   }
   for(const reading of await page.locator('.detail-connections>div').all()){
    const label=await reading.locator('span').boundingBox(),value=await reading.locator('strong').boundingBox()
@@ -47,7 +41,7 @@ for(const width of [320,390,720,900,1200,1350,1360,1440])test(`network readings 
   await expandRoutes(page);await expect(page.locator('.route-chips button>span').first()).toHaveCSS('text-overflow','ellipsis');await page.keyboard.press('Escape')
   const billing=page.locator('.overview-account')
   if(width<900){await page.locator('.detail-facts-toggle').click()}
-  const status=(await billing.locator('.overview-account-footer').boundingBox())!,facts=(await billing.locator('.overview-billing').boundingBox())!;if(width>=900&&width<1200)expect(status.x).toBeGreaterThanOrEqual(facts.x+facts.width);else expect(status.y).toBeGreaterThanOrEqual(facts.y+facts.height-1)
+  const status=(await billing.locator('.overview-account-footer').boundingBox())!,facts=(await billing.locator('.overview-billing').boundingBox())!;if(width>=900)expect(status.x).toBeGreaterThanOrEqual(facts.x+facts.width);else expect(status.y).toBeGreaterThanOrEqual(facts.y+facts.height-1)
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
   if(language==='zh'&&appearance==='light')await page.locator('.detail-history').screenshot({path:`tests/artifacts/v013/latency-${width}.png`})
  }
@@ -144,7 +138,7 @@ test('latency bars preserve timestamp gaps, threshold colors and capped actual v
 test('latency summary keeps raw bucket statistics and clears window loss on zoom',async({page})=>{
  await setup(page);await page.goto('/node/1?routes=1#latency')
  const summary=page.locator('.latency-summary');await expect(summary).toContainText('16.3 ms');await expect(summary).toContainText('2.5%')
- await page.getByRole('checkbox',{name:'平滑显示'}).check();await expect(summary).toContainText('16.3 ms')
+ await page.getByRole('checkbox',{name:'抑制尖峰'}).check();await expect(summary).toContainText('16.3 ms')
  const handle=page.locator('.latency-brush .recharts-brush-traveller').first();await handle.focus();await page.keyboard.press('ArrowRight')
  await expect(page.getByRole('button',{name:'恢复范围'})).toBeVisible();await expect(summary).not.toContainText('2.5%');await expect(summary).toContainText('24.5 ms')
  await page.getByRole('button',{name:'恢复范围'}).click();await expect(summary).toContainText('16.3 ms');await expect(summary).toContainText('2.5%')

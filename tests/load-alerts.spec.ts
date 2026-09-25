@@ -29,7 +29,7 @@ test('load overview and history fit light/dark layouts and restore keyboard focu
   for(const width of [1440,390,320]){
    await page.setViewportSize({width,height:1000})
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
-   if(width===1440)expect(await page.locator('.summary-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(4)
+   if(width===1440)expect(await page.locator('.summary-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(6)
    await page.screenshot({path:`tests/artifacts/load-alerts-home-${width}-${dark?'dark':'light'}.png`,fullPage:true})
    const trigger=page.getByRole('button',{name:'查看高负载记录',exact:true});await trigger.click()
    await expect(page.getByRole('dialog',{name:'高负载观测记录'})).toBeVisible()

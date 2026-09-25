@@ -14,6 +14,7 @@ test('each card layout fits its indicator, keeps data visible and persists selec
     await page.setViewportSize({width,height:1000})
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
     expect(await card.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy()
+    await expect(card.locator('.node-secondary-disclosure')).toHaveCount(0)
     for(const metric of await card.locator('.resource').all()){
      const number=metric.locator(graph==='ring'?'.metric-ring strong':'.bar-number');await expect(number).toBeVisible()
      const box=(await metric.boundingBox())!,value=(await number.boundingBox())!

@@ -28,7 +28,7 @@ test('site card information choices remove empty rows and preserve detail inform
   expect(await card.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy()
  }
  config={...config,cardInfo:Object.fromEntries(keys.map(key=>[key,false]))};await page.reload()
- await card.locator('.node-open').click();await expect(page.locator('.detail-connections')).toBeVisible();await expect(page.locator('.overview-account')).toContainText('$5.00')
+ await card.locator('.node-open').click();await page.locator('.overview-more-toggle').click();await expect(page.locator('.detail-connections')).toBeVisible();await expect(page.locator('.overview-account')).toContainText('$5.00')
 })
 test('site mobile card choices respect the 720px boundary and follow mode',async({page})=>{
  await page.setViewportSize({width:390,height:1000})
@@ -36,11 +36,10 @@ test('site mobile card choices respect the 720px boundary and follow mode',async
  await page.route('**/theme-config.json',r=>r.fulfill({json:config}))
  await page.route('**/api/themes/hex/config',r=>r.fulfill({status:404}))
  await setup(page)
- const openMore=async()=>{const disclosure=page.locator('.node-secondary-disclosure').first();if(await disclosure.count()&&!(await disclosure.getAttribute('open')))await disclosure.locator('summary').click()}
  await expect(page.locator('.node-price')).toHaveCount(0)
  await page.setViewportSize({width:721,height:1000});await expect(page.locator('.node-price')).toBeVisible()
  await page.setViewportSize({width:720,height:1000});await expect(page.locator('.node-price')).toHaveCount(0)
- config={...config,mobileInfoMode:'follow'};await page.reload();await openMore();await expect(page.locator('.node-price')).toBeVisible()
+ config={...config,mobileInfoMode:'follow'};await page.reload();await expect(page.locator('.node-price')).toBeVisible()
 })
 test.skip('explicit equal-default display choices survive site changes, unrelated changes, export and import (removed backup controls)',async({page})=>{
  let config:any={cardInfo:all,desktopColumns:'auto'};await page.route('**/theme-config.json',r=>r.fulfill({json:config}));await setup(page);await toggleSettings(page)

@@ -3,7 +3,7 @@
 #node-results:focus {outline:none}
 .overview-summary {position:relative}
 .summary-toggle,.summary-compact {display:none}
-.summary-grid button[aria-pressed=true],.summary-compact button[aria-pressed=true] {color:var(--tone);text-decoration:underline;text-underline-offset:4px}
+.summary-grid button[aria-pressed=true],.summary-compact button[aria-pressed=true] {color:var(--tone);text-decoration:none}
 .summary-grid button:focus-visible {outline:2px solid var(--tone);outline-offset:3px}
 .summary-grid button {min-height:28px}
 .filter-match-count {align-self:center;font-size:12px;color:var(--muted-foreground)}

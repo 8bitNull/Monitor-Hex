@@ -10,8 +10,8 @@ for(const width of [900,1024,1440])test(`desktop latency proposal keeps routes l
   const chips=page.locator('.latency-view>.route-chips'),summary=page.locator('.latency-summary'),chart=page.locator('.latency-view>.detail-chart-frame')
   await expect(summary).toBeVisible()
   const c=(await chips.boundingBox())!,s=(await summary.boundingBox())!,f=(await chart.boundingBox())!
-  expect(c.x+c.width).toBeLessThanOrEqual(s.x)
-  expect(Math.abs(c.y+c.height/2-s.y-s.height/2)).toBeLessThanOrEqual(1)
+  expect(c.y).toBeGreaterThanOrEqual(s.y+s.height)
+  expect(f.y).toBeGreaterThan(c.y+c.height)
   expect(f.height).toBe(378)
   expect(await page.locator('.detail-history').evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy()
   const key=page.locator('.latency-summary-tools .latency-chart-key'),info=page.locator('.latency-explanation summary')
