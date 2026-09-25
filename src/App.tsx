@@ -171,6 +171,7 @@ export default function App({ siteDefaults = defaults }: {
     const mapKey=JSON.stringify(sorted.filter(n=>(browse.status==='all'||(browse.status==='online'?n.online:!n.online))&&(system==='all'||systemKey(n.os)===system)).map(({id,name,country,online})=>({id,name,country,online})));
     const selected = sorted.find((n) => n.id === open);
     const filtered = browseNodes(sorted, browse.view === "cards" ? {...browse,sort:"default"} : browse).filter(n => (system === 'all' || systemKey(n.os) === system));
+    const showFilterFeedback = (status !== 'all' && !prefs.modules.online || !!browse.query || region !== 'all' || system !== 'all') && !(mapVisible && region !== 'all');
     const pageKey=JSON.stringify([browse.query,browse.status,browse.region,browse.sort,browse.direction,browse.probe,system]);
     const [tablePage,setTablePage]=useState({key:pageKey,page:1});
     const page=Math.min(tablePage.key===pageKey?tablePage.page:1,Math.max(1,Math.ceil(filtered.length/20)));
@@ -239,17 +240,17 @@ export default function App({ siteDefaults = defaults }: {
             <p className="update-time">{lastUpdated ? tr("最后更新：{0}", new Date(lastUpdated).toLocaleString(locale())) : tr("等待首次数据")}</p></section>
             <Summary status={status} onStatus={setStatus} onCollapse={summaryCollapsed=>setPrefs(prev=>({...prev,summaryCollapsed}))} nodes={sorted} prefs={prefs} loadAlerts={loadAlerts} onAlert={event=>go(event.nodeId,"",`?eventStart=${event.start}&eventEnd=${event.end??event.last}`)}/>
             <>{compactViewport&&<div className="mobile-node-toolbar"><div className="mobile-toolbar-main"><RegionPicker nodes={sorted} region={region} onChange={setRegion}/><div className="mobile-toolbar-actions">{viewSwitch}</div></div></div>}</>
-            <section hidden={status==='all' && (region==='all' || mapVisible) && !browse.query && (compactViewport || mapVisible) && system==='all' && new Set(sorted.map(n=>systemKey(n.os))).size<2} className="node-browser streamlined-browser" aria-label={tr("节点浏览")}>
+            <section hidden={(status==='all' || prefs.modules.online) && (region==='all' || mapVisible) && !browse.query && (compactViewport || mapVisible) && system==='all' && new Set(sorted.map(n=>systemKey(n.os))).size<2} className="node-browser streamlined-browser" aria-label={tr("节点浏览")}>
             <div className="filters">{!compactViewport && !mapVisible && <div className="restored-regions" role="group" aria-label={tr("地区快速筛选")}><button className="all-regions-icon" aria-label={tr("所有地区")} title={tr("所有地区")} aria-pressed={region==='all'} onClick={()=>setRegion('all')}><Globe size={17}/></button>{groupRegions(sorted).map(r=><button key={r.code} aria-pressed={region===r.code} title={r.code} onClick={()=>setRegion(r.code)}>{r.code!==UNKNOWN_REGION&&<Flag code={r.code}/>}<span>{r.code===UNKNOWN_REGION?tr("未知地区"):countryName(r.code)}</span><small>{r.total}</small></button>)}</div>}<div className="filter-categories"><div className="system-pills" hidden={new Set(sorted.map(n=>systemKey(n.os))).size < 2 && system==='all'} role="group" aria-label={tr("系统快速筛选")}>{['all',...new Set(sorted.map(n=>systemKey(n.os)))].map(key=><button key={key} aria-pressed={system===key} onClick={()=>setSystem(key)}>{key==='all'?tr("所有系统"):key==='other'?tr("其他 / 未知系统"):key}</button>)}</div>
 </div>
 </div>
             <div className="active-filters">
-{status!=='all'&&<button aria-label={tr("清除状态筛选")} onClick={()=>setStatus('all')}>{tr(status==='offline'?"离线":"在线")} ×</button>}
-{(status!=='all'||browse.query||region!=='all'||system!=='all')&&!(mapVisible&&!compactViewport&&region!=='all')&&<span className="filter-match-count">{tr("匹配 {0} 个节点",filtered.length)}</span>}
+{status!=='all'&&!prefs.modules.online&&<button aria-label={tr("清除状态筛选")} onClick={()=>setStatus('all')}>{tr(status==='offline'?"离线":"在线")} ×</button>}
+{showFilterFeedback&&<span className="filter-match-count">{tr("匹配 {0} 个节点",filtered.length)}</span>}
 {!compactViewport && !mapVisible && region !== 'all' && <button aria-label={tr("清除地区筛选")} onClick={()=>setRegion('all')}>{region===UNKNOWN_REGION?tr("未知地区"):countryName(region)} ×</button>}
 {system !== 'all' && <button aria-label={tr("清除系统筛选")} onClick={()=>setSystem('all')}>{system} ×</button>}
 {browse.query && <button aria-label={tr("清除搜索筛选")} onClick={()=>setQuery('')}>{tr("搜索节点")}：{browse.query} ×</button>}
-{(status!=='all' || browse.query || region !== 'all' || system !== 'all') && !(mapVisible&&!compactViewport&&region!=='all') && <button className="clear-all-filters" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); }}>{tr("清除筛选")}</button>}
+{showFilterFeedback && <button className="clear-all-filters" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); }}>{tr("清除筛选")}</button>}
 </div></section>
 
 
