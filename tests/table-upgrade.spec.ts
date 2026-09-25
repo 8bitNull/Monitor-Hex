@@ -3,7 +3,7 @@ import {test,expect,type Page} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
 async function setup(page:Page,count=6) {
  await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:Array.from({length:count},(_,i)=>({...nodes()[0],id:i+1,sort:i,name:`Node ${i+1}`,remark:`备注 ${i+1} <script>文本内容</script>`,online:true,last_seen:Date.now()/1000,metrics:{...nodes()[0].metrics,cpu:10+i,net_tx:i*1000000,net_rx:(count-i)*1000000}}))}}))
- await page.route('**/api/nodes/*/metrics?*',r=>{const id=Number(new URL(r.request().url()).pathname.split('/')[3]);return r.fulfill({json:{...metrics(),probes:{1:'浙江电信'},ping:[{task_id:1,ts:Date.now()/1000,latency:[79,80,159,160,null,40][(id-1)%6]}],...(id===6?{loss:undefined}:{loss:{1:id===2?4:0}})}})})
+ await page.route('**/api/nodes/*/metrics?*',r=>{const id=Number(new URL(r.request().url()).pathname.split('/')[3]);return r.fulfill({json:{...metrics(),probes:{1:'浙江电信'},ping:[{task_id:1,ts:Date.now()/1000,latency:[149,150,299,300,null,40][(id-1)%6]}],...(id===6?{loss:undefined}:{loss:{1:id===2?4:0}})}})})
 }
 async function table(page:Page){await page.goto('/');await page.getByRole('button',{name:'表格视图',exact:true}).click();await page.locator('.table-ping').first().scrollIntoViewIfNeeded();await page.locator('.table-ping strong').first().waitFor();await page.locator('.table-scroll').evaluate(el=>el.scrollLeft=0)}
 test('grouped table fits desktop and sorts each network metric independently',async({page})=>{
@@ -85,7 +85,7 @@ test('visible rows load lazily and explicit quality sorting reads the complete f
  expect(requests).toBe(30)
 })
 test('custom thresholds, offline ping and very small actual rates keep their meanings',async({page})=>{
- await setup(page);await page.route('**/api/themes/hex/config',r=>r.fulfill({json:{latencyWarn:100,latencyHigh:200}}))
+ await setup(page);await page.route('**/api/themes/hex/config',r=>r.fulfill({json:{latencyWarn:200,latencyHigh:350}}))
  await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:Array.from({length:6},(_,i)=>({...nodes()[0],id:i+1,name:`Node ${i+1}`,online:i!==4,last_seen:Date.now()/1000,metrics:{...nodes()[0].metrics,net_tx:i===0?0:i===1?1:1000000}}))}}))
  await table(page);await expect(page.locator('.table-ping').nth(1)).toHaveAttribute('data-tone','good');await expect(page.locator('.table-ping').nth(3)).toHaveAttribute('data-tone','fair')
  await expect(page.locator('.table-speed').nth(1)).toContainText('<0.001Mbps');await expect(page.locator('.table-speed').nth(4)).toContainText('—')

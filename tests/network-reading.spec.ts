@@ -128,11 +128,11 @@ test('live activity distinguishes zero, slow, missing, stale and offline reading
 
 test('latency bars preserve timestamp gaps, threshold colors and capped actual values',async({page})=>{
  await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[nodes()[0]]}}))
- await page.route('**/api/nodes/*/metrics?*',r=>{const ts=Math.floor(Date.now()/1000);return r.fulfill({json:{...metrics(),probes:{1:'Primary'},loss:{1:0},ping:[{task_id:1,ts:ts-240,latency:20},{task_id:1,ts:ts-180,latency:100},{task_id:1,ts:ts-60,latency:null},{task_id:1,ts,latency:600}]}})})
+ await page.route('**/api/nodes/*/metrics?*',r=>{const ts=Math.floor(Date.now()/1000);return r.fulfill({json:{...metrics(),probes:{1:'Primary'},loss:{1:0},ping:[{task_id:1,ts:ts-240,latency:20},{task_id:1,ts:ts-180,latency:200},{task_id:1,ts:ts-60,latency:null},{task_id:1,ts,latency:600}]}})})
  await page.goto('/');const bars=page.locator('.latency-bars');await expect(bars.locator('g')).toHaveCount(4)
  await expect(bars.locator('[data-tone=good]')).toHaveCount(1);await expect(bars.locator('[data-tone=fair]')).toHaveCount(1);await expect(bars.locator('.latency-timeout')).toHaveCount(1)
  await expect(bars.locator('[data-capped=true] title')).toContainText('600 ms');await expect(page.locator('.latency-link')).toContainText('600')
- const heights=await bars.locator('rect').evaluateAll(els=>els.map(e=>Number(e.getAttribute('height'))));expect(heights).toEqual([3,15,30])
+ const heights=await bars.locator('rect').evaluateAll(els=>els.map(e=>Number(e.getAttribute('height'))));expect(heights).toEqual([1.2,12,30])
 })
 
 test('latency summary keeps raw bucket statistics and clears window loss on zoom',async({page})=>{

@@ -1,20 +1,29 @@
 import {test,expect} from '@playwright/test'
 test.beforeEach(async({page})=>{await page.addInitScript(()=>{if(!localStorage.getItem('monitor-next'))localStorage.setItem('monitor-next',JSON.stringify({schemaVersion:3,infoDensity:'full',modules:{map:true}}))})})
 
-test('compact map expands and persists after reload',async({page})=>{
+test('enabled map is visible immediately and height persists after reload',async({page})=>{
  await page.setViewportSize({width:1280,height:900})
  await page.goto('/')
  const map=page.locator('.map-frame'),height=()=>map.locator('.explorer-map').evaluate(element=>element.getBoundingClientRect().height)
  await expect(map.locator('.home-region-bar')).toBeVisible()
- await expect(map.getByRole('button',{name:'展开地图'})).toBeVisible()
- await expect(map.locator('.explorer-map')).toHaveCount(0)
+ await expect(map.locator('.explorer-map')).toBeVisible()
  await expect(page.locator('.desktop-results-toolbar').getByLabel('卡片视图')).toBeVisible()
  await expect(page.locator('.desktop-results-toolbar').getByLabel('表格视图')).toBeVisible()
- await map.getByRole('button',{name:'展开地图'}).click()
- await expect(map.locator('.explorer-map')).toBeVisible()
  await expect(map.locator('.map-land')).toBeVisible()
  await expect(map.locator('.home-map-toggle')).toHaveCount(0)
- await expect(map.locator('.map-tools .map-close')).toBeVisible()
+ await expect(map.locator('.map-tools .map-close')).toHaveCount(0)
+ for(const width of [721,900,1440]){
+  await page.setViewportSize({width,height:900})
+  const bar=(await map.locator('.home-region-bar').boundingBox())!
+  const tools=(await map.locator('.home-map-tools .map-tools').boundingBox())!
+  const regions=(await map.locator('.home-region-list').boundingBox())!
+  expect(Math.abs(bar.y+bar.height/2-tools.y-tools.height/2)).toBeLessThan(2)
+  expect(bar.x+bar.width-tools.x-tools.width).toBeLessThan(15)
+  expect(regions.x+regions.width).toBeLessThanOrEqual(tools.x)
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+  await map.locator('.home-region-bar').screenshot({path:`tests/artifacts/map-toolbar-row-${width}.png`})
+ }
+ await page.setViewportSize({width:1280,height:900})
  await page.screenshot({path:'tests/artifacts/map-open-no-toggle.png'})
  expect(await height()).toBe(216)
  await map.locator('.map-height-toggle').click()
@@ -24,32 +33,27 @@ test('compact map expands and persists after reload',async({page})=>{
  await expect(map.locator('.map-land')).toBeVisible()
  await expect(map.locator('.home-map-toggle')).toHaveCount(0)
  expect(await height()).toBe(310)
- await map.locator('.map-close').click()
- await expect(map.locator('.explorer-map')).toHaveCount(0)
- await expect(map.getByRole('button',{name:'展开地图'})).toBeVisible()
  await page.reload()
- await expect(map.locator('.explorer-map')).toHaveCount(0)
+ await expect(map.locator('.explorer-map')).toBeVisible()
 })
 
-test('expanded map height from older settings opens the map on first visit',async({page})=>{
+test('old collapsed preference no longer hides an enabled map',async({page})=>{
  await page.addInitScript(()=>{
-  localStorage.removeItem('monitor-next-map-open-v1')
+  localStorage.setItem('monitor-next-map-open-v1','closed')
   localStorage.setItem('monitor-next-map-height-v1','expanded')
  })
  await page.goto('/')
  const map=page.locator('.map-frame')
  await expect(map.locator('.explorer-map')).toBeVisible()
  await expect(map.locator('.home-map-toggle')).toHaveCount(0)
- await expect(map.locator('.map-close')).toBeVisible()
- await expect.poll(()=>page.evaluate(()=>localStorage.getItem('monitor-next-map-open-v1'))).toBe('open')
+ await expect(map.locator('.map-close')).toHaveCount(0)
+ expect(await page.evaluate(()=>localStorage.getItem('monitor-next-map-open-v1'))).toBe('closed')
 })
 
 test('map supports zoom, pan, fit, filtering and fullscreen without stealing page scroll',async({page})=>{
  await page.goto('/')
  const map=page.locator('.explorer-map'),svg=map.locator('.explorer-stage>svg')
  await expect(page.locator('.home-region-bar')).toBeVisible()
- await expect(map).toHaveCount(0)
- await page.getByRole('button',{name:'展开地图'}).click()
  await expect(map.locator('.map-land')).toBeVisible();expect(await map.locator('[data-region][role=button]').count()).toBeGreaterThanOrEqual(6)
  await expect(map.locator('.map-scale')).toHaveText('169%')
  const scale=map.locator('.map-scale'),withinBottomRight=async(maxBottom:number)=>{
@@ -58,19 +62,19 @@ test('map supports zoom, pan, fit, filtering and fullscreen without stealing pag
   expect(frame.y+frame.height-label.y-label.height).toBeLessThanOrEqual(maxBottom)
  }
  await withinBottomRight(24)
- await map.getByRole('button',{name:'放大地图',exact:true}).click()
+ await page.getByRole('button',{name:'放大地图',exact:true}).click()
  await expect(map.locator('.map-scale')).toHaveText('220%')
  await svg.hover();await page.mouse.wheel(0,100)
  await expect(map.locator('.map-scale')).toHaveText('220%')
  await page.keyboard.down('Control');await page.mouse.wheel(0,-200);await page.keyboard.up('Control')
  await expect(map.locator('.map-scale')).not.toHaveText('220%')
- await map.getByRole('button',{name:'适配全部',exact:true}).click()
+ await page.getByRole('button',{name:'适配全部',exact:true}).click()
  await expect(map.locator('.map-scale')).toHaveText('100%')
  const box=(await svg.boundingBox())!
  await page.mouse.move(box.x+60,box.y+80);await page.mouse.down();await page.mouse.move(box.x+180,box.y+100,{steps:8});await page.mouse.up()
  await expect(map.locator('.map-land')).not.toHaveAttribute('transform','translate(0 0) scale(1)')
  await expect(page.locator('.node-card')).toHaveCount(6)
- await map.getByRole('button',{name:'适配全部',exact:true}).click()
+ await page.getByRole('button',{name:'适配全部',exact:true}).click()
  const jp=map.locator('.populated-region[data-region="JP"]');await jp.focus();await jp.press('Enter')
  await expect(page.locator('.node-card')).toHaveCount(1)
  await jp.evaluate(element=>(element as SVGPathElement).blur())
@@ -81,9 +85,9 @@ test('map supports zoom, pan, fit, filtering and fullscreen without stealing pag
  })
  expect(selectedColors.selectedFill).not.toBe(selectedColors.otherFill)
  expect(selectedColors.selectedStroke).toBe(selectedColors.otherStroke)
- for(let i=0;i<3;i++)await map.getByRole('button',{name:'放大地图',exact:true}).click()
+ for(let i=0;i<3;i++)await page.getByRole('button',{name:'放大地图',exact:true}).click()
  await expect(map.locator('.map-node-preview')).toContainText('Tokyo')
- await map.getByRole('button',{name:'全屏地图',exact:true}).click()
+ await page.getByRole('button',{name:'全屏地图',exact:true}).click()
  await expect.poll(()=>page.evaluate(()=>!!document.fullscreenElement)).toBeTruthy()
  await withinBottomRight(80)
  const scaleBox=(await scale.boundingBox())!,switchBox=(await map.locator('.map-view-switch').boundingBox())!
@@ -91,7 +95,7 @@ test('map supports zoom, pan, fit, filtering and fullscreen without stealing pag
  await map.getByRole('button',{name:'退出全屏',exact:true}).click()
  await expect.poll(()=>page.evaluate(()=>!!document.fullscreenElement)).toBeFalsy()
  await page.locator('.home-region-list button').first().click()
- await map.getByRole('button',{name:'适配全部',exact:true}).click()
+ await page.getByRole('button',{name:'适配全部',exact:true}).click()
  await map.screenshot({path:'tests/artifacts/map-desktop.png'})
  for(const width of [390,320]){
   await page.setViewportSize({width,height:900})

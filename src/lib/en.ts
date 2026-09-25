@@ -1,5 +1,8 @@
 export const english: Record<string, string> = {
 "地区":"Region",
+"更多地区":"More regions",
+"搜索地区":"Search regions",
+"没有匹配的地区":"No matching regions",
 "上传":"Upload",
 "下载":"Download",
 "未启用":"Not enabled",
@@ -429,7 +432,7 @@ export const english: Record<string, string> = {
   "架构": "Architecture",
   "负载 1 / 5 / 15": "Load 1 / 5 / 15",
   "交换空间": "Swap",
-  "实时网速": "Current network speed",
+  "实时网速": "Live speed",
   "累计流量": "Total traffic",
   "本月用量": "Monthly usage",
   "当前周期用量": "Current cycle usage",

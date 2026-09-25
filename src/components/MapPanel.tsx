@@ -1,11 +1,11 @@
-import {Component,useEffect,useState,useMemo,type ComponentType,type ReactNode} from 'react'
-import {ChevronDown,Globe,X} from 'lucide-react'
+import {Component,useEffect,useLayoutEffect,useMemo,useRef,useState,type ComponentType,type ReactNode} from 'react'
+import {Check,ChevronDown,Globe} from 'lucide-react'
 import type {MapNode} from './WorldMap'
 import {groupRegions} from '@/lib/groups'
 import {countryName} from '@/lib/regionNames'
-import {tr} from '@/lib/i18n'
+import {locale,tr} from '@/lib/i18n'
 import {Flag} from './NodeIcons'
-export type MapProps={nodes:MapNode[];region:string;onRegion:(code:string)=>void;viewSwitch?:ReactNode;expanded?:boolean;onExpandedChange?:()=>void;onClose?:()=>void}
+export type MapProps={nodes:MapNode[];region:string;onRegion:(code:string)=>void;viewSwitch?:ReactNode;expanded?:boolean;onExpandedChange?:()=>void;toolsHost?:HTMLElement|null}
 let request:Promise<typeof import('./WorldMap')>|undefined
 export function loadMap(){return request??=import('./WorldMap').catch(error=>{request=undefined;throw error})}
 class MapBoundary extends Component<{children:ReactNode;fallback:ReactNode},{failed:boolean}>{
@@ -13,34 +13,90 @@ class MapBoundary extends Component<{children:ReactNode;fallback:ReactNode},{fai
  static getDerivedStateFromError(){return {failed:true}}
  render(){return this.state.failed?this.props.fallback:this.props.children}
 }
-export function MapPanel({nodeSnapshot,region,onRegion,viewSwitch,pendingNodes=false,matchedCount,onClearFilters}:{nodeSnapshot:string;viewSwitch:ReactNode;pendingNodes?:boolean;matchedCount?:number;onClearFilters?:()=>void}&Omit<MapProps,'nodes'>){
+function RegionBar({nodes,region,onRegion,toolsHostRef}:{nodes:MapNode[];region:string;onRegion:(code:string)=>void;toolsHostRef:(node:HTMLDivElement|null)=>void}){
+ const regions=useMemo(()=>groupRegions(nodes),[nodes])
+ const language=locale()
+ const listRef=useRef<HTMLDivElement>(null),measureRef=useRef<HTMLDivElement>(null),moreRef=useRef<HTMLButtonElement>(null),menuRef=useRef<HTMLDivElement>(null)
+ const [visibleCount,setVisibleCount]=useState(Math.min(6,regions.length)),[moreOpen,setMoreOpen]=useState(false),[search,setSearch]=useState('')
+ useLayoutEffect(()=>{
+  const list=listRef.current,measure=measureRef.current
+  if(!list||!measure)return
+  const update=()=>{
+   const buttons=[...measure.querySelectorAll('button')]
+   const widths=buttons.map(button=>button.getBoundingClientRect().width)
+   const available=list.clientWidth,gap=7,max=Math.min(6,regions.length)
+   let count=0
+   for(let candidate=max;candidate>=0;candidate--){
+    const needsMore=candidate<regions.length
+    const used=widths[0]+widths.slice(1,candidate+1).reduce((sum,width)=>sum+width,0)+(needsMore?widths.at(-1)!:0)+gap*(candidate+(needsMore?1:0))
+    if(used<=available){count=candidate;break}
+   }
+   setVisibleCount(count)
+   if(count===regions.length)setMoreOpen(false)
+  }
+  update()
+  const observer=new ResizeObserver(update)
+  observer.observe(list)
+  return()=>observer.disconnect()
+ },[regions,language])
+ const visible=regions.slice(0,visibleCount)
+ const selected=regions.find(item=>item.code===region)
+ if(selected&&!visible.some(item=>item.code===region)&&visible.length)visible[visible.length-1]=selected
+ const visibleCodes=new Set(visible.map(item=>item.code))
+ const hidden=regions.filter(item=>!visibleCodes.has(item.code))
+ useEffect(()=>{
+  if(!moreOpen)return
+  const dismiss=(event:PointerEvent)=>{if(!menuRef.current?.contains(event.target as Node)&&!moreRef.current?.contains(event.target as Node))setMoreOpen(false)}
+  const escape=(event:KeyboardEvent)=>{if(event.key==='Escape'){setMoreOpen(false);moreRef.current?.focus()}}
+  document.addEventListener('pointerdown',dismiss);document.addEventListener('keydown',escape)
+  requestAnimationFrame(()=>menuRef.current?.querySelector<HTMLInputElement>('input')?.focus()??menuRef.current?.querySelector<HTMLButtonElement>('button')?.focus())
+  return()=>{document.removeEventListener('pointerdown',dismiss);document.removeEventListener('keydown',escape)}
+ },[moreOpen])
+ const choose=(code:string)=>{
+  onRegion(code);setMoreOpen(false);setSearch('')
+  requestAnimationFrame(()=>[...listRef.current?.querySelectorAll<HTMLButtonElement>('button[data-region]')??[]].find(button=>button.dataset.region===code)?.focus())
+ }
+ const regionButton=(item:(typeof regions)[number])=><button key={item.code} data-region={item.code} onClick={()=>choose(item.code)} aria-pressed={region===item.code}>{item.code.length===2&&<Flag code={item.code}/>}<span>{countryName(item.code)}</span><small>{item.total}</small></button>
+ const menuItems=regions.filter(item=>countryName(item.code).toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())||item.code.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()))
+ return <div className="home-region-bar" role="group" aria-label={tr('地区快速筛选')}>
+  <span className="home-region-label">{tr('地区')}</span>
+  <div className="home-region-list" ref={listRef}>
+   <button onClick={()=>choose('all')} aria-pressed={region==='all'}>{tr('所有地区')} <small>{nodes.length}</small></button>
+   {visible.map(regionButton)}
+   {hidden.length>0&&<button ref={moreRef} type="button" className="home-region-more" aria-haspopup="dialog" aria-expanded={moreOpen} onClick={()=>{setSearch('');setMoreOpen(value=>!value)}}>{tr('更多地区')} <small>{hidden.length}</small><ChevronDown size={14} aria-hidden="true"/></button>}
+  </div>
+  <div className="home-map-tools" ref={toolsHostRef}/>
+  <div className="home-region-measure" ref={measureRef} aria-hidden="true">
+   <button tabIndex={-1}>{tr('所有地区')} <small>{nodes.length}</small></button>
+   {regions.map(item=><button key={item.code} tabIndex={-1}>{item.code.length===2&&<Flag code={item.code}/>}<span>{countryName(item.code)}</span><small>{item.total}</small></button>)}
+   <button tabIndex={-1}>{tr('更多地区')} <small>{regions.length}</small><ChevronDown size={14}/></button>
+  </div>
+  {moreOpen&&hidden.length>0&&<div className="home-region-menu" ref={menuRef} role="dialog" aria-label={tr('选择地区')}>
+   {regions.length>10&&<input type="search" aria-label={tr('搜索地区')} placeholder={tr('搜索地区')} value={search} onChange={event=>setSearch(event.target.value)}/>}
+   <div className="home-region-menu-list">{menuItems.map(item=><button key={item.code} type="button" aria-pressed={region===item.code} onClick={()=>choose(item.code)}>{item.code.length===2&&<Flag code={item.code}/>}<span>{countryName(item.code)}</span><small>{item.total}</small>{region===item.code&&<Check size={15} aria-hidden="true"/>}</button>)}{menuItems.length===0&&<p>{tr('没有匹配的地区')}</p>}</div>
+  </div>}
+ </div>
+}
+export function MapPanel({nodeSnapshot,region,onRegion,viewSwitch,pendingNodes=false}:{nodeSnapshot:string;viewSwitch:ReactNode;pendingNodes?:boolean}&Omit<MapProps,'nodes'>){
  const nodes=useMemo(()=>JSON.parse(nodeSnapshot) as MapNode[],[nodeSnapshot])
  const [Map,setMap]=useState<ComponentType<MapProps>|null>(null),[state,setState]=useState<'loading'|'slow'|'failed'|'ready'>('loading'),[attempt,setAttempt]=useState(0)
+ const [toolsHost,setToolsHost]=useState<HTMLDivElement|null>(null)
  const [expanded,setExpanded]=useState(()=>{try{return localStorage.getItem('monitor-next-map-height-v1')==='expanded'}catch{return false}})
- const [open,setOpen]=useState(()=>{try{const saved=localStorage.getItem('monitor-next-map-open-v1');return saved===null?localStorage.getItem('monitor-next-map-height-v1')==='expanded':saved==='open'}catch{return false}})
  useEffect(()=>{try{localStorage.setItem('monitor-next-map-height-v1',expanded?'expanded':'compact')}catch{/* Storage is optional. */}},[expanded])
- useEffect(()=>{try{localStorage.setItem('monitor-next-map-open-v1',open?'open':'closed')}catch{/* Storage is optional. */}},[open])
  useEffect(()=>{
-  if(!open)return
   let active=true
   const slow=setTimeout(()=>{if(active)setState('slow')},3000)
   const timeout=setTimeout(()=>{if(active)setState('failed')},15000)
   loadMap().then(module=>{if(active){setMap(()=>module.WorldMap);setState('ready')}},()=>{if(active)setState('failed')}).finally(()=>{clearTimeout(slow);clearTimeout(timeout)})
   return()=>{active=false;clearTimeout(slow);clearTimeout(timeout)}
- },[attempt,open])
+ },[attempt])
  const fallback=(failed:boolean)=><section className="map-placeholder explorer-map" aria-label={tr('全球节点分布')}>
-  <button type="button" className="map-fallback-close" aria-label={tr('收起地图')} title={tr('收起地图')} onClick={()=>setOpen(false)}><X size={18} aria-hidden="true"/></button>
   <div className="map-loading-message" role={failed?'alert':'status'}><Globe size={40} aria-hidden="true"/><p>{failed?tr('地图暂时无法加载'):state==='slow'?tr('地图加载较慢，节点列表仍可使用'):tr('地图加载中…')}</p>{failed&&<div><button onClick={()=>{setMap(null);setState('loading');setAttempt(n=>n+1)}}>{tr('重试地图')}</button><button onClick={()=>location.reload()}>{tr('刷新页面')}</button></div>}</div>
   <div className="explorer-footer"><div className="region-list"><button onClick={()=>onRegion('all')} aria-label={tr('所有地区')} aria-pressed={region==='all'}><Globe size={16}/></button>{groupRegions(nodes).map(r=><button key={r.code} data-region={r.code} aria-pressed={region===r.code} onClick={()=>onRegion(r.code)}>{countryName(r.code)} <small>{r.total}</small></button>)}</div></div>
  </section>
- return <div className={`map-frame${expanded?' is-expanded':''}${open?' map-open':''}`}>
-  <div className="home-region-bar" role="group" aria-label={tr('地区快速筛选')}>
-   <span className="home-region-label">{tr('地区')}</span>
-   <div className="home-region-list"><button onClick={()=>onRegion('all')} aria-pressed={region==='all'}>{tr('所有地区')} <small>{nodes.length}</small></button>{groupRegions(nodes).map(r=><button key={r.code} onClick={()=>onRegion(r.code)} aria-pressed={region===r.code}>{r.code.length===2&&<Flag code={r.code}/>}<span>{countryName(r.code)}</span><small>{r.total}</small></button>)}</div>
-   {!open&&<button type="button" className="home-map-toggle" aria-expanded={false} onClick={()=>setOpen(true)}>{tr('展开地图')}<ChevronDown size={16} aria-hidden="true"/></button>}
-   {region!=='all'&&matchedCount!==undefined&&onClearFilters&&<div className="home-region-result"><span>{tr('匹配 {0} 个节点',matchedCount)}</span><button type="button" onClick={onClearFilters}>{tr('清除筛选')}</button></div>}
-  </div>
-  {open&&<MapBoundary key={attempt} fallback={fallback(true)}>{Map&&state==='ready'?<Map nodes={nodes} region={region} onRegion={onRegion} viewSwitch={viewSwitch} expanded={expanded} onExpandedChange={()=>setExpanded(value=>!value)} onClose={()=>setOpen(false)}/>:fallback(state==='failed')}</MapBoundary>}
-  {open&&pendingNodes&&<span className="map-data-notice" role="status">{tr('等待节点数据')}</span>}
+ return <div className={`map-frame${expanded?' is-expanded':''}`}>
+  <RegionBar nodes={nodes} region={region} onRegion={onRegion} toolsHostRef={setToolsHost}/>
+  <MapBoundary key={attempt} fallback={fallback(true)}>{Map&&state==='ready'?<Map nodes={nodes} region={region} onRegion={onRegion} viewSwitch={viewSwitch} expanded={expanded} onExpandedChange={()=>setExpanded(value=>!value)} toolsHost={toolsHost}/>:fallback(state==='failed')}</MapBoundary>
+  {pendingNodes&&<span className="map-data-notice" role="status">{tr('等待节点数据')}</span>}
  </div>
 }

@@ -64,14 +64,14 @@ for(const mode of ['auto','expanded','collapsed'] as const){
 }
 assert.equal(normalizePreferences({detailInfoMode:'invalid'}).detailInfoMode,'auto')
 
-assert.equal(legacy.latencyScale,200);assert.equal(legacy.latencyWindow,1);assert.equal(legacy.latencyWarn,80);assert.equal(legacy.latencyHigh,160)
+assert.equal(legacy.latencyScale,500);assert.equal(legacy.latencyWindow,1);assert.equal(legacy.latencyWarn,150);assert.equal(legacy.latencyHigh,300)
 const customLatency=parsePreferences(JSON.stringify({...defaults,latencyScale:500,latencyWindow:24,latencyWarn:100,latencyHigh:250}))
 assert.equal(customLatency.latencyScale,500);assert.equal(customLatency.latencyWarn,100)
 assert.equal(customLatency.latencyWindow,24)
-assert.equal(normalizePreferences({latencyScale:999}).latencyScale,200)
+assert.equal(normalizePreferences({latencyScale:999}).latencyScale,500)
 assert.equal(normalizePreferences({latencyWindow:12}).latencyWindow,1)
-assert.equal(normalizePreferences({latencyWarn:200,latencyHigh:100}).latencyWarn,80)
-assert.equal(normalizePreferences({latencyHigh:NaN}).latencyHigh,160)
+assert.equal(normalizePreferences({latencyWarn:200,latencyHigh:100}).latencyWarn,150)
+assert.equal(normalizePreferences({latencyHigh:NaN}).latencyHigh,300)
 assert.equal(restoreAppearance(customLatency,defaults).latencyHigh,250)
 assert.equal(restoreAppearance(customLatency,defaults).latencyWindow,24)
 assert.equal(parsePreferences(JSON.stringify(customLatency)).latencyHigh,250)

@@ -1,4 +1,5 @@
 import {test,expect} from '@playwright/test'
+import {nodes} from '../scripts/fixtures.mjs'
 test.beforeEach(async({page})=>{await page.addInitScript(()=>{if(!localStorage.getItem('monitor-next'))localStorage.setItem('monitor-next',JSON.stringify({schemaVersion:3,infoDensity:'full',modules:{map:true}}))})})
 
 test('desktop region bar filters nodes and disabled maps restore the region list',async({page})=>{
@@ -8,36 +9,31 @@ test('desktop region bar filters nodes and disabled maps restore the region list
  await page.goto('/')
  const regionBar=page.locator('.home-region-bar')
  await expect(regionBar).toBeVisible()
- await expect(page.locator('.region-atlas,.map-placeholder')).toHaveCount(0)
- await expect(regionBar.getByRole('button',{name:'展开地图'})).toHaveAttribute('aria-expanded','false')
+ await expect(page.locator('.region-atlas')).toBeVisible()
+ await expect(regionBar.getByRole('button',{name:'展开地图'})).toHaveCount(0)
  await regionBar.getByRole('button',{name:/日本/}).click()
  await expect(page.locator('.node-card')).toHaveCount(1)
- await expect(regionBar.locator('.home-region-result')).toContainText('匹配 1 个节点')
- await expect(regionBar.getByRole('button',{name:'清除筛选'})).toBeVisible()
+ await expect(regionBar.locator('.home-region-result')).toHaveCount(0)
  await expect(page.locator('.active-filters .filter-match-count,.active-filters .clear-all-filters')).toHaveCount(0)
  await expect(page.locator('.node-browser')).toBeHidden()
  for(const width of [721,1440]){
   await page.setViewportSize({width,height:900})
-  const label=(await regionBar.locator('.home-region-label').boundingBox())!
-  const result=(await regionBar.locator('.home-region-result').boundingBox())!
   const bar=(await regionBar.boundingBox())!
-  expect(Math.abs(label.y+label.height/2-result.y-result.height/2)).toBeLessThan(2)
-  expect(bar.x+bar.width-result.x-result.width).toBeLessThan(15)
+  const selected=(await regionBar.getByRole('button',{name:/日本/}).boundingBox())!
+  expect(selected.x+selected.width).toBeLessThanOrEqual(bar.x+bar.width)
  }
  await page.locator('.desktop-results-toolbar').getByLabel('表格视图').click()
  await expect(page.locator('tbody tr')).toHaveCount(1)
  await page.locator('.desktop-results-toolbar').getByLabel('卡片视图').click()
  await expect(regionBar.getByRole('button',{name:/日本/})).toHaveAttribute('aria-pressed','true')
- await regionBar.getByRole('button',{name:'清除筛选'}).click()
+ await regionBar.getByRole('button',{name:/所有地区/}).click()
  await expect(regionBar.getByRole('button',{name:/日本/})).toHaveAttribute('aria-pressed','false')
  await expect(page.locator('.node-browser')).toBeHidden()
  await expect(page.locator('.node-card')).toHaveCount(6)
  await regionBar.getByRole('button',{name:/日本/}).click()
- await regionBar.getByRole('button',{name:'展开地图'}).click()
  await expect(page.locator('.region-atlas')).toBeVisible()
  await expect(page.locator('.region-list button[data-region="JP"]')).toHaveAttribute('aria-pressed','true')
- await page.locator('.region-atlas .map-close').click()
- await expect(page.locator('.region-atlas')).toHaveCount(0)
+ await expect(page.locator('.region-atlas .map-close')).toHaveCount(0)
  mapEnabled=false;await page.reload()
  const restored=page.getByRole('group',{name:'地区快速筛选'})
  await expect(regionBar).toHaveCount(0)
@@ -59,9 +55,45 @@ test('desktop region bar filters nodes and disabled maps restore the region list
  await page.setViewportSize({width:1440,height:1000})
  await expect(regionBar).toBeVisible()
  await expect(regionBar.getByRole('button',{name:/日本/})).toHaveAttribute('aria-pressed','true')
- await regionBar.getByRole('button',{name:'展开地图'}).click()
  await expect(page.locator('.region-atlas')).toBeVisible()
  await page.locator('.region-atlas').screenshot({path:'tests/artifacts/regions-map-desktop.png'})
+})
+
+test('region overflow keeps selection visible and exposes all regions',async({page})=>{
+ const countries=['DE','FR','GB','HK','JP','MO','SG','US','CA','AU','NL','BR']
+ await page.route('**/api/nodes',route=>route.fulfill({json:{nodes:countries.map((country,index)=>({...nodes()[0],id:index+1,country,name:country}))}}))
+ await page.setViewportSize({width:1440,height:900})
+ await page.goto('/')
+ const bar=page.locator('.home-region-bar'),list=bar.locator('.home-region-list')
+ await expect(list.locator('button[data-region]')).toHaveCount(6)
+ await expect(list.getByRole('button',{name:/更多地区/})).toContainText('6')
+ await list.getByRole('button',{name:/更多地区/}).click()
+ const menu=bar.getByRole('dialog',{name:'选择地区'})
+ await expect(menu.getByRole('button')).toHaveCount(12)
+ await page.screenshot({path:'tests/artifacts/regions-more-menu.png'})
+ await menu.getByRole('searchbox',{name:'搜索地区'}).fill('ZZ')
+ await expect(menu).toContainText('没有匹配的地区')
+ await menu.getByRole('searchbox',{name:'搜索地区'}).fill('US')
+ await expect(menu.getByRole('button')).toHaveCount(1)
+ await menu.getByRole('button').click()
+ await expect(list.locator('button[data-region="US"]')).toHaveAttribute('aria-pressed','true')
+ await expect(page.locator('.node-card')).toHaveCount(1)
+ await expect(menu).toHaveCount(0)
+ await page.setViewportSize({width:721,height:900})
+ await expect(list.locator('button[data-region="US"]')).toBeVisible()
+ await bar.screenshot({path:'tests/artifacts/regions-more-selected-721.png'})
+ expect(await list.evaluate(element=>element.scrollWidth<=element.clientWidth+1)).toBeTruthy()
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+ await page.setViewportSize({width:768,height:900})
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+ await list.getByRole('button',{name:/更多地区/}).click()
+ await page.keyboard.press('Escape')
+ await expect(menu).toHaveCount(0)
+ await expect(list.getByRole('button',{name:/更多地区/})).toBeFocused()
+ await list.getByRole('button',{name:/所有地区/}).click()
+ await expect(page.locator('.node-card')).toHaveCount(12)
+ await page.setViewportSize({width:1440,height:900})
+ await bar.screenshot({path:'tests/artifacts/regions-more-desktop.png'})
 })
 
 for (const width of [320,390,720]) {
@@ -85,9 +117,10 @@ for (const width of [320,390,720]) {
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
   await page.setViewportSize({width:721,height:844})
   await expect(page.locator('.home-region-bar')).toBeVisible()
-  await expect(page.locator('.region-atlas,.map-placeholder')).toHaveCount(0)
+  await expect(page.locator('.region-atlas')).toBeVisible()
   await page.setViewportSize({width,height:844})
   await expect(page.locator('.home-region-bar')).toHaveCount(0)
+  await expect(page.locator('.region-atlas,.map-placeholder')).toHaveCount(0)
  })
 }
 

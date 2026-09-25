@@ -35,6 +35,26 @@ test('mobile card shows resources and supporting facts without a disclosure',asy
  await expect(card.locator('.card-billing')).toBeVisible()
 })
 
+test('desktop expiry tag sits beside the OS label',async({page})=>{
+ const expiry=new Date(Date.now()+3*86400000).toISOString().slice(0,10)
+ await page.route('**/api/nodes',route=>route.fulfill({json:{nodes:[{...nodes()[0],name:'Netcup RS1000 - 黑五',os:'Debian 12',expires_at:expiry}]}}))
+ for(const width of [1440,900,721]){
+  await page.setViewportSize({width,height:900})
+  await page.goto('/')
+  const card=page.locator('.node-card').first()
+  const os=card.locator('.node-os-row p'),tag=card.locator('.card-expiry-tag')
+  await expect(os).toContainText('Debian 12')
+  await expect(tag).toContainText('剩余 3 天')
+  await expect(card.locator('.node-name-row .card-issue')).toHaveCount(0)
+  const osBox=await os.boundingBox(),tagBox=await tag.boundingBox()
+  expect(osBox).not.toBeNull();expect(tagBox).not.toBeNull()
+  expect(tagBox!.x).toBeGreaterThan(osBox!.x+osBox!.width)
+  expect(Math.abs(tagBox!.y+tagBox!.height/2-osBox!.y-osBox!.height/2)).toBeLessThan(2)
+  expect(await card.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBeTruthy()
+  await card.screenshot({path:`tests/artifacts/desktop-expiry-${width}.png`})
+ }
+})
+
 test('four summary tiles form balanced rows at tablet widths',async({page})=>{
  await page.goto('/')
  const grid=page.locator('.summary-grid')
@@ -80,22 +100,50 @@ test('summary filters keep feedback without marks beneath the numbers',async({pa
  }
 })
 
-test('mobile node summary labels and offline hint fit without reducing click targets',async({page})=>{
+test('mobile overview aligns four metrics and keeps filters reachable',async({page})=>{
  await page.route('**/api/nodes',route=>route.fulfill({json:{nodes:nodes()}}))
  for(const width of [320,390]){
   await page.setViewportSize({width,height:844});await page.goto('/')
-  const tile=page.locator('.summary-grid>div').first(),buttons=tile.locator('.summary-node-count button'),hint=tile.locator('.summary-offline-filter')
+  const grid=page.locator('.summary-grid'),tile=grid.locator(':scope > div').first(),buttons=tile.locator('.summary-node-count button'),hint=tile.locator('.summary-offline-filter')
   await expect(buttons.nth(0)).toContainText('在线');await expect(buttons.nth(0)).toContainText('5')
   await expect(buttons.nth(1)).toContainText('全部');await expect(buttons.nth(1)).toContainText('6')
   await expect(hint).toContainText('离线')
   for(const button of [...await buttons.all(),hint]){const box=await button.boundingBox();expect(box).not.toBeNull();expect(box!.width).toBeGreaterThanOrEqual(44);expect(box!.height).toBeGreaterThanOrEqual(44)}
-  const boxes=await Promise.all([buttons.nth(0).boundingBox(),buttons.nth(1).boundingBox(),hint.boundingBox(),tile.boundingBox(),tile.locator('.summary-tile-heading').boundingBox()])
+  const boxes=await Promise.all([buttons.nth(0).boundingBox(),buttons.nth(1).boundingBox(),hint.boundingBox(),tile.boundingBox()])
   expect(boxes[0]!.x+boxes[0]!.width).toBeLessThanOrEqual(boxes[1]!.x)
-  expect(boxes[4]!.x+boxes[4]!.width).toBeLessThanOrEqual(boxes[2]!.x)
-  expect(boxes[2]!.y).toBeLessThan(boxes[0]!.y)
-  expect(boxes[2]!.y+boxes[2]!.height).toBeLessThanOrEqual(boxes[0]!.y+1)
+  expect(boxes[2]!.y).toBeGreaterThanOrEqual(boxes[0]!.y+boxes[0]!.height)
   expect(boxes[2]!.x+boxes[2]!.width).toBeLessThanOrEqual(boxes[3]!.x+boxes[3]!.width)
   expect(await tile.evaluate(el=>el.scrollHeight===el.clientHeight)).toBeTruthy()
+  const layout=await grid.locator(':scope > div').evaluateAll(tiles=>tiles.map(tile=>{const box=tile.getBoundingClientRect();return {top:box.top,height:box.height}}))
+  expect(layout).toHaveLength(4)
+  expect(layout[0].height).toBe(layout[1].height)
+  expect(layout[2].height).toBe(layout[3].height)
+  expect(layout[0].height).toBe(layout[2].height)
+  const metricTops=await grid.evaluate(element=>[...element.children].map((tile,index)=>{
+   const metric=tile.querySelector(index===0?'.summary-node-count b':'.summary-total')!
+   const range=document.createRange();range.selectNode(metric.firstChild!)
+   return range.getBoundingClientRect().top
+  }))
+  expect(Math.abs(metricTops[0]-metricTops[1])).toBeLessThan(3)
+  expect(Math.abs(metricTops[2]-metricTops[3])).toBeLessThan(3)
+  await expect(grid.locator('.summary-flow')).toHaveCount(2)
+  await expect(grid.locator('.summary-flow').first()).toBeVisible()
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+  await grid.screenshot({path:`tests/artifacts/summary-aligned-${width}.png`})
+ }
+})
+
+test('English mobile overview stays within its four tiles',async({page})=>{
+ await page.addInitScript(()=>localStorage.setItem('monitor-next-language','en'))
+ await page.route('**/api/nodes',route=>route.fulfill({json:{nodes:nodes()}}))
+ for(const width of [320,390]){
+  await page.setViewportSize({width,height:844});await page.goto('/')
+  const grid=page.locator('.summary-grid')
+  await expect(grid.locator(':scope > div')).toHaveCount(4)
+  await expect(grid.locator('.summary-flow')).toHaveCount(2)
+  await grid.screenshot({path:`tests/artifacts/summary-aligned-en-${width}.png`})
+  expect(await grid.evaluate(element=>[...element.children].every(tile=>tile.scrollWidth<=tile.clientWidth&&tile.scrollHeight<=tile.clientHeight))).toBeTruthy()
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
  }
 })
 

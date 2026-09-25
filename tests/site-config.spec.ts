@@ -1,4 +1,71 @@
 import {test, expect} from '@playwright/test'
+import {readFileSync} from 'node:fs'
+import {applySiteConfig} from '../src/lib/siteConfig'
+import {defaults,parsePreferences} from '../src/lib/appearance'
+import {nodes} from '../scripts/fixtures.mjs'
+
+const manifest=JSON.parse(readFileSync(new URL('../theme.json',import.meta.url),'utf8')) as {config:Array<{key?:string;type:string;default?:unknown;options?:Array<{value:string}>}>}
+const packaged=JSON.parse(readFileSync(new URL('../public/theme-config.json',import.meta.url),'utf8'))
+
+test('every backend theme field matches packaged defaults and reaches preferences',()=>{
+  expect(parsePreferences(JSON.stringify(packaged))).toEqual(defaults)
+  const fields=manifest.config.filter((field):field is typeof field & {key:string}=>typeof field.key==='string')
+  const read=(value:ReturnType<typeof applySiteConfig>,key:string):unknown=>{
+    if(key.startsWith('module_'))return value.modules[key.slice(7) as keyof typeof value.modules]
+    if(key.startsWith('card_info_'))return value.cardInfo[key.slice(10) as keyof typeof value.cardInfo]
+    if(key.startsWith('mobile_card_info_'))return (value.mobileCardInfo ?? value.cardInfo)[key.slice(17) as keyof typeof value.cardInfo]
+    return value[key as keyof typeof value]
+  }
+  for(const field of fields){
+    const key=field.key
+    const declared=key==='latencyScale'||key==='latencyWindow'?Number(field.default):field.default
+    expect(read(defaults,key),`${key} default`).toBe(declared)
+    const sample=field.type==='boolean'?!field.default:field.type==='number'?Number(field.default)+1:field.type==='select'?field.options!.find(option=>option.value!==field.default)!.value:key==='probe'?'2':'/background.svg'
+    const expected=key==='latencyScale'||key==='latencyWindow'?Number(sample):sample
+    expect(read(applySiteConfig({[key]:sample},defaults),key),`${key} applied`).toBe(expected)
+    const invalid=field.type==='boolean'?'false':field.type==='number'?Infinity:field.type==='select'?'invalid':42
+    expect(applySiteConfig({[key]:invalid},defaults),`${key} invalid fallback`).toEqual(defaults)
+  }
+})
+
+test('disabling expiry hides both the card fact and the heading warning',async({page})=>{
+  await page.route('**/api/themes/hex/config',route=>route.fulfill({json:{card_info_expiry:false}}))
+  await page.route('**/api/nodes',async route=>{
+    const source=await route.fetch()
+    const data=await source.json()
+    data.nodes[0].expires_at=new Date(Date.now()+3*86400000).toISOString().slice(0,10)
+    await route.fulfill({json:data})
+  })
+  await page.goto('/')
+  const card=page.locator('.node-card').first()
+  await expect(card.locator('.card-expiry')).toHaveCount(0)
+  await expect(card.locator('.card-expiry-tag')).toHaveCount(0)
+  await expect(card.locator('.node-heading')).not.toContainText('即将到期')
+})
+
+test('recommended packaged display works on desktop and mobile',async({page})=>{
+  await page.route('**/api/themes/hex/config',route=>route.fulfill({status:404}))
+  await page.route('**/api/nodes',route=>route.fulfill({json:{nodes:[{...nodes()[0],remark:'国际线路'}]}}))
+  await page.setViewportSize({width:1440,height:900})
+  await page.goto('/')
+  await expect(page.locator('.next-theme')).toHaveAttribute('data-layout','comfortable')
+  await expect(page.locator('.next-theme')).toHaveAttribute('data-graph','bar')
+  await expect(page.locator('.node-grid')).toHaveAttribute('data-columns','auto')
+  await expect(page.locator('.map-frame')).toBeVisible()
+  await expect(page.locator('.summary-grid > div')).toHaveCount(4)
+  await expect(page.locator('.node-card').first().locator('.card-billing')).toBeVisible()
+  await expect(page.locator('.node-card').first().locator('.node-remarks')).toBeVisible()
+  await expect(page.locator('.latency-bars svg').first()).toHaveAttribute('aria-label',/0–500 ms.*150.*300/)
+  await page.screenshot({path:'tests/artifacts/site-default-desktop.png'})
+  await page.setViewportSize({width:390,height:844})
+  await page.reload()
+  await expect(page.locator('.map-frame')).toHaveCount(0)
+  await expect(page.locator('.node-card').first().locator('.card-billing')).toBeVisible()
+  await expect(page.locator('.node-card').first().locator('.node-connections')).toBeVisible()
+  await expect(page.locator('.node-card').first().locator('.node-remarks')).toBeVisible()
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
+  await page.screenshot({path:'tests/artifacts/site-default-mobile.png'})
+})
 
 test('hub site settings win over legacy theme overrides while appearance stays personal', async ({page}) => {
   let writes = 0
@@ -16,7 +83,7 @@ test('hub site settings win over legacy theme overrides while appearance stays p
   await expect(page.locator('.next-theme')).toHaveAttribute('data-palette', 'ocean')
   await expect(page.locator('html')).toHaveClass(/\bdark\b/)
   await expect(page.locator('.node-grid')).toHaveAttribute('data-columns', '3')
-  await expect(page.locator('.map-panel')).toHaveCount(0)
+  await expect(page.locator('.map-frame')).toHaveCount(0)
   await expect(page.locator('dialog.settings-drawer')).toHaveCount(0)
   await expect(page.locator('header').getByRole('button',{name:/显示与偏好|Display & preferences/})).toHaveCount(0)
   await page.reload()

@@ -37,8 +37,10 @@
   "mobileInfoMode": "follow",
   "mobileCardInfo": null,
   "desktopColumns": "auto",
-  "latencyScale": 200,
-  "latencyWarn": 80,
-  "latencyHigh": 160,
+  "detailInfoMode": "auto",
+  "latencyScale": 500,
+  "latencyWindow": 1,
+  "latencyWarn": 150,
+  "latencyHigh": 300,
   "infoDensity": "overview"
 }

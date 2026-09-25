@@ -50,6 +50,18 @@ test('compact card keeps billing above latency and three equal columns and remar
  }
 })
 
+test('hovering card remarks does not fill the whole row',async({page})=>{
+ await page.setViewportSize({width:1440,height:900})
+ await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[{...nodes()[0],remark:'20T;10Gbps;国际线路'}]}}))
+ await page.goto('/')
+ const remarks=page.locator('.node-card .node-remarks').first()
+ const background=await remarks.evaluate(el=>getComputedStyle(el).backgroundColor)
+ await remarks.hover()
+ await expect(remarks).toHaveCSS('background-color',background)
+ await remarks.click()
+ await expect(page.locator('.card-notes-dialog')).toBeVisible()
+})
+
 test('home speed curves use new reports and offline cards retain durable facts and routes',async({page})=>{
  await page.clock.install()
  let step=0,online=true

@@ -1,5 +1,5 @@
-import manifest from '../../theme.json'
-import {normalizePreferences, type Preferences} from './appearance'
+import manifest from '../../theme.json' with {type:'json'}
+import {normalizePreferences, type Preferences} from './appearance.ts'
 
 type Field = {
   key: string

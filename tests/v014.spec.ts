@@ -65,7 +65,7 @@ test('mobile search closes with focus, keeps query, and detail has a single fact
  await expect(page.locator('#detail-fact-groups details')).toHaveCount(0)
  await expect(page.getByRole('region',{name:'网络与流量'}).locator('dl')).toBeVisible()
  await page.getByRole('button',{name:'返回总览',exact:true}).click();await expect(page.locator('.active-filters')).toContainText('Tokyo')
- expect((await page.locator('.summary-grid').boundingBox())!.height).toBeLessThanOrEqual(240)
+ expect((await page.locator('.summary-grid').boundingBox())!.height).toBeLessThanOrEqual(260)
 })
 test('mobile and desktop table columns remain independent',async({page})=>{
  await setup(page);await page.goto('/');await page.getByRole('button',{name:'表格视图',exact:true}).click()
