@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test'
 test.beforeEach(async({page})=>{await page.addInitScript(()=>{if(!localStorage.getItem('monitor-next'))localStorage.setItem('monitor-next',JSON.stringify({schemaVersion:3,infoDensity:'full',modules:{map:true}}))})})
 
-test('enabled map is visible immediately and height persists after reload',async({page})=>{
+test('enabled map keeps full height without a height toggle',async({page})=>{
  await page.setViewportSize({width:1280,height:900})
  await page.goto('/')
  const map=page.locator('.map-frame'),height=()=>map.locator('.explorer-map').evaluate(element=>element.getBoundingClientRect().height)
@@ -25,8 +25,7 @@ test('enabled map is visible immediately and height persists after reload',async
  }
  await page.setViewportSize({width:1280,height:900})
  await page.screenshot({path:'tests/artifacts/map-open-no-toggle.png'})
- expect(await height()).toBe(216)
- await map.locator('.map-height-toggle').click()
+ await expect(map.locator('.map-height-toggle')).toHaveCount(0)
  expect(await height()).toBe(310)
  await page.reload()
  await expect(map.locator('.explorer-map')).toBeVisible()
@@ -40,13 +39,14 @@ test('enabled map is visible immediately and height persists after reload',async
 test('old collapsed preference no longer hides an enabled map',async({page})=>{
  await page.addInitScript(()=>{
   localStorage.setItem('monitor-next-map-open-v1','closed')
-  localStorage.setItem('monitor-next-map-height-v1','expanded')
+  localStorage.setItem('monitor-next-map-height-v1','compact')
  })
  await page.goto('/')
  const map=page.locator('.map-frame')
  await expect(map.locator('.explorer-map')).toBeVisible()
  await expect(map.locator('.home-map-toggle')).toHaveCount(0)
  await expect(map.locator('.map-close')).toHaveCount(0)
+ expect(await map.locator('.explorer-map').evaluate(el=>el.getBoundingClientRect().height)).toBe(310)
  expect(await page.evaluate(()=>localStorage.getItem('monitor-next-map-open-v1'))).toBe('closed')
 })
 

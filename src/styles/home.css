@@ -269,8 +269,7 @@
  .summary-tile-notice {order:1;align-self:stretch;margin:4px 0 0;text-align:left}
 }
 
-.map-frame {position:relative;--map-height:216px}
-.map-frame.is-expanded {--map-height:310px}
+.map-frame {position:relative;--map-height:310px}
 .map-frame .explorer-map,.map-frame .map-placeholder {height:var(--map-height)}
 .map-frame .map-placeholder {background:radial-gradient(ellipse at center,var(--muted),var(--card));border:1px solid var(--border)}
 .map-loading-message {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;height:100%;padding:30px 20px 80px;color:var(--muted-foreground);font-size:13px}
@@ -279,7 +278,7 @@
 .map-data-notice {position:absolute;top:14px;left:14px;max-width:50%;background:var(--card);color:var(--muted-foreground);padding:8px 12px;border-radius:8px;font-size:12px}
 .map-frame .explorer-footer {right:190px}
 .map-frame .region-atlas:fullscreen {height:100dvh}
-@media(max-width:720px){.map-frame {--map-height:320px}.map-frame.is-expanded {--map-height:320px}.map-height-toggle {display:none}}
+@media(max-width:720px){.map-frame {--map-height:320px}}
 
 /* Offline cards retain identity, the last report, and durable account facts. */
 .node-card.node-offline .offline-summary {margin:0 var(--card-pad);padding:2px 0 12px;text-align:left}
