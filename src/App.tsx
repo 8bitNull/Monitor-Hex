@@ -1,11 +1,13 @@
 import {MapPanel} from './components/MapPanel';
+import {MobileApp} from './components/MobileApp';
+import {useMobilePreferences} from './lib/mobilePreferences';
 import {MobileSearch} from './components/MobileSearch';
 import {countryName} from './lib/regionNames';
 import {RegionPicker} from './components/RegionPicker';
 import themeManifest from '../theme.json';
 import {useLoadAlerts} from './lib/useLoadAlerts';
 import {Flag} from './components/NodeIcons';
-import {probeRevision,subscribeProbes} from './lib/nodeProbes';
+import {probeRevision,subscribeProbes,resolveProbe} from './lib/nodeProbes';
 import { tr, locale, getLanguage, subscribeLanguage, setLanguage } from './lib/i18n.ts'
 import { readCollection } from '@/lib/collection';
 import { groupRegions, systemKey, UNKNOWN_REGION } from '@/lib/groups';
@@ -93,6 +95,7 @@ export default function App({ siteDefaults = defaults }: {
     const [mobileCards,setMobileCards]=useState(()=>matchMedia('(max-width:720px)').matches);
     useEffect(()=>{const media=matchMedia('(max-width:720px)');const update=()=>setMobileCards(media.matches);media.addEventListener('change',update);return()=>media.removeEventListener('change',update)},[]);
     const [prefs, setPrefs, selectDisplay] = usePreferences(siteDefaults);
+    const [mobilePreferences,setMobilePreferences]=useMobilePreferences();
     const loadAlerts=useLoadAlerts(nodes,prefs.modules.busiest);
     useSyncExternalStore(subscribeProbes,probeRevision);
     const dark = useAppearance(prefs.appearance);
@@ -210,7 +213,7 @@ export default function App({ siteDefaults = defaults }: {
         return null;
     return (<div className="next-theme min-h-svh" data-skin={prefs.skin} data-palette={prefs.palette} data-graph={prefs.graph} data-layout={prefs.layout} data-card-layout={prefs.cardLayout} data-glass={prefs.glass} data-background={background.ready} data-background-type={prefs.backgroundType} style={background.style}>
       {background.ready && <Background url={prefs.backgroundUrl}/>}
-      <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
+      {!compactViewport&&<header className="desktop-app-header sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
         <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-4 py-3 sm:px-6">
           {/* The brand and explicit detail navigation share scroll restoration. */}
           <button className="brand" onClick={() => go(null)}>
@@ -231,19 +234,20 @@ export default function App({ siteDefaults = defaults }: {
             {dark ? <Sun /> : <Moon />}
           </Button>
         </div>
-      </header>
+      </header>}
       {compactViewport && mobileSearchOpen && <MobileSearch count={filtered.length} onClear={()=>setQuery('')} onResults={()=>{setMobileSearchOpen(false);requestAnimationFrame(()=>{const results=document.getElementById('node-results');results?.focus({preventScroll:true});results?.scrollIntoView({block:'start'})})}} onClose={()=>setMobileSearchOpen(false)}>{searchField()}</MobileSearch>}
 
-      <main key={language} className="mx-auto max-w-[1400px] space-y-5 px-4 py-4 sm:px-6">
+      <main className="mx-auto max-w-[1400px] space-y-5 px-4 py-4 sm:px-6">
         {(error || meError) && <p role="alert" className="error-banner">{tr("连接异常，正在重试。")}{error || meError}</p>}
+        {compactViewport&&<MobileApp active={open===null} nodes={nodes} prefs={prefs} onPrefs={setPrefs} mobile={mobilePreferences} onMobile={setMobilePreferences} siteName={me.site_name||'HEX'} authed={me.authed} connection={connection} lastUpdated={lastUpdated} loadAlerts={loadAlerts} onOpen={id=>go(id)} onAlert={event=>go(event.nodeId,'',`?eventStart=${event.start}&eventEnd=${event.end??event.last}`)}/>}
 
         {open !== null && selected && <div className="detail-navigation">
           <Button className="detail-back" variant="ghost" aria-label={tr("返回总览")} title={tr("返回总览")} onClick={()=>go(null)}><ArrowLeft/><span>{tr("返回总览")}</span></Button>
         </div>}
         {open !== null ? (!nodes ? (<Skeleton className="h-96"/>) : selected ? (<Suspense fallback={<Skeleton className="h-96"/>}>
-              <NodeDetail detailInfoMode={prefs.detailInfoMode} onDetailInfoMode={detailInfoMode=>selectDisplay({detailInfoMode})} key={selected.id} node={selected} probe={prefs.probe} nodes={sorted} onSwitch={id=>{const q=new URLSearchParams(location.search);q.delete("eventStart");q.delete("eventEnd");q.delete("routes");go(id,location.hash.slice(1),q.size?"?"+q:"")}}/>
+              <NodeDetail onBack={()=>go(null)} mobilePreferences={mobilePreferences} detailInfoMode={prefs.detailInfoMode} onDetailInfoMode={detailInfoMode=>selectDisplay({detailInfoMode})} key={selected.id} node={selected} probe={compactViewport?resolveProbe(selected.id,prefs.probe):prefs.probe} nodes={sorted} onSwitch={id=>{const q=new URLSearchParams(location.search);q.delete("eventStart");q.delete("eventEnd");q.delete("routes");go(id,location.hash.slice(1),q.size?"?"+q:"")}}/>
             </Suspense>) : (<p className="py-16 text-center text-sm text-muted-foreground">{tr("节点不存在或未公开。")}<button className="underline" onClick={() => go(null)}>{tr("返回列表")}</button>
-            </p>)) : !nodes ? (<>{mapVisible&&<MapPanel viewSwitch={viewSwitch} nodeSnapshot={mapKey} region={region} onRegion={setRegion} pendingNodes/>}<div className="node-grid home-loading" aria-label={tr("正在加载节点")} aria-busy="true">
+            </p>)) : compactViewport ? null : !nodes ? (<>{mapVisible&&<MapPanel viewSwitch={viewSwitch} nodeSnapshot={mapKey} region={region} onRegion={setRegion} pendingNodes/>}<div className="node-grid home-loading" aria-label={tr("正在加载节点")} aria-busy="true">
             {[0, 1, 2].map((i) => (<div key={i} className="loading-card" aria-hidden="true"><Skeleton className="loading-title"/><div className="loading-metrics">{[0,1,2,3].map(n=><Skeleton key={n}/>)}</div><Skeleton className="loading-speed"/><Skeleton className="loading-route"/></div>))}
           </div></>) : (<>
             <section className="overview-heading"><div className="page-heading"><h1>{tr("服务器总览")}</h1><span className={`live-label connection-${connection}`} role="status" title={[{connecting:tr("正在连接"),realtime:tr("实时连接"),polling:tr("轮询更新"),disconnected:tr("连接中断 \u00B7 数据可能已过期")}[connection],lastUpdated ? new Date(lastUpdated).toLocaleString(locale()) : tr("等待首次数据")].join(" · ")}><Radio size={14}/><span>{{ connecting: tr("正在连接"), realtime: tr("实时连接"), polling: tr("轮询更新"), disconnected: tr("连接中断 \u00B7 数据可能已过期") }[connection]}</span></span></div>
@@ -270,7 +274,7 @@ export default function App({ siteDefaults = defaults }: {
             <div id="node-results" tabIndex={-1}><div className={compactViewport ? "mobile-results-toolbar" : "desktop-results-toolbar"}><div className="results-heading">{!compactViewport&&<h2>{tr("节点")}</h2>}{groupPicker}{!compactViewport&&<span>{tr("匹配 {0} 个节点",filtered.length)}</span>}</div>{viewSwitch}</div>{sorted.length === 0 ? (<div className="empty-state"><p>{tr("还没有节点")}</p>{me.authed ? <Button variant="outline" asChild><a href="/admin/">{tr("前往后台添加节点")}</a></Button> : <p>{tr("请联系管理员添加节点。")}</p>}</div>) : filtered.length === 0 ? (<div className="empty-state"><p>{tr("没有符合条件的节点")}</p><Button variant="outline" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); setGroupFilter('all'); }}>{tr("清除筛选")}</Button></div>) : browse.view === "table" ? (<NodeTable page={page} onPageChange={page=>setTablePage({key:pageKey,page})} nodes={filtered} browse={{...browse,columns:shownColumns}} onSort={sortBy} onSortChange={(sort,direction)=>patchBrowse({sort,direction})} mobile={compactViewport} warn={prefs.latencyWarn} high={prefs.latencyHigh} onOpen={id => go(id)}/>) : (<div className="node-grid" data-columns={prefs.desktopColumns}>{filtered.map(n=><NodeCard key={n.id} node={n} mobile={mobileCards} prefs={prefs} info={mobileCards && prefs.mobileInfoMode==='custom' ? prefs.mobileCardInfo || prefs.cardInfo : prefs.cardInfo} probe={prefs.probe} onOpen={()=>go(n.id)} onOpenRoutes={route=>go(n.id,"latency",`?routes=${route.kind==="all"?"all":route.id}`)}/>)}</div>)}</div>
           </>)}
       </main>
-      {open === null && showScrollTop && <button type="button" className="back-to-top" aria-label={tr("返回顶部")} title={tr("返回顶部")} onClick={() => window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}><ArrowUp size={17}/></button>}
+      {!compactViewport && open === null && showScrollTop && <button type="button" className="back-to-top" aria-label={tr("返回顶部")} title={tr("返回顶部")} onClick={() => window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}><ArrowUp size={17}/></button>}
       <footer className="site-footer"><span>{themeManifest.name} · {themeManifest.version}</span><span>Powered by monitor-probe</span></footer>
     </div>);
 }

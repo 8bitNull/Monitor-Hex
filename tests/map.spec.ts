@@ -101,8 +101,8 @@ test('map supports zoom, pan, fit, filtering and fullscreen without stealing pag
   await page.setViewportSize({width,height:900})
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
   await expect(map).toHaveCount(0)
-  await expect(page.getByRole('group',{name:'地区快速筛选'})).toBeVisible()
-  await expect(page.getByLabel('表格视图')).toBeVisible()
+  await expect(page.getByRole('button',{name:'筛选节点',exact:true})).toBeVisible()
+  await expect(page.getByRole('navigation',{name:'主导航'})).toBeVisible()
  }
  await page.screenshot({path:'tests/artifacts/mobile-home.png'})
  await page.setViewportSize({width:1440,height:1000})

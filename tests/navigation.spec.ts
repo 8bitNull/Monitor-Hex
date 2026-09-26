@@ -7,14 +7,15 @@ async function setup(page:any,count=10){
 }
 test('title picker searches, preserves range, resets route and returns focus without overflow',async({page})=>{
  await setup(page);await page.goto('/node/1?rh=24&lh=1&routes=2#latency')
- await expect(page.locator('.route-chips button[aria-label="B"]')).toHaveAttribute('aria-pressed','true')
+ await expect(page.getByLabel('查看线路',{exact:true})).toHaveAttribute('data-value','2')
  await page.getByRole('button',{name:'切换节点',exact:true}).click()
  await page.getByRole('textbox',{name:'搜索节点'}).fill('missing');await expect(page.getByRole('dialog')).toContainText('没有符合条件的节点')
  await page.getByRole('textbox',{name:'搜索节点'}).fill('Node 2')
  await page.getByRole('dialog').getByRole('button',{name:/Node 2/}).click()
  await expect(page).toHaveURL(/node\/2\?.*lh=1.*#latency/)
  await expect(page).not.toHaveURL(/routes=/)
- await expect(page.locator('.route-chips button[aria-label="A"]')).toHaveAttribute('aria-pressed','true')
+ await expect(page.getByLabel('查看线路',{exact:true})).toHaveAttribute('data-value','auto')
+ await expect(page.getByLabel('查看线路',{exact:true})).toContainText('A')
  await expect(page.getByRole('button',{name:'1 小时',exact:true})).toHaveAttribute('aria-pressed','true')
  for(const width of [1440,390,320]){
   await page.setViewportSize({width,height:900});await page.getByRole('button',{name:'切换节点',exact:true}).click()
@@ -28,7 +29,7 @@ test('route shortcut opens the exact probe without changing home selection',asyn
  await setup(page,2);await page.route('**/api/themes/hex/config',r=>r.fulfill({json:{homeRoutes:3,module_map:false}}))
  await page.goto('/');const card=page.locator('.node-card').first();await card.getByRole('button',{name:'查看线路：B',exact:true}).click()
  await expect(page).toHaveURL(/node\/1\?.*routes=2.*#latency/)
- await expect(page.locator('.route-chips button[aria-label="B"]')).toHaveAttribute('aria-pressed','true')
+ await expect(page.getByLabel('查看线路',{exact:true})).toHaveAttribute('data-value','2')
  await page.goBack();await expect(card.getByLabel('节点探测线路')).toHaveAttribute('data-value','auto')
  await card.getByRole('button',{name:/查看 Node 1/}).click();await expect(page.locator('.detail-resource-charts')).toHaveAttribute('data-metric','cpu')
 })
@@ -53,5 +54,5 @@ test('failed refresh keeps successful timestamp, copy is complete and map reset 
 
 test('mobile and desktop detail both expose overview navigation',async({page})=>{
  await setup(page,2);await page.goto('/node/1');await expect(page.locator('.detail-navigation')).toBeVisible()
- await page.setViewportSize({width:390,height:844});await expect(page.locator('.detail-navigation')).toBeVisible();await page.getByRole('button',{name:'返回总览',exact:true}).click();await expect(page.locator('.node-grid')).toBeVisible()
+ await page.setViewportSize({width:390,height:844});await expect(page.locator('.ma-detail-header')).toBeVisible();await page.getByRole('button',{name:'返回总览',exact:true}).click();await expect(page.locator('#mobile-node-results')).toBeVisible()
 })

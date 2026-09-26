@@ -86,8 +86,16 @@ function despike(points: PingPoint[], window = 7, sigmas = 3): PingPoint[] {
     });
 }
 import {readRouteSelection,selectedRouteIds,type RouteSelection} from '@/lib/routeSelection'
+import {MobileDetailOverview} from './MobileDetailOverview'
+import {mobileDefaults,type MobilePreferences} from '@/lib/mobilePreferences'
+import {NodePicker} from './NodePicker'
+import {ArrowLeft} from 'lucide-react'
+import {osName} from '@/lib/format'
+import {Status} from './NodeIdentity'
 
-export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMode, onDetailInfoMode }: {
+export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMode, onDetailInfoMode, mobilePreferences=mobileDefaults, onBack }: {
+    onBack?:()=>void;
+    mobilePreferences?:MobilePreferences;
     detailInfoMode:Preferences['detailInfoMode'];
     onDetailInfoMode:(mode:Preferences['detailInfoMode'])=>void;
     node: Node;
@@ -96,6 +104,10 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
     onSwitch:(id:number)=>void;
 }) {
     const [compact,setCompact]=useState(()=>matchMedia('(max-width:899px)').matches);
+    const [mobile,setMobile]=useState(()=>matchMedia('(max-width:720px)').matches);
+    useEffect(()=>{const media=matchMedia('(max-width:720px)');const update=()=>setMobile(media.matches);media.addEventListener('change',update);return()=>media.removeEventListener('change',update)},[]);
+    type MobileSection='overview'|'resources'|'latency'|'info';
+    const [mobileSection,setMobileSection]=useState<MobileSection>(()=>{const p=new URLSearchParams(location.search),section=p.get('section');return location.hash==='#latency'?'latency':p.has('eventStart')?'resources':['overview','resources','info'].includes(section??'')?section as MobileSection:'overview'});
     useEffect(()=>{const media=matchMedia('(max-width:899px)');const update=()=>setCompact(media.matches);media.addEventListener('change',update);return()=>media.removeEventListener('change',update)},[]);
     const [tab, setTab] = useState<HistoryTab>(()=>location.hash === "#latency" ? "latency" : "resources");
     // Each tab keeps its own range: a 7-day trend and a 1-hour trace answer
@@ -106,8 +118,9 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
     const eventRange=[1,6,24,168].find(h=>h>=age)??168;
     const initialMetric=params.get('metric') as ResourceMetricKey;
     const [resourceMetric,setResourceMetric]=useState<ResourceMetricKey>(['cpu','mem_used','disk_used','network'].includes(initialMetric)?initialMetric:'cpu');
-    const [ranges, setRanges] = useState({ resources:eventStart?eventRange:([1,6,24,168].includes(Number(params.get("rh")))?Number(params.get("rh")):6), latency:[1,6,24].includes(Number(params.get("lh")))?Number(params.get("lh")):6 });
+    const [ranges, setRanges] = useState({ resources:eventStart?eventRange:([1,6,24,168].includes(Number(params.get("rh")))?Number(params.get("rh")):(mobile?mobilePreferences.hours:6)), latency:[1,6,24].includes(Number(params.get("lh")))?Number(params.get("lh")):(mobile?mobilePreferences.hours:6) });
     const hours = ranges[tab];
+    const historyVisible=!mobile||mobileSection==='resources'||mobileSection==='latency';
     const {frame:tooltipFrame,dismiss:tooltipDismiss,onChartClick:tooltipClick,onChartPointerMove:tooltipMove,onChartKeyDown:tooltipKey}=useChartTooltip(`${node.id}:${hours}:${tab}`,compact);
     const legend=useRef<HTMLDivElement>(null);
     const [retry, setRetry] = useState(0);
@@ -137,7 +150,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
     const retained=useRef<{key:string;value:NonNullable<typeof data>}|null>(null);
     const refresh=()=>{if(!busy.current){busy.current=true;setLoading(true);setRetry(n=>n+1);}};
     const [updated,setUpdated]=useState<number|null>(null);
-    useEffect(()=>{const q=new URLSearchParams(location.search);q.set('rh',String(ranges.resources));q.set('lh',String(ranges.latency));q.set('metric',resourceMetric);if(selectedProbes===null)q.delete('routes');else q.set('routes',selectedProbes==='all'?'all':selectedProbes.join(','));history.replaceState({},'',location.pathname+'?'+q+(tab==='latency'?'#latency':''))},[ranges,resourceMetric,selectedProbes,tab]);
+    useEffect(()=>{const q=new URLSearchParams(location.search);q.set('rh',String(ranges.resources));q.set('lh',String(ranges.latency));q.set('metric',resourceMetric);if(mobile)q.set('section',mobileSection);if(selectedProbes===null)q.delete('routes');else q.set('routes',selectedProbes==='all'?'all':selectedProbes.join(','));history.replaceState({},'',location.pathname+'?'+q+((mobile?mobileSection==='latency':tab==='latency')?'#latency':''))},[ranges,resourceMetric,selectedProbes,tab,mobile,mobileSection]);
     // Where the brush has been dragged, so the axis reticks for the visible span
     // rather than retaining the whole window's ticks.
     const [zoomWindow, setZoomWindow] = useState<[
@@ -145,6 +158,7 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
         number
     ] | null>(null);
     useEffect(() => {
+        if(!historyVisible)return;
         let active = true;
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 15000);
@@ -189,18 +203,18 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
             }
         });
         return () => { active = false; clearTimeout(timeout); controller.abort(); };
-    }, [node.id, hours, tab, retry]);
+    }, [node.id, hours, tab, retry,historyVisible]);
     // Keep one request in flight. Background tabs do not poll; returning starts
     // a fresh 30-second cycle and immediately refreshes the visible history.
     useEffect(()=>{
-        if(tab!=="latency")return;
+        if(tab!=="latency"||!historyVisible)return;
         let timer:ReturnType<typeof setInterval>|undefined;
         const sync=()=>{if(!document.hidden&&!busy.current){busy.current=true;setLoading(true);setRetry(n=>n+1)}};
         const schedule=()=>{clearInterval(timer);if(!document.hidden)timer=setInterval(sync,30000)};
         const visibility=()=>{schedule();if(!document.hidden)sync()};
         schedule();document.addEventListener('visibilitychange',visibility);
         return()=>{clearInterval(timer);document.removeEventListener('visibilitychange',visibility)};
-    },[node.id,hours,tab]);
+    },[node.id,hours,tab,historyVisible]);
     // One series per probe that reported, labelled from the names the samples
     // arrived with. Memoised, as are the two below: the node prop changes every few
     // seconds as live metrics arrive, and rebuilding the chart's data array on those
@@ -293,25 +307,33 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
     const globalRoute=pingSeries.find(s=>s.id===defaultProbe);
     const latestRoutePoint=shownProbes.length===1?activeRoute?.points.at(-1):undefined;
     const routeLabel=routeValue==='auto'?tr("跟随全局：{0}",globalRoute?.name??tr("无该线路记录")):routeValue==='all'?tr("显示全部线路"):routeValue==='custom'?`${tr("自定义")} · ${visibleIds.length}`:activeRoute?.name??tr("无该线路记录");
-    const routeControl=<Select aria-label={tr("查看线路")} title={routeLabel} displayValue={<><span>{routeLabel}</span>{latestRoutePoint&&<b> · {latestRoutePoint.latency===null?tr("超时"):`${Math.round(latestRoutePoint.latency)} ms`}</b>}</>} value={routeValue} onChange={e=>{setSelectedProbes(e.target.value==='auto'?null:e.target.value==='all'?'all':[Number(e.target.value)]);setExpandedRoutes(false);setHighlightProbe(null);tooltipDismiss()}}>
+    const routeControl=<Select sheet={mobile} aria-label={tr("查看线路")} title={routeLabel} displayValue={<><span>{routeLabel}</span>{latestRoutePoint&&<b> · {latestRoutePoint.latency===null?tr("超时"):`${Math.round(latestRoutePoint.latency)} ms`}</b>}</>} value={routeValue} onChange={e=>{setSelectedProbes(e.target.value==='auto'?null:e.target.value==='all'?'all':[Number(e.target.value)]);setExpandedRoutes(false);setHighlightProbe(null);tooltipDismiss()}}>
       <option value="auto">{tr("跟随全局：{0}",globalRoute?.name??tr("无该线路记录"))}</option>
       {pingSeries.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
       {pingSeries.length>1&&<option value="all">{tr("显示全部线路")}</option>}
       {routeValue==='custom'&&<option value="custom" disabled>{tr("自定义")} · {visibleIds.length}</option>}
       {Array.isArray(selectedProbes)&&selectedProbes.length===1&&!pingSeries.some(s=>s.id===selectedProbes[0])&&<option value={selectedProbes[0]} disabled>{tr("无该线路记录")} · {selectedProbes[0]}</option>}
     </Select>;
-    return (<div className="node-detail">
-      <DetailIdentity node={node} nodes={nodes} onSwitch={onSwitch}/>
+    const changeSection=(section:MobileSection)=>{setMobileSection(section);if(section==='resources'||section==='latency')setTab(section);tooltipDismiss();};
+    const mobileLatest=activeRoute?.points.at(-1);
+    const mobileValues=(activeRoute?.points??[]).filter(p=>p.latency!==null&&Number.isFinite(p.latency)).map(p=>p.latency!).sort((a,b)=>a-b);
+    const mobileP95=mobileValues.length?mobileValues[Math.max(0,Math.ceil(mobileValues.length*.95)-1)]:null;
+    const mobileLoss=activeRoute&&data?.loss&&Object.hasOwn(data.loss,String(activeRoute.id))?data.loss[activeRoute.id]:null;
+    return (<div className="node-detail" data-mobile-section={mobileSection}>
+      {mobile?<div className="ma-detail-header"><button className="ma-icon" onClick={onBack??(()=>history.back())} aria-label={tr('返回总览')}><ArrowLeft size={20}/></button><div><NodePicker node={node} nodes={nodes} onSwitch={onSwitch}/><small>{node.country} · {osName(node.os)}</small></div></div>:<DetailIdentity node={node} nodes={nodes} onSwitch={onSwitch}/>}
+      {mobile&&<nav className="ma-detail-tabs" aria-label={tr('详情分区')}>{([{key:'overview',label:tr('总览')},{key:'resources',label:tr('资源')},{key:'latency',label:tr('网络')},{key:'info',label:tr('资料')}] as const).map(({key,label})=><button key={key} aria-pressed={mobileSection===key} onClick={()=>changeSection(key)}>{label}</button>)}</nav>}
       <div className="detail-workspace">
-      <DetailLiveOverview node={node}/>
-      <section className="detail-history" aria-label={tr("历史图表")}>
+      {mobile&&mobileSection==='overview'&&<div className="ma-detail-status"><Status node={node}/><small>{node.last_seen>0?tr('上次上报：{0}',new Date(node.last_seen*1000).toLocaleTimeString(locale())):tr('等待首次上报')}</small></div>}
+      {!mobile?<DetailLiveOverview node={node}/>:mobileSection==='overview'?<MobileDetailOverview node={node} totals={mobilePreferences.totals} onNetwork={()=>changeSection('latency')}/>:null}
+      {(!mobile||mobileSection==='resources'||mobileSection==='latency')&&<section className="detail-history" aria-label={tr("历史图表")}>
+       {mobile&&tab==='latency'&&<div className="ma-network-heading"><h2>{tr('网络质量')}</h2><div className="latency-route-controls">{routeControl}{pingSeries.length>1&&<button type="button" className="expand-routes" aria-expanded={expandedRoutes} onClick={()=>setExpandedRoutes(v=>!v)}>{expandedRoutes?tr('收起线路'):tr('比较线路')}</button>}</div><div className="ma-network-stats"><div><small>{tr('最新采样')}</small><strong>{mobileLatest?(mobileLatest.latency===null?tr('超时'):Math.round(mobileLatest.latency)):'—'}<small> ms</small></strong></div><div><small>P95</small><strong>{mobileP95===null?'—':mobileP95.toFixed(1)}<small> ms</small></strong></div><div><small>{tr('丢包率')}</small><strong>{mobileLoss!==null&&Number.isFinite(mobileLoss)?mobileLoss.toFixed(1):'—'}<small> %</small></strong></div></div>{shownProbes.length>1&&<p className="ma-muted">{activeRoute?.name}</p>}</div>}
        <DetailToolbar busy={loading} updated={updated} failed={!!failed} tab={tab} hours={hours} onTab={setTab} onHours={value=>setRanges(all=>({...all,[tab]:value}))} onRefresh={refresh} resourceMetric={resourceMetric} onResourceMetric={setResourceMetric} smooth={smooth} onSmooth={setSmooth}/>
       {eventStart>0&&<p className="event-context">{tr('告警时段：{0} — {1}',new Date(eventStart).toLocaleString(locale()),new Date(eventEnd).toLocaleString(locale()))}{age>168||hours<age?<span>{tr('当前历史范围无法覆盖完整告警时段。')}</span>:data&&!(data.metrics??[]).some(p=>p.ts*1000>=eventStart&&p.ts*1000<=eventEnd)?<span>{tr('此告警时段没有返回历史样本。')}</span>:null}</p>}
       {failed && <div className="history-notice" role="alert"><span>{data && (data.metrics?.length || data.ping?.length)?tr("更新失败，保留上次历史记录。"):tr("读取历史数据失败：")}{failed}{updated!==null && data && (data.metrics?.length || data.ping?.length)?<small className="history-retained-time">{tr("上次成功更新：{0}",new Date(updated).toLocaleString(locale()))}</small>:null}</span><button disabled={loading} onClick={refresh}>{tr("重试")}</button></div>}
       <div className="detail-history-body" data-history={tab}>
       {!data ? (<HistoryState loading={!failed} failed={!!failed} message={failed?tr("暂无可用历史数据"):tr("正在读取历史数据")}/>) : failed && !data.metrics?.length && !data.ping?.length ? (<HistoryState failed message={tr("暂无可用历史数据")}/>) : tab === "latency" ? (pingSeries.length === 0 ? (<HistoryState message={tr("这段时间没有延迟数据")} action={tr("调整时间范围")} onAction={chooseRange}/>) : (
          <div className="latency-view">
-            <div className="latency-route-controls">{routeControl}{pingSeries.length>1&&<button type="button" className="expand-routes" aria-label={expandedRoutes?tr("收起线路"):tr("比较线路")} aria-expanded={expandedRoutes} onClick={()=>setExpandedRoutes(v=>!v)}>{expandedRoutes?tr("收起线路"):tr("比较线路")}</button>}</div>
+            {!mobile&&<div className="latency-route-controls">{routeControl}{pingSeries.length>1&&<button type="button" className="expand-routes" aria-label={expandedRoutes?tr("收起线路"):tr("比较线路")} aria-expanded={expandedRoutes} onClick={()=>setExpandedRoutes(v=>!v)}>{expandedRoutes?tr("收起线路"):tr("比较线路")}</button>}</div>}
             {(expandedRoutes||shownProbes.length>1)&&<div ref={legend} className="route-chips" role="group" aria-label={tr("线路图例")} data-expanded={expandedRoutes}>
               <div className="route-chip-list">
                 {(expandedRoutes?pingSeries:collapsedRoutes).map(s=>{const latest=s.points.at(-1),shown=visibleIds.includes(s.id);return <button key={s.id} aria-label={s.name} aria-pressed={shown} title={`${s.name} · ${latest?tr("采样：{0}",new Date(latest.ts*1000).toLocaleString(locale())):tr("暂无探测记录")}`} onMouseEnter={()=>setHighlightProbe(s.id)} onMouseLeave={()=>setHighlightProbe(null)} onFocus={e=>{if(e.currentTarget.matches(':focus-visible'))setHighlightProbe(s.id)}} onBlur={()=>setHighlightProbe(null)} onClick={()=>{setExpandedRoutes(true);setSelectedProbes(shown?visibleIds.filter(id=>id!==s.id):[...visibleIds,s.id])}}><i className="route-chip-check" aria-hidden="true">{shown?'✓':''}</i><svg width="20" height="8" aria-hidden="true"><line x1="0" y1="4" x2="20" y2="4" stroke={style(s.id).stroke} strokeWidth="2"/></svg><span>{s.name}</span><b>{!latest?'—':latest.latency===null?tr("超时"):`${Math.round(latest.latency)} ms`}</b></button>})}
@@ -358,9 +380,10 @@ export function NodeDetail({ node, probe = "auto", nodes, onSwitch, detailInfoMo
             {compact&&pingRows.length>0&&<div className="latency-range-caption"><span>{clockFor(hours)(rangeStart)} – {clockFor(hours)(rangeEnd)}</span>{zoomed&&<button onClick={()=>{setZoom(null);tooltipDismiss()}}>{tr("恢复范围")}</button>}</div>}
             {shownProbes.length>0&&pingRows.length>0&&<LossTrack selected={activeRoute?.id} key={`${node.id}:${hours}:${activeRoute?.id}`} series={shownProbes} preferred={defaultProbe} start={pingRows[Math.min(zoom?.[0]??0,pingRows.length-1)].ts} end={pingRows[Math.min(zoom?.[1]??pingRows.length-1,pingRows.length-1)].ts}/>}
           </div>)) : (data.metrics ?? []).length === 0 ? (<HistoryState message={tr("这段时间没有历史数据")} action={tr("调整时间范围")} onAction={chooseRange}/>) : (<ResourceHistory compact={compact} rows={metricRows} node={node} hours={hours} metric={resourceMetric}/>)}
-      </div></section>
+      </div></section>}
 
-      <DetailFacts node={node} compact={compact} mode={detailInfoMode} onMode={onDetailInfoMode}/>
+      {(!mobile||mobileSection==='info')&&<DetailFacts node={node} compact={mobile?false:compact} mode={detailInfoMode} onMode={onDetailInfoMode}/>}
+      {mobile&&mobileSection==='info'&&<section className="ma-panel ma-info-extra"><div className="ma-row"><span>{tr('名称')}</span><small>{node.name}</small></div><div className="ma-row"><span>{tr('节点分组')}</span><small>{node.group||tr('未分组')}</small></div>{node.remark&&<><h2>{tr('备注')}</h2><p className="ma-muted ma-remark">{node.remark}</p></>}</section>}
       </div>
     </div>);
 }
