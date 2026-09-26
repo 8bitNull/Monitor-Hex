@@ -16,7 +16,6 @@ try {
  }
  await page.evaluate(()=>scrollTo(0,0))
  await page.screenshot({path:'screenshots/readme/home-desktop.png',fullPage:true})
- await page.screenshot({path:'preview.png'})
 
  await page.getByLabel('表格视图',{exact:true}).click()
  await page.locator('.node-table tbody tr').first().waitFor()
