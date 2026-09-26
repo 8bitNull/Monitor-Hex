@@ -7,17 +7,22 @@ async function setup(page:any,count=3,overrides:Record<string,unknown>={}){
  await page.route('**/api/nodes/*/metrics?*',(r:any)=>{const d=metrics();return r.fulfill({json:{...d,probes:Object.fromEntries(Array.from({length:count},(_,i)=>[i+1,`Route ${i+1}`])),ping:d.ping.flatMap(p=>Array.from({length:count},(_,i)=>({...p,task_id:i+1,latency:p.latency+i*10})))}})})
  await page.goto('/node/1');await expect(page.locator('.detail-resource-charts')).toBeVisible()
 }
-test('latency toolbar places the route selector above ranges and smoothing on mobile',async({page})=>{
+test('latency route controls provide one selector and comparison above the chart on mobile',async({page})=>{
  await page.setViewportSize({width:390,height:844})
  await setup(page);await page.getByRole('button',{name:'网络延迟',exact:true}).click()
- const toolbar=page.locator('.detail-chart-toolbar');await expect(toolbar.locator('.detail-smooth')).toBeVisible()
- const route=toolbar.getByLabel('查看线路',{exact:true});await expect(route).toBeVisible()
- const smooth=(await toolbar.locator('.detail-smooth').boundingBox())!,selector=(await route.boundingBox())!,ranges=(await toolbar.locator('.detail-ranges').boundingBox())!
- expect(ranges.y).toBeGreaterThanOrEqual(selector.y+selector.height)
- expect(smooth.x).toBeGreaterThanOrEqual(ranges.x+ranges.width)
+ const toolbar=page.locator('.detail-chart-toolbar'),controls=page.locator('.latency-route-controls');await expect(toolbar.locator('.detail-smooth')).toBeVisible()
+ const route=controls.getByLabel('查看线路',{exact:true}),compare=controls.locator('.expand-routes');await expect(route).toBeVisible()
+ await expect(page.getByLabel('查看线路',{exact:true})).toHaveCount(1)
+ await expect(toolbar.getByLabel('查看线路',{exact:true})).toHaveCount(0)
+ await expect(compare).toHaveAttribute('aria-label','比较线路')
+ const smooth=(await toolbar.locator('.detail-smooth').boundingBox())!,selector=(await route.boundingBox())!,ranges=(await toolbar.locator('.detail-ranges').boundingBox())!,bar=(await toolbar.boundingBox())!,plot=(await page.locator('.detail-chart-frame').boundingBox())!
+ expect(selector.y).toBeGreaterThanOrEqual(bar.y+bar.height)
+ expect(plot.y).toBeGreaterThanOrEqual(selector.y+selector.height)
+ expect(Math.abs(smooth.y+smooth.height/2-ranges.y-ranges.height/2)).toBeLessThanOrEqual(2)
  await expect(toolbar.locator('.detail-probe-legend')).toHaveCount(0)
- await expect(page.locator('.route-chips button[aria-pressed]')).toHaveCount(1)
- await expandRoutes(page);await expect(page.locator('.route-chips button[aria-pressed]')).toHaveCount(3)
+ await expect(page.locator('.route-chips')).toHaveCount(0)
+ await expandRoutes(page);await expect(compare).toHaveAttribute('aria-label','收起线路');await expect(page.locator('.route-chips button[aria-pressed]')).toHaveCount(3)
+ await compare.click();await expect(compare).toHaveAttribute('aria-label','比较线路');await expect(page.locator('.route-chips')).toHaveCount(0)
 })
 for(const width of [320,390,430,720,899,900,1024,1440,1920])test(`detail reading and toolbar geometry at ${width}`,async({page})=>{
  test.setTimeout(90000);await page.setViewportSize({width,height:844})
@@ -37,9 +42,9 @@ for(const width of [320,390,430,720,899,900,1024,1440,1920])test(`detail reading
    if(width<900){
     expect(ranges.y).toBeGreaterThanOrEqual(tabs.y+tabs.height)
     if(tab==='latency'){
-     const route=(await toolbar.locator('.detail-latency-route').boundingBox())!,smooth=(await toolbar.locator('.detail-smooth').boundingBox())!
+     const smooth=(await toolbar.locator('.detail-smooth').boundingBox())!
      expect(Math.abs(refresh.y+refresh.height/2-(tabs.y+tabs.height/2))).toBeLessThanOrEqual(2)
-     expect(ranges.y).toBeGreaterThanOrEqual(route.y+route.height)
+     expect(Math.abs(smooth.y+smooth.height/2-(ranges.y+ranges.height/2))).toBeLessThanOrEqual(2)
      expect(smooth.x).toBeGreaterThanOrEqual(ranges.x+ranges.width)
     }else expect(Math.abs(refresh.y+refresh.height/2-(ranges.y+ranges.height/2))).toBeLessThanOrEqual(2)
    }else expect(Math.max(...centers)-Math.min(...centers)).toBeLessThanOrEqual(2)

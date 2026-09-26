@@ -13,16 +13,16 @@ test('selected lines stay identifiable and node switching starts with its own ro
  const routes=page.locator('.latency-view>.route-chips')
  await expect(routes.locator('button[aria-pressed=true]')).toHaveCount(2)
  await expect(page.locator('.latency-view .recharts-line-curve')).toHaveCount(2)
- const list=(await routes.locator('.route-chip-list').boundingBox())!,compare=(await routes.locator('.expand-routes').boundingBox())!
- expect(Math.abs(list.y-compare.y)).toBeLessThanOrEqual(1)
+ const list=(await routes.locator('.route-chip-list').boundingBox())!,compare=(await page.locator('.latency-route-controls .expand-routes').boundingBox())!
+ expect(list.y).toBeGreaterThanOrEqual(compare.y+compare.height)
  const overflow=await page.evaluate(()=>({viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth,elements:[...document.querySelectorAll('*')].filter(el=>el.getBoundingClientRect().right>innerWidth+1).slice(0,10).map(el=>({tag:el.tagName,className:typeof el.className==='string'?el.className:'',right:el.getBoundingClientRect().right}))}))
  expect(overflow.scrollWidth,JSON.stringify(overflow)).toBeLessThanOrEqual(overflow.viewport)
  await page.getByRole('button',{name:'切换节点'}).click()
  await page.getByRole('dialog',{name:'切换节点'}).getByRole('button',{name:/Hong Kong/}).click()
  await expect(page).not.toHaveURL(/routes=/)
  await expect(page).toHaveURL(/lh=24/)
- await expect(routes.locator('button[aria-pressed=true]')).toHaveCount(1)
- await expect(routes.locator('button[aria-label="线路 5"]')).toBeVisible()
+ await expect(routes).toHaveCount(0)
+ await expect(page.locator('.latency-route-controls').getByLabel('查看线路',{exact:true})).toContainText('线路 5')
  await expect(page.locator('.latency-view .recharts-line-curve')).toHaveCount(1)
 })
 

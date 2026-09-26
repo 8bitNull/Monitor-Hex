@@ -21,8 +21,13 @@
 .node-detail .latency-chart-caption .latency-chart-key {display:flex;gap:6px}
 .node-detail .latency-chart-caption .latency-line-key {margin-left:8px}
 
-.detail-chart-toolbar[data-history-tab=latency] .detail-latency-route {display:flex;align-items:center;flex:0 1 210px;min-width:0;max-width:220px;margin-left:4px}
-.detail-chart-toolbar[data-history-tab=latency] .detail-latency-route [data-slot=select] {width:100%;min-width:0;min-height:40px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;border-color:transparent;background:var(--muted);box-shadow:none}
+.latency-route-controls {display:flex;align-items:center;gap:8px;min-width:0}
+.node-detail .latency-route-controls [data-slot=select] {width:auto;max-width:420px;min-height:44px;border-color:transparent;background:var(--muted)}
+.latency-route-controls .select-value {display:flex;align-items:center;min-width:0}
+.latency-route-controls .select-value>span {overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.latency-route-controls .select-value>b {flex:none;font-weight:500;white-space:pre}
+.latency-route-controls .expand-routes {flex:none;min-height:44px;padding:0 10px;border-radius:6px;color:var(--tone);font-size:12px}
+.latency-route-controls .expand-routes:hover {background:var(--muted)}
 .detail-update-short {display:none}
 @media(min-width:900px){
  .latency-view>.detail-chart-frame {position:relative;height:378px;min-height:378px}
@@ -46,14 +51,12 @@
  .detail-chart-toolbar[data-history-tab=latency] .detail-submenu-divider {order:1;margin-inline:4px}
  .detail-chart-toolbar[data-history-tab=latency] .detail-smooth {order:2;gap:6px;margin-left:4px}
  .detail-chart-toolbar[data-history-tab=latency] .detail-smooth>svg {display:none}
- .detail-chart-toolbar[data-history-tab=latency] .detail-latency-route {order:3}
- .detail-chart-toolbar[data-history-tab=latency] .detail-update {order:4}
- .detail-chart-toolbar[data-history-tab=latency] .detail-ranges {order:5;margin-left:auto}
+ .detail-chart-toolbar[data-history-tab=latency] .detail-update {order:5;margin-left:8px;flex:none}
+ .detail-chart-toolbar[data-history-tab=latency] .detail-ranges {order:4;margin-left:auto}
  .detail-chart-toolbar[data-history-tab=latency] .detail-refresh {order:6}
 }
 @media(min-width:900px) and (max-width:1199px){
  .latency-view .route-chips button>span {max-width:7em}
- .detail-chart-toolbar[data-history-tab=latency] .detail-latency-route {flex-basis:180px;max-width:180px}
 }
 @media(max-width:899px){
  .node-detail .detail-history .detail-chart-toolbar[data-history-tab=resources] {display:grid;grid-template-columns:minmax(0,1fr) auto 44px;grid-template-rows:44px 44px 20px;gap:4px 6px;min-height:116px;padding:7px 8px;align-items:center}
@@ -78,25 +81,34 @@
  .latency-line-key {margin-left:4px;width:10px}
  .latency-band-key {width:10px}
  .latency-view .latency-brush .recharts-brush-traveller rect {fill:var(--tone);fill-opacity:.12}
- .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] {display:grid;width:100%;grid-template-columns:minmax(0,1fr) auto 44px;grid-template-rows:44px 44px 44px;gap:8px 6px;min-height:0;padding:8px;align-items:center}
+ .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] {display:grid;width:100%;grid-template-columns:minmax(0,1fr) auto 44px;grid-template-rows:44px 44px;gap:8px 6px;min-height:0;padding:8px;align-items:center}
  .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-tabs {grid-column:1;grid-row:1;justify-self:start;height:44px;gap:3px}
  .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-tabs button {width:auto;min-width:44px;min-height:44px;padding:0 8px;gap:4px}
  .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-tabs button>span {display:inline}
  .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-submenu-divider {display:none}
- .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-smooth {grid-column:1/-1;grid-row:3;justify-self:end;width:auto;max-width:calc(100% - 148px);min-height:44px;gap:5px;padding:0;white-space:normal;line-height:14px}
+ .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-smooth {grid-column:1/-1;grid-row:2;justify-self:end;width:auto;max-width:calc(100% - 148px);min-height:44px;gap:5px;padding:0;white-space:normal;line-height:14px}
  .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-smooth>svg {display:none}
  .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-smooth span {display:inline}
  .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-smooth input {position:static;opacity:1;pointer-events:auto;width:auto;height:auto;flex-shrink:0}
- .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-latency-route {grid-column:1/-1;grid-row:2;width:100%;max-width:none;margin:0}
- .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-latency-route [data-slot=select] {height:44px;font-size:13px}
- .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-ranges {grid-column:1/-1;grid-row:3;justify-self:start;margin:0;display:flex;gap:2px}
+ .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-ranges {grid-column:1/-1;grid-row:2;justify-self:start;margin:0;display:flex;gap:2px}
  .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-ranges button {width:44px;min-width:44px;min-height:40px;padding:0}
  .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-refresh {grid-column:3;grid-row:1;justify-self:end;width:44px;min-width:44px;height:44px}
  .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-update {display:block;grid-column:2;grid-row:1;justify-self:end;min-width:0;max-width:100%;margin:0;padding:0;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
  .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-update:has(.detail-update-short) .detail-update-full {display:none}
  .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-update .detail-update-short {display:inline}
- .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency]:has(.detail-update[data-failed=true]) {grid-template-rows:44px 44px 44px auto;min-height:168px}
- .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-update[data-failed=true] {display:block;grid-column:1/-1;grid-row:4;justify-self:start;max-width:100%;padding:2px 0;font-size:11px;line-height:16px;white-space:normal}
+ .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency]:has(.detail-update[data-failed=true]) {grid-template-rows:44px 44px auto}
+ .node-detail .detail-history .detail-chart-toolbar[data-history-tab=latency] .detail-update[data-failed=true] {display:block;grid-column:1/-1;grid-row:3;justify-self:start;max-width:100%;padding:2px 0;font-size:11px;line-height:16px;white-space:normal}
+ .latency-route-controls {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px}
+ .node-detail .latency-route-controls [data-slot=select] {width:100%;max-width:none;padding-inline:8px;font-size:11px}
+ .latency-route-controls .expand-routes {padding-inline:6px;font-size:11px}
+ .latency-route-controls:not(:has(.expand-routes)) {grid-template-columns:minmax(0,1fr)}
+ .node-detail .latency-view .loss-track {position:relative}
+ .node-detail .latency-view .loss-track-plot {margin:4px 0 0;height:28px}
+ .node-detail .latency-view .loss-track-plot svg {height:28px}
+ .node-detail .latency-view .loss-track-scrubber {position:absolute;left:0;top:26px;width:100%;height:32px;margin:0;opacity:0}
+ .node-detail .latency-view .loss-track-scrubber:focus-visible {opacity:1}
+ .node-detail .latency-view .loss-track-note {margin:4px 0;font-size:11px}
+ .node-detail .latency-view .loss-track-reading {gap:6px 10px;font-size:11px;min-height:18px}
  .node-detail .detail-history-body:has(.latency-view) {padding-top:8px}
  .node-detail .latency-view {gap:6px}
  .node-detail .latency-view>.route-chips {row-gap:6px}

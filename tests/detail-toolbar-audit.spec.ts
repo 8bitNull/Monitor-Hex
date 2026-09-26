@@ -17,15 +17,15 @@ for(const width of [320,390])test(`mobile history status and controls fit at ${w
    expect(right.x).toBeGreaterThanOrEqual(top.x+top.width)
    expect(time.y).toBeGreaterThanOrEqual(right.y+right.height)
   }else{
-   const route=(await toolbar.getByLabel('查看线路',{exact:true}).boundingBox())!
    const ranges=(await toolbar.locator('.detail-ranges').boundingBox())!,refresh=(await toolbar.getByRole('button',{name:'刷新历史'}).boundingBox())!,bar=(await toolbar.boundingBox())!
+   const route=(await page.locator('.latency-route-controls').getByLabel('查看线路',{exact:true}).boundingBox())!
    expect(Math.abs(time.y+time.height/2-refresh.y-refresh.height/2)).toBeLessThanOrEqual(2)
    expect(time.x).toBeGreaterThanOrEqual(top.x+top.width)
    expect(time.x+time.width).toBeLessThanOrEqual(refresh.x)
-   expect(route.y).toBeGreaterThanOrEqual(top.y+top.height)
+   expect(route.y).toBeGreaterThanOrEqual(bar.y+bar.height)
    expect(route.x).toBeGreaterThanOrEqual(bar.x)
    expect(route.x+route.width).toBeLessThanOrEqual(bar.x+bar.width+1)
-   expect(ranges.y).toBeGreaterThanOrEqual(route.y+route.height)
+   expect(ranges.y).toBeGreaterThanOrEqual(top.y+top.height)
    expect(Math.abs(ranges.y+ranges.height/2-right.y-right.height/2)).toBeLessThanOrEqual(2)
    expect(ranges.x+ranges.width).toBeLessThanOrEqual(right.x)
   }
@@ -48,8 +48,9 @@ test('English last-success status fits a 320px detail toolbar',async({page})=>{
  const toolbar=page.locator('.detail-chart-toolbar'),status=toolbar.locator('.detail-update')
  await expect(status).toContainText('Updated')
  await page.getByRole('button',{name:'Network latency',exact:true}).click()
- const checkbox=(await toolbar.getByRole('checkbox',{name:'Suppress spikes'}).boundingBox())!,route=(await toolbar.getByLabel('View route',{exact:true}).boundingBox())!,toolbarBox=(await toolbar.boundingBox())!,ranges=(await toolbar.locator('.detail-ranges').boundingBox())!
- expect(route.y+route.height).toBeLessThanOrEqual(ranges.y)
+ const checkbox=(await toolbar.getByRole('checkbox',{name:'Suppress spikes'}).boundingBox())!,route=(await page.locator('.latency-route-controls').getByLabel('View route',{exact:true}).boundingBox())!,toolbarBox=(await toolbar.boundingBox())!,ranges=(await toolbar.locator('.detail-ranges').boundingBox())!
+ expect(route.y).toBeGreaterThanOrEqual(toolbarBox.y+toolbarBox.height)
+ expect(Math.abs(checkbox.y+checkbox.height/2-ranges.y-ranges.height/2)).toBeLessThanOrEqual(2)
  expect(ranges.x+ranges.width).toBeLessThanOrEqual(checkbox.x)
  expect(route.x+route.width).toBeLessThanOrEqual(toolbarBox.x+toolbarBox.width)
  await page.unroute('**/api/nodes/*/metrics?*')

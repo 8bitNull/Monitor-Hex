@@ -1,6 +1,8 @@
 import {expect,type Page} from '@playwright/test'
 export async function expandRoutes(page:Page){
+ const expand=page.locator('.latency-route-controls .expand-routes')
+ await expect(expand).toBeVisible()
+ if(await expand.getAttribute('aria-expanded')==='false')await expand.click()
+ await expect(expand).toHaveAttribute('aria-expanded','true')
  await expect(page.locator('.route-chips')).toBeVisible()
- const expand=page.locator('.expand-routes[aria-expanded=false]')
- if(await expand.count())await expand.click()
 }
