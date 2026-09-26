@@ -1,4 +1,5 @@
 import {expandRoutes} from './routes'
+import {chooseOption} from './select'
 import {test,expect} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
 async function setup(page:any) {
@@ -10,13 +11,15 @@ async function setup(page:any) {
  await page.goto('/node/1#latency')
  await expect(page.locator('.route-chips button[aria-pressed]')).toHaveCount(1);await expandRoutes(page);await expect(page.locator('.route-chips button[aria-pressed]')).toHaveCount(3)
 }
-test('detail route legends keep the home route, supports comparison and keeps height stable',async({page})=>{
+test('detail follows the global route despite a node override and supports comparison',async({page})=>{
  await setup(page)
  const a=page.locator('.route-chips button[aria-label="Route A"]'),b=page.locator('.route-chips button[aria-label="Route B"]')
- await expect(a).toHaveAttribute('aria-pressed','false');await expect(b).toHaveAttribute('aria-pressed','true')
+ await expect(a).toHaveAttribute('aria-pressed','true');await expect(b).toHaveAttribute('aria-pressed','false')
+ await expect(page.locator('.detail-chart-frame .recharts-line-curve')).toHaveCount(1)
  await expect(page.getByLabel('抑制尖峰')).not.toBeChecked()
  const frame=page.locator('.detail-chart-frame');const height=(await frame.boundingBox())!.height
- await a.click();await expect(a).toHaveAttribute('aria-pressed','true');await expandRoutes(page)
+ await b.click();await expect(b).toHaveAttribute('aria-pressed','true');await expandRoutes(page)
+ await expect(page).toHaveURL(/routes=1%2C2/)
  await frame.hover({position:{x:100,y:100}})
  expect((await frame.boundingBox())!.height).toBe(height)
  await page.getByLabel('抑制尖峰').check()
@@ -27,8 +30,26 @@ test('detail route legends keep the home route, supports comparison and keeps he
  await expect(empty).toBeFocused()
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('monitor-next-node-probes-v1')!)['1'])).toBe('2')
  await page.getByRole('button',{name:'1 小时',exact:true}).click()
- await expandRoutes(page);await expect(page.locator('.latency-summary')).toContainText('2.5%')
+ await expandRoutes(page);await expect(page.locator('.detail-chart-frame .recharts-line-curve')).toHaveCount(3)
  await expect(b).toHaveAttribute('aria-pressed','true')
+ expect((await page.evaluate(()=>JSON.parse(localStorage.getItem('monitor-next')||'{}'))).probe).toBe('1')
+})
+test('toolbar switches one route, all routes, and the global default without changing stored choices',async({page})=>{
+ await setup(page)
+ const route=page.getByLabel('查看线路',{exact:true}),a=page.locator('.route-chips button[aria-label="Route A"]'),b=page.locator('.route-chips button[aria-label="Route B"]')
+ await expect(route).toHaveAttribute('data-value','auto')
+ await chooseOption(route,'2')
+ await expect(route).toHaveAttribute('data-value','2');await expect(a).toHaveAttribute('aria-pressed','false');await expect(b).toHaveAttribute('aria-pressed','true')
+ await expect(page).toHaveURL(/routes=2/)
+ await chooseOption(route,'all');await expect(page).toHaveURL(/routes=all/)
+ await expect(page.locator('.detail-chart-frame .recharts-line-curve')).toHaveCount(3)
+ await chooseOption(route,'auto')
+ await expect(route).toHaveAttribute('data-value','auto');await expect(a).toHaveAttribute('aria-pressed','true');await expect(b).toHaveAttribute('aria-pressed','false')
+ await expect(page).not.toHaveURL(/routes=/)
+ const stored=await page.evaluate(()=>({global:JSON.parse(localStorage.getItem('monitor-next')||'{}').probe,node:JSON.parse(localStorage.getItem('monitor-next-node-probes-v1')||'{}')['1']}))
+ expect(stored).toEqual({global:'1',node:'2'})
+ await page.goto('/node/1?routes=2#latency');await expect(page.getByLabel('查看线路',{exact:true})).toHaveAttribute('data-value','2')
+ await expect(page.locator('.route-chips button[aria-label="Route B"]')).toHaveAttribute('aria-pressed','true')
 })
 test('detail prioritizes charts, renders complete facts and compact controls at all widths',async({page})=>{
  await setup(page)

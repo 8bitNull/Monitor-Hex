@@ -1,6 +1,25 @@
 import {test,expect} from '@playwright/test'
 import {metrics} from '../scripts/fixtures.mjs'
 
+test('detail route keeps pointer selection quiet and keyboard focus visible',async({page})=>{
+ await page.goto('/node/1#latency')
+ const trigger=page.getByLabel('查看线路',{exact:true})
+ await trigger.click()
+ const menu=page.getByRole('listbox')
+ await expect(menu).toBeVisible()
+ expect(await menu.evaluate(el=>getComputedStyle(el).outlineStyle)).toBe('none')
+ const border=await menu.evaluate(el=>{const probe=document.createElement('span');probe.style.color='var(--border)';el.append(probe);const expected=getComputedStyle(probe).color;probe.remove();return {actual:getComputedStyle(el).borderColor,expected}})
+ expect(border.actual).toBe(border.expected)
+ await page.getByRole('option').first().click()
+ await expect(trigger).toBeFocused()
+ expect(await trigger.evaluate(el=>getComputedStyle(el).outlineStyle)).toBe('none')
+ await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab')
+ await expect(trigger).toBeFocused()
+ expect(await trigger.evaluate(el=>getComputedStyle(el).outlineStyle)).toBe('solid')
+ await page.keyboard.press('Enter');await expect(menu).toBeVisible()
+ await page.keyboard.press('Escape');await expect(trigger).toBeFocused()
+})
+
 for(const width of [320,390,1440])for(const appearance of ['light','dark'])test(`dropdown menus stay bounded and readable ${width} ${appearance}`,async({page})=>{
  await page.setViewportSize({width,height:800})
  await page.addInitScript(appearance=>localStorage.setItem('monitor-next',JSON.stringify({appearance})),appearance)

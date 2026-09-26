@@ -1,4 +1,3 @@
-import {chooseOption} from './select'
 import {expandRoutes} from './routes'
 import {test,expect,type Page} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
@@ -37,7 +36,7 @@ for(const width of [320,390,720,900,1200,1350,1360,1440])test(`network readings 
    expect(label).not.toBeNull();expect(value).not.toBeNull()
    expect(value!.x).toBeGreaterThanOrEqual(label!.x+label!.width+4)
   }
-  const select=page.getByLabel(language==='zh'?'统计线路':'Summary route',{exact:true});await chooseOption(select,'2');await expect(select).toHaveAttribute('data-value','2')
+  await expect(page.locator('.detail-chart-frame .recharts-line-curve')).toHaveCount(3)
   await expandRoutes(page);await expect(page.locator('.route-chips button>span').first()).toHaveCSS('text-overflow','ellipsis');await page.keyboard.press('Escape')
   const billing=page.locator('.overview-account')
   if(width<900){await page.locator('.detail-facts-toggle').click()}
@@ -81,9 +80,13 @@ test('loss timeline preserves zero, unknown and timeout and follows selected rou
  await slider.focus();await page.keyboard.press('Home');await expect(reading).toContainText('0 ms');await expect(reading).toContainText('丢包 0%')
  await page.keyboard.press('ArrowRight');await expect(reading).toContainText('丢包 —')
  await page.keyboard.press('ArrowRight');await expect(reading).toContainText('超时');await expect(reading).toContainText('100%')
- const select=page.getByLabel('统计线路',{exact:true});await chooseOption(select,'3');await expect(track.locator('.loss-track-plot,.loss-track-reading,input')).toHaveCount(0);await expect(track).toContainText('逐点丢包暂无统计')
- await expandRoutes(page);await page.getByRole('button',{name:'No packet statistics',exact:true}).click();await page.keyboard.press('Escape');await expect(select).toHaveAttribute('data-value','1')
- await expandRoutes(page);await page.getByRole('button',{name:'Hong Kong backup route',exact:true}).click();await page.keyboard.press('Escape');await expect(select).toHaveCount(0);await expect(page.locator('.latency-summary-route')).toContainText('Tokyo primary route');await expect(page.locator('.latency-summary-route')).toContainText('最新采样')
+ await expandRoutes(page);await page.getByRole('button',{name:'Tokyo primary route',exact:true}).click();await page.keyboard.press('Escape')
+ await expect(page.locator('.route-chips button[aria-label="Hong Kong backup route"]')).toHaveAttribute('aria-pressed','true')
+ await expandRoutes(page);await page.getByRole('button',{name:'Hong Kong backup route',exact:true}).click();await page.keyboard.press('Escape')
+ await expect(track.locator('.loss-track-plot,.loss-track-reading,input')).toHaveCount(0);await expect(track).toContainText('逐点丢包暂无统计')
+ await expandRoutes(page);await page.getByRole('button',{name:'Tokyo primary route',exact:true}).click();await page.keyboard.press('Escape')
+ await expect(page.locator('.route-chips button[aria-label="Tokyo primary route"]')).toHaveAttribute('aria-pressed','true')
+ await expect(track.locator('.loss-track-reading')).toBeVisible()
  await page.getByRole('button',{name:'1 小时',exact:true}).click();await expect(reading).toContainText('25%')
 })
 test('live trends accumulate real reports and clear on offline state',async({page})=>{
@@ -135,12 +138,13 @@ test('latency bars preserve timestamp gaps, threshold colors and capped actual v
  const heights=await bars.locator('rect').evaluateAll(els=>els.map(e=>Number(e.getAttribute('height'))));expect(heights).toEqual([1.2,12,30])
 })
 
-test('latency summary keeps raw bucket statistics and clears window loss on zoom',async({page})=>{
+test('latency curve and loss track remain available across smoothing and zoom',async({page})=>{
  await setup(page);await page.goto('/node/1?routes=1#latency')
- const summary=page.locator('.latency-summary');await expect(summary).toContainText('16.3 ms');await expect(summary).toContainText('2.5%')
- await page.getByRole('checkbox',{name:'抑制尖峰'}).check();await expect(summary).toContainText('16.3 ms')
+ const curve=page.locator('.detail-chart-frame .recharts-line-curve'),track=page.locator('.loss-track')
+ await expect(curve).toHaveCount(1);await expect(track).toBeVisible()
+ await page.getByRole('checkbox',{name:'抑制尖峰'}).check();await expect(curve).toHaveCount(1)
  const handle=page.locator('.latency-brush .recharts-brush-traveller').first();await handle.focus();await page.keyboard.press('ArrowRight')
- await expect(page.getByRole('button',{name:'恢复范围'})).toBeVisible();await expect(summary).not.toContainText('2.5%');await expect(summary).toContainText('24.5 ms')
- await page.getByRole('button',{name:'恢复范围'}).click();await expect(summary).toContainText('16.3 ms');await expect(summary).toContainText('2.5%')
- await page.getByRole('button',{name:'统计说明'}).click();await expect(page.locator('.latency-explanation-panel')).toContainText('原始探测包')
+ await expect(page.getByRole('button',{name:'恢复范围'})).toBeVisible();await expect(track).toBeVisible()
+ await page.getByRole('button',{name:'恢复范围'}).click();await expect(curve).toHaveCount(1)
+ await expect(page.locator('.latency-stat-details,.latency-summary,.latency-explanation-panel')).toHaveCount(0)
 })

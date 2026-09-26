@@ -7,10 +7,15 @@ async function setup(page:any,count=3,overrides:Record<string,unknown>={}){
  await page.route('**/api/nodes/*/metrics?*',(r:any)=>{const d=metrics();return r.fulfill({json:{...d,probes:Object.fromEntries(Array.from({length:count},(_,i)=>[i+1,`Route ${i+1}`])),ping:d.ping.flatMap(p=>Array.from({length:count},(_,i)=>({...p,task_id:i+1,latency:p.latency+i*10})))}})})
  await page.goto('/node/1');await expect(page.locator('.detail-resource-charts')).toBeVisible()
 }
-test('latency toolbar has smoothing but no duplicate route controls',async({page})=>{
+test('latency toolbar places the route selector above ranges and smoothing on mobile',async({page})=>{
+ await page.setViewportSize({width:390,height:844})
  await setup(page);await page.getByRole('button',{name:'网络延迟',exact:true}).click()
  const toolbar=page.locator('.detail-chart-toolbar');await expect(toolbar.locator('.detail-smooth')).toBeVisible()
- await expect(toolbar.locator('.detail-probe-legend,[data-slot=select]')).toHaveCount(0);await expect(toolbar.locator('.detail-submenu-divider')).toHaveCount(1)
+ const route=toolbar.getByLabel('查看线路',{exact:true});await expect(route).toBeVisible()
+ const smooth=(await toolbar.locator('.detail-smooth').boundingBox())!,selector=(await route.boundingBox())!,ranges=(await toolbar.locator('.detail-ranges').boundingBox())!
+ expect(ranges.y).toBeGreaterThanOrEqual(selector.y+selector.height)
+ expect(smooth.x).toBeGreaterThanOrEqual(ranges.x+ranges.width)
+ await expect(toolbar.locator('.detail-probe-legend')).toHaveCount(0)
  await expect(page.locator('.route-chips button[aria-pressed]')).toHaveCount(1)
  await expandRoutes(page);await expect(page.locator('.route-chips button[aria-pressed]')).toHaveCount(3)
 })
@@ -22,14 +27,22 @@ for(const width of [320,390,430,720,899,900,1024,1440,1920])test(`detail reading
   for(const graph of ['bar','ring','columns','minimal']){
    await setSiteDefault(page,'graph',graph);await page.evaluate(()=>scrollTo(0,0))
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
-   if(width===390){const b=(await page.locator('.detail-chart-toolbar').boundingBox())!,live=(await page.locator('.detail-live').boundingBox())!;expect(b.y).toBeGreaterThan(live.y+live.height);expect(b.height).toBeLessThanOrEqual(132)}
+   if(width===390){const b=(await page.locator('.detail-chart-toolbar').boundingBox())!,live=(await page.locator('.detail-live').boundingBox())!;expect(b.y).toBeGreaterThan(live.y+live.height);expect(b.height).toBeLessThanOrEqual(168)}
   }
   for(const tab of ['resources','latency']){
    await page.getByRole('button',{name:language==='zh'?(tab==='resources'?'资源':'网络延迟'):(tab==='resources'?'Resources':'Network latency'),exact:true}).click()
    const toolbar=page.locator('.detail-chart-toolbar'),tabs=(await page.locator('.detail-tabs').boundingBox())!,ranges=(await page.locator('.detail-ranges').boundingBox())!,refresh=(await page.locator('.detail-refresh').boundingBox())!
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
    const centers=await toolbar.evaluate((element)=>Array.from(element.children).map(child=>{const box=child.getBoundingClientRect();return box.width?box.y+box.height/2:null}).filter((center):center is number=>center!==null))
-   if(width<900){expect(ranges.y).toBeGreaterThanOrEqual(tabs.y+tabs.height);expect(Math.abs(refresh.y+refresh.height/2-(ranges.y+ranges.height/2))).toBeLessThanOrEqual(2)}else expect(Math.max(...centers)-Math.min(...centers)).toBeLessThanOrEqual(2)
+   if(width<900){
+    expect(ranges.y).toBeGreaterThanOrEqual(tabs.y+tabs.height)
+    if(tab==='latency'){
+     const route=(await toolbar.locator('.detail-latency-route').boundingBox())!,smooth=(await toolbar.locator('.detail-smooth').boundingBox())!
+     expect(Math.abs(refresh.y+refresh.height/2-(tabs.y+tabs.height/2))).toBeLessThanOrEqual(2)
+     expect(ranges.y).toBeGreaterThanOrEqual(route.y+route.height)
+     expect(smooth.x).toBeGreaterThanOrEqual(ranges.x+ranges.width)
+    }else expect(Math.abs(refresh.y+refresh.height/2-(ranges.y+ranges.height/2))).toBeLessThanOrEqual(2)
+   }else expect(Math.max(...centers)-Math.min(...centers)).toBeLessThanOrEqual(2)
    const all=await page.locator('.detail-ranges button').evaluateAll(buttons=>buttons.map(button=>{const box=button.getBoundingClientRect();return {top:box.top,x:box.x,right:box.right}}));expect(new Set(all.map(box=>Math.round(box.top))).size).toBe(1)
    expect(all.length).toBe(tab==='resources'?4:3);if(tab==='resources')expect(all[3].x).toBeGreaterThan(all[2].x)
    expect(refresh.x+refresh.width).toBeLessThanOrEqual(width+1)
@@ -77,7 +90,6 @@ for(const count of [1,3,20])test(`route legends handle ${count} routes without r
  const plot=page.locator('.detail-chart-frame');const height=(await plot.boundingBox())!.height
  if(count===1){
   await expect(page.locator('.route-chips')).toHaveCount(0)
-  await expect(page.locator('.latency-summary-route')).toContainText('最新采样')
   await expect(plot.locator('.recharts-line-curve')).toHaveCount(1)
   return
  }

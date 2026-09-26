@@ -1,4 +1,3 @@
-import {chooseOption} from './select'
 import {test,expect,type Page} from '@playwright/test'
 import {nodes,metrics} from '../scripts/fixtures.mjs'
 async function setup(page:Page){
@@ -55,11 +54,10 @@ for(const width of [320,360,390,430])test(`default mobile table fits ${width}px 
  await expect(page.locator('thead th').last()).toHaveText('延迟');await expect(page.locator('thead [data-column=remark]')).toHaveCount(0)
  await expect(page.locator('.table-sort-toolbar,.column-options')).toHaveCount(0)
 })
-test('all routes have legends, summary route selector, and keyboard zoom has readable dates',async({page})=>{
+test('all routes have legends and keyboard zoom has readable dates',async({page})=>{
  await setup(page);await page.goto('/node/1?routes=all#latency');await expect(page.locator('.route-chips button[aria-pressed=true]')).toHaveCount(8)
  await expect(page.locator('.route-chips .expand-routes')).toBeVisible()
- await chooseOption(page.getByLabel('统计线路',{exact:true}),'3');await expect(page.getByLabel('统计线路',{exact:true})).toHaveAttribute('data-value','3')
- const start=page.getByRole('slider',{name:'开始时间',exact:true});await expect(start).toHaveAttribute('aria-valuenow','0');await start.focus();await page.keyboard.press('ArrowRight');await expect(start).toHaveAttribute('aria-valuenow','1');await expect(start).toHaveAttribute('aria-valuetext',/\d/);await expect(page.locator('.loss-unavailable')).toBeVisible();await page.getByRole('button',{name:'恢复范围',exact:true}).click();await expect(page.locator('.loss-unavailable')).toHaveCount(0)
+ const start=page.getByRole('slider',{name:'开始时间',exact:true});await expect(start).toHaveAttribute('aria-valuenow','0');await start.focus();await page.keyboard.press('ArrowRight');await expect(start).toHaveAttribute('aria-valuenow','1');await expect(start).toHaveAttribute('aria-valuetext',/\d/);await expect(page.getByRole('button',{name:'恢复范围',exact:true})).toBeVisible();await page.getByRole('button',{name:'恢复范围',exact:true}).click()
  await page.setViewportSize({width:390,height:844});await expect(page.locator('.route-chips button[aria-pressed=true]')).toHaveCount(8)
 })
 test('empty history offers recovery and a failed first request never remains loading',async({page})=>{
@@ -72,17 +70,17 @@ test('resource toolbar controls remain explicit on mobile',async({page})=>{
  await expect(page.locator('.settings-drawer')).toHaveCount(0)
 })
 
-for(const width of [320,390,1440])test(`summary selector follows visible routes at ${width}`,async({page})=>{
+for(const width of [320,390,1440])test(`route chips control curves and loss visibility at ${width}`,async({page})=>{
  await page.setViewportSize({width,height:1000});await setup(page);await page.goto('/node/1?routes=1,2,3#latency')
- const chips=page.locator('.route-chips'),summary=page.locator('.latency-summary-route'),route=page.getByLabel('统计线路',{exact:true})
- await expect(page.locator('.detail-chart-toolbar [data-slot=select],.detail-probe-legend,.loss-track [data-slot=select]')).toHaveCount(0)
- await chooseOption(route,'3');await expect(route).toHaveAttribute('data-value','3')
- await chips.getByRole('button',{name:'线路 3',exact:true}).click();await expect(route).toHaveAttribute('data-value','1')
- await chips.getByRole('button',{name:'线路 3',exact:true}).click();await expect(route).toHaveAttribute('data-value','1')
- await chips.getByRole('button',{name:'线路 1',exact:true}).click();await expect(route).toHaveAttribute('data-value','2')
- await chips.getByRole('button',{name:'线路 3',exact:true}).click();await expect(summary).toContainText('线路 2');await expect(route).toHaveCount(0);await expect(summary).toContainText('最新采样')
- await chips.getByRole('button',{name:'线路 2',exact:true}).click();await expect(page.locator('.latency-summary,.loss-track')).toHaveCount(0)
+ const chips=page.locator('.route-chips'),curves=page.locator('.detail-chart-frame .recharts-line-curve')
+ await expect(page.locator('.latency-summary,.latency-stat-details')).toHaveCount(0)
+ await expect(curves).toHaveCount(3)
+ await chips.getByRole('button',{name:'线路 3',exact:true}).click();await expect(curves).toHaveCount(2)
+ await chips.getByRole('button',{name:'线路 1',exact:true}).click();await expect(curves).toHaveCount(1)
+ await expect(page.locator('.loss-track')).toBeVisible()
+ await chips.getByRole('button',{name:'线路 2',exact:true}).click();await expect(page.locator('.loss-track')).toHaveCount(0)
+ await expect(page.locator('.detail-chart-frame')).toContainText('没有选中任何探测')
  await page.getByRole('button',{name:'选择线路',exact:true}).click();await expect(chips.getByRole('button',{name:'线路 1',exact:true})).toBeFocused()
- await page.keyboard.press('Space');await expect(summary).toContainText('线路 1')
+ await page.keyboard.press('Space');await expect(curves).toHaveCount(1)
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()
 })

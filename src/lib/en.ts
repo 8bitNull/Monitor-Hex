@@ -1,4 +1,5 @@
 export const english: Record<string, string> = {
+"查看线路":"View route",
 "地区":"Region",
 "更多地区":"More regions",
 "搜索地区":"Search regions",

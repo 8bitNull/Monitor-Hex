@@ -22,5 +22,6 @@ test('online detail keeps route readings in latency history',async({page})=>{
  await page.goto('/node/1')
  await expect(page.locator('.detail-network-reading')).toHaveCount(0)
  await page.getByRole('button',{name:'网络延迟',exact:true}).click()
- await expect(page.locator('.latency-summary-route')).toContainText('Tokyo gateway')
+ await expect(page.getByLabel('查看线路',{exact:true})).toContainText('Tokyo gateway')
+ await expect(page.locator('.detail-chart-frame .recharts-line-curve')).toHaveCount(1)
 })
