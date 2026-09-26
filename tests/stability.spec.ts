@@ -11,12 +11,15 @@ for(const width of [390,1440])test(`return restores node within 24px and rotatio
  await page.setViewportSize({width,height:900});await setup(page);await page.goto('/')
  const target=page.locator('[data-node-id="20"]');await target.scrollIntoViewIfNeeded()
  await expect(target).toBeVisible();await page.evaluate(()=>scrollBy(0,-100))
+ // Lazy route readings may change preceding card heights before the click.
+ let lastY=NaN,stable=0;
+ await expect.poll(async()=>{const y=(await target.boundingBox())!.y;stable=Math.abs(y-lastY)<1?stable+1:0;lastY=y;return stable},{intervals:[100,200,200]}).toBeGreaterThanOrEqual(3)
  const before=(await target.boundingBox())!.y
- await target.click();await expect(page.locator('.detail-resource-charts')).toBeVisible()
+ await target.click();await expect(page.locator(width<=720?'.ma-detail-overview':'.detail-resource-charts')).toBeVisible()
  await page.goBack();await expect(target).toBeFocused()
  await expect.poll(async()=>Math.abs((await target.boundingBox())!.y-before)).toBeLessThanOrEqual(24)
- await target.click();await expect(page.locator('.detail-resource-charts')).toBeVisible()
- await page.setViewportSize({width:width===390?1440:390,height:900});if(width===390)await page.getByRole('button',{name:'返回总览',exact:true}).click();else await page.locator('header .brand').click()
+ await target.click();await expect(page.locator(width<=720?'.ma-detail-overview':'.detail-resource-charts')).toBeVisible()
+ await page.setViewportSize({width:width===390?1440:390,height:900});await page.getByRole('button',{name:'返回总览',exact:true}).click()
  await expect(target).toBeFocused();await expect.poll(async()=>(await target.boundingBox())!.y).toBeGreaterThanOrEqual(60)
  expect((await target.boundingBox())!.y).toBeLessThan(200)
 })
@@ -37,27 +40,28 @@ for(const removed of [false,true])test(`return handles changed node order, remov
 for(const width of [320,1440])test(`changing live units retain speed geometry at ${width}`,async({page})=>{
  await page.clock.install();await page.setViewportSize({width,height:1000});await setup(page,1)
  let value=0;await page.unroute('**/api/nodes');await page.route('**/api/nodes',r=>{const n=nodes()[0];return r.fulfill({json:{nodes:[{...n,metrics:{...n.metrics,net_tx:value,net_rx:value}}]}})})
- await page.goto('/');const speed=page.locator('.node-card .speed-pair');await expect(speed.locator('.speed-amount').first()).toHaveText('0')
+ await page.goto('/');const speed=page.locator(width<=720?'.ma-node .ma-net':'.node-card .speed-pair'),amount=speed.locator(width<=720?'b':'.speed-amount').first();await expect(amount).toHaveText(width<=720?'0.0 Kbps':'0')
  const baseline=(await speed.boundingBox())!.height
  for(const next of [999,1024*999,1024**2*999,1024**3*9]){
-  value=next;await page.clock.fastForward(5100);await expect(speed.locator('.speed-amount').first()).not.toHaveText('0')
+  value=next;await page.clock.fastForward(5100);await expect(amount).not.toHaveText(width<=720?'0.0 Kbps':'0')
   expect((await speed.boundingBox())!.height).toBe(baseline)
   expect(await speed.evaluate(el=>[...el.querySelectorAll('strong')].every(n=>n.scrollWidth<=n.clientWidth+1))).toBeTruthy()
-  expect(await speed.locator('.speed-amount').first().evaluate(el=>getComputedStyle(el).fontSize===getComputedStyle(el.parentElement!).fontSize)).toBeTruthy()
+  if(width>720)expect(await amount.evaluate(el=>getComputedStyle(el).fontSize===getComputedStyle(el.parentElement!).fontSize)).toBeTruthy()
  }
 })
 
 test('refresh retains chart on failure, disables duplicate requests and recovers',async({page})=>{
+ await page.clock.install() // Isolate explicit retries from the periodic history refresh.
  await setup(page,1);await page.goto('/node/1')
  const chart=page.locator('.resource-chart-panel .recharts-area-curve'),refresh=page.getByRole('button',{name:'刷新历史',exact:true})
  await expect(chart).toBeVisible();const path=await chart.getAttribute('d')
+ await page.clock.pauseAt(new Date())
  await page.unroute('**/api/nodes/*/metrics?*')
  let pending:any,calls=0;await page.route('**/api/nodes/*/metrics?*',r=>{pending=r;calls++})
  await refresh.click();await expect(refresh).toBeDisabled();await expect(chart).toHaveAttribute('d',path!)
  await refresh.evaluate((el:HTMLButtonElement)=>{el.click();el.click();el.click()});expect(calls).toBe(1)
  await pending.fulfill({status:503});await expect(page.locator('.history-notice')).toContainText('保留上次历史记录')
  await expect(chart).toHaveAttribute('d',path!);await expect(refresh).toBeEnabled()
- await page.screenshot({path:'tests/artifacts/stability/history-retained.png',fullPage:true})
  await page.getByRole('button',{name:'重试',exact:true}).click();await expect.poll(()=>calls).toBe(2)
  await pending.fulfill({json:metrics()});await expect(page.locator('.history-notice')).toHaveCount(0);await expect(refresh).toBeEnabled()
 })

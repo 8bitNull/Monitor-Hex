@@ -1,0 +1,10 @@
+/* Desktop finishing pass accepted from the second refinement demo. */
+@media (min-width: 721px) {
+  .next-theme main.space-y-5 > :not(:last-child) { margin-block-end: 17px; }
+  .next-theme .node-browser { gap: 10px; padding-block: 11px; }
+  .next-theme .desktop-results-toolbar { margin-bottom: 12px; }
+  .next-theme .summary-grid > div { padding-block: 14px; }
+  .next-theme .node-table :is(th, td)[data-column='name'],
+  .next-theme .node-table .table-node-name { text-align: left; }
+  .next-theme .node-table :is(.table-metric, .table-speed, .table-traffic, .table-expiry) { font-variant-numeric: tabular-nums; }
+}

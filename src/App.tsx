@@ -61,7 +61,9 @@ function useNodeRoute() {
             if(!target){const table=document.querySelector<HTMLElement>('.table-scroll');if(table){table.scrollTop=home.current.tableY;table.scrollLeft=home.current.tableX;}scrollTo(0,home.current.y);return;}
             const table=document.querySelector<HTMLElement>('.table-scroll');
             if(table&&home.current.table){table.scrollLeft=home.current.tableX;table.scrollTop+=target.getBoundingClientRect().top-table.getBoundingClientRect().top-home.current.tableOffset;}
-            const top=(document.querySelector('header')?.getBoundingClientRect().bottom || 0)+12;
+            // Mobile branding scrolls away. Keep a stable clearance for sticky search
+            // instead of following its increasingly negative viewport coordinate.
+            const top=Math.max(72,(document.querySelector('header')?.getBoundingClientRect().bottom || 0)+12);
             const desired=home.current.width===innerWidth?Math.max(top,Math.min(home.current.offset,innerHeight-80)):top;
             scrollTo(0,scrollY+target.getBoundingClientRect().top-desired);
             target.focus({preventScroll:true});
@@ -202,6 +204,11 @@ export default function App({ siteDefaults = defaults }: {
         // oxlint-disable-next-line react/immutability
         document.title = [selected?.name, me?.site_name || "HEX"].filter(Boolean).join(" · ");
     }, [selected?.name, me?.site_name]);
+    useEffect(() => {
+        for (const name of ['apple-mobile-web-app-title', 'application-name']) {
+            document.querySelector(`meta[name="${name}"]`)?.setAttribute('content', me?.site_name || 'HEX');
+        }
+    }, [me?.site_name]);
     // Only while there is nothing else to show. Once `me` has loaded, a later
     // failure belongs beside the page rather than over it.
     if (!me)

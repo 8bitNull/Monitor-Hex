@@ -22,7 +22,7 @@
 #app .detailtabs button{border:0;border-radius:10px;box-shadow:none}
 #app .detailtabs [aria-pressed=true]{background:var(--soft);color:var(--blue)}
 #app :is(.bottomnav,.segment) button{border-bottom:0;box-shadow:none}
-</style></head>
+</style><link rel="stylesheet" href="mobile-app-demo-refinement.css"></head>
 <body>
 <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
 <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
@@ -105,4 +105,4 @@ sheet.addEventListener('click',e=>{if(e.target===sheet){const r=sheet.getBoundin
 window.addEventListener('resize',()=>{if(sheet.open)positionSheet()});
 window.addEventListener('popstate',()=>{const id=Number(location.hash.replace('#node-',''));state.node=nodes.some(n=>n.id===id)?id:null;render();if(state.node===null)content.scrollTop=state.homeScroll});
 if(location.hash.startsWith('#node-')){const id=Number(location.hash.slice(6));if(nodes.some(n=>n.id===id))state.node=id}render();
-</script></body></html>
+</script><script src="mobile-app-demo-refinement.js"></script><script src="mobile-app-demo-scenarios.js"></script></body></html>

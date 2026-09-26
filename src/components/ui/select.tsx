@@ -1,18 +1,18 @@
-import {Children,isValidElement,useState,useCallback,useEffect,useRef,useId,type ComponentProps,type ReactNode} from 'react'
+import {Children,isValidElement,useState,useCallback,type ComponentProps,type ReactNode} from 'react'
 import {Select as Primitive} from 'radix-ui'
-import {Check,ChevronDown,ChevronUp,X,Search} from 'lucide-react'
+import {Check,ChevronDown,ChevronUp,Search} from 'lucide-react'
+import {MobileSheet} from './mobile-sheet'
 import {tr} from '@/lib/i18n'
 type Props=Omit<ComponentProps<'button'>,'value'|'onChange'|'children'|'defaultValue'> & {sheet?:boolean;value?:string|number;onChange?:(event:{target:{value:string}})=>void;children:ReactNode;displayValue?:ReactNode}
 type Option={value:string;label:ReactNode;disabled:boolean}
 function optionsOf(children:ReactNode):Option[]{return Children.toArray(children).flatMap(child=>{if(!isValidElement<{value?:string|number;children?:ReactNode;disabled?:boolean}>(child))return [];return child.type==='option'?[{value:String(child.props.value??''),label:child.props.children,disabled:!!child.props.disabled}]:optionsOf(child.props.children)})}
 const empty='__select_placeholder__'
 function SheetSelect({value='',onChange,children,displayValue,className,...props}:Omit<Props,'sheet'>){
- const [open,setOpen]=useState(false),[query,setQuery]=useState(''),dialog=useRef<HTMLDialogElement>(null),trigger=useRef<HTMLButtonElement>(null),title=useId()
+ const [open,setOpen]=useState(false),[query,setQuery]=useState('')
  const options=optionsOf(children),current=String(value),selected=options.find(o=>o.value===current)
- useEffect(()=>{if(!open)return;const el=dialog.current!,button=trigger.current,overflow=document.body.style.overflow;el.showModal();document.body.style.overflow='hidden';return()=>{el.close();document.body.style.overflow=overflow;if(button?.isConnected)button.focus({preventScroll:true})}},[open])
  const text=(value:ReactNode):string=>typeof value==='string'||typeof value==='number'?String(value):Array.isArray(value)?value.map(text).join(' '):isValidElement<{children?:ReactNode}>(value)?text(value.props.children):''
- const shown=options.filter(o=>text(o.label).toLocaleLowerCase().includes(query.toLocaleLowerCase()))
- return <><button {...props} ref={trigger} className={className} data-slot="select" data-value={current} type="button" aria-haspopup="dialog" aria-expanded={open} onClick={()=>{setQuery('');setOpen(true)}}><span className="select-value">{displayValue??selected?.label??current}</span><ChevronDown size={16}/></button>{open&&<dialog ref={dialog} className="ma-sheet" aria-labelledby={title} onCancel={()=>setOpen(false)} onClick={e=>{if(e.target===e.currentTarget){const r=e.currentTarget.getBoundingClientRect();if(e.clientY<r.top||e.clientX<r.left||e.clientX>r.right)setOpen(false)}}}><div className="ma-handle"/><div className="ma-sheet-heading"><h2 id={title}>{props['aria-label']??tr('查看线路')}</h2><button className="ma-icon" aria-label={tr('关闭')} onClick={()=>setOpen(false)}><X size={20}/></button></div><label className="ma-route-search"><Search size={17}/><input type="search" aria-label={tr('搜索线路')} placeholder={tr('搜索线路')} value={query} onChange={e=>setQuery(e.target.value)}/></label>{shown.map(o=><button className="ma-row" key={o.value} disabled={o.disabled} aria-pressed={current===o.value} onClick={()=>{onChange?.({target:{value:o.value}});setOpen(false)}}><span>{o.label}</span>{current===o.value&&<Check size={17}/>}</button>)}{shown.length===0&&<p className="ma-empty">{tr('无该线路记录')}</p>}</dialog>}</>
+ const shown=options.filter(o=>text(o.label).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()))
+ return <><button {...props} className={className} data-slot="select" data-value={current} type="button" aria-haspopup="dialog" aria-expanded={open} onClick={()=>{setQuery('');setOpen(true)}}><span className="select-value">{displayValue??selected?.label??current}</span><ChevronDown size={16}/></button>{open&&<MobileSheet title={props['aria-label']??tr('查看线路')} onClose={()=>setOpen(false)} search={<label className="ma-route-search"><Search size={17}/><input type="search" aria-label={tr('搜索线路')} placeholder={tr('搜索线路')} value={query} onChange={e=>setQuery(e.target.value)}/></label>}>{shown.map(o=><button className="ma-row" key={o.value} disabled={o.disabled} aria-pressed={current===o.value} onClick={()=>{onChange?.({target:{value:o.value}});setOpen(false)}}><span>{o.label}</span>{current===o.value&&<Check size={17}/>}</button>)}{shown.length===0&&<p className="ma-empty">{tr('无该线路记录')}</p>}<p className="ma-footnote">{tr('节点独立选择优先于全局线路；其余线路可在详情查看。')}</p></MobileSheet>}</>
 }
 export function Select({sheet=false,value='',onChange,children,displayValue,className,...props}:Props){
  const [container,setContainer]=useState<Element|null>(null)

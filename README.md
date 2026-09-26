@@ -1,10 +1,12 @@
 # HEX
 
+![HEX 主题预览](preview.png)
+
 HEX 是为 monitor-probe 制作的监控主题。你可以在首页查看服务器状态、资源占用和网络情况，也可以进入单台服务器的详情页，查看历史曲线、流量用量和设备资料。
 
 主题在电脑端提供卡片和表格视图，手机端采用 App 式布局，支持深浅色以及简体中文和英文。
 
-v0.3.0 手机端使用底部「节点 / 概览 / 设置」导航。节点页优先展示紧凑卡片，详情分为「总览 / 资源 / 网络 / 资料」四个分区。手机端与电脑端共用真实监控接口。
+v0.3.1 精修手机端页面层级、分组筛选、详情图表与设备资料。底部使用「节点 / 概览 / 设置」导航，详情分为「总览 / 资源 / 网络 / 资料」四个分区；管理员可在设置中查看版本与更新，手机桌面快捷方式使用蓝底白色 H 图标。手机端与电脑端共用真实监控接口。
 
 [下载安装包](https://github.com/8bitNull/monitor-theme-hex/releases/latest/download/theme.tar.gz) · [查看发布记录](https://github.com/8bitNull/monitor-theme-hex/releases)
 
@@ -12,18 +14,29 @@ v0.3.0 手机端使用底部「节点 / 概览 / 设置」导航。节点页优�
 
 以下截图来自本地演示数据，服务器名称、备注和数值仅用于展示。
 
-![桌面首页](screenshots/readme/home-desktop.png)
+### 桌面端
 
-<details>
-<summary>查看表格、详情页和手机效果</summary>
+桌面端合入第二版精修，统一区块和工具栏间距，表格名称左对齐、指标数字对齐；地图、卡片、表格和详情继续沿用原有功能。
+
+![桌面首页](screenshots/readme/home-desktop.png)
 
 ![桌面表格](screenshots/readme/table-desktop.png)
 
 ![服务器详情](screenshots/readme/detail-desktop.png)
 
-<img src="screenshots/readme/home-mobile.png" width="340" alt="手机首页" />
+### 手机端
 
-</details>
+<img src="screenshots/readme/home-mobile.png" width="320" alt="手机节点页" /> <img src="screenshots/readme/overview-mobile.png" width="320" alt="手机概览页" />
+
+<img src="screenshots/readme/detail-mobile.png" width="320" alt="手机详情资料" /> <img src="screenshots/readme/settings-mobile.png" width="320" alt="手机设置" />
+
+### 手机桌面快捷方式
+
+安装新版主题后，使用 iPhone Safari 的分享菜单或 Android 浏览器菜单选择「添加到主屏幕」，即可使用与手机端一致的蓝底白色 H 图标。建议从网站首页添加；已有快捷方式可能需要删除后重新添加以刷新图标。此功能需要联网使用，不提供离线监控。
+
+### 管理员版本与更新
+
+管理员登录后，在手机端「设置 → 应用 → 版本与更新」查看 Hub 和 Agent 版本、待更新节点及发布说明。提醒点遵循后台开关；版本查询失败、尚未上报和无法比较会分别提示。升级需进入后台执行，主题不会自动升级 Hub 或 Agent。
 
 ## 安装与升级
 

@@ -2,7 +2,7 @@ import {useState} from 'react'
 import {tr,locale} from '@/lib/i18n'
 import {bucketLoss} from '@/lib/trends'
 type Sample={ts:number;latency:number|null;loss?:number}
-export function LossTrack({series,preferred,start,end,selected}:{series:{id:number;name:string;points:Sample[]}[];preferred?:number;start:number;end:number;selected?:number}){
+export function LossTrack({series,preferred,start,end,selected,showRoute=false}:{series:{id:number;name:string;points:Sample[]}[];preferred?:number;start:number;end:number;selected?:number;showRoute?:boolean}){
  const [sample,setSample]=useState<number|null>(null)
  const route=series.find(s=>s.id===selected)??series.find(s=>s.id===preferred)??series[0]
  const points=route?.points.filter(p=>p.ts*1000>=start&&p.ts*1000<=end)??[]
@@ -11,7 +11,7 @@ export function LossTrack({series,preferred,start,end,selected}:{series:{id:numb
  const x=(ts:number)=>(ts*1000-start)/Math.max(1,end-start)*1000
  const inspect=(event:React.PointerEvent<SVGSVGElement>)=>{if(!points.length)return;const box=event.currentTarget.getBoundingClientRect(),time=start+(event.clientX-box.left)/box.width*(end-start);let nearest=0;points.forEach((p,i)=>{if(Math.abs(p.ts*1000-time)<Math.abs(points[nearest].ts*1000-time))nearest=i});setSample(nearest)}
  return <section className={`loss-track${hasLoss?'':' loss-track-empty'}`} aria-label={tr('丢包时间轨道')}>
-  {hasLoss&&<div className="loss-track-heading"><label>{tr('丢包时间轨道')}</label><small>0–100%</small></div>}
+  {hasLoss&&<div className="loss-track-heading"><label>{tr('丢包时间轨道')}{showRoute&&route&&` · ${route.name}`}</label><small>0–100%</small></div>}
   {hasLoss?<div className="loss-track-plot"><svg viewBox="0 0 1000 36" preserveAspectRatio="none" role="img" aria-label={tr('丢包时间轨道')} onPointerMove={inspect} onPointerDown={inspect}>
    <line x1="0" x2="1000" y1="35" y2="35" stroke="var(--border)"/>
    {points.map(p=>{const loss=bucketLoss(p.loss);return <g key={p.ts}>{loss===0&&<circle cx={Math.max(0,Math.min(1000,x(p.ts)))} cy="35" r="1.5" fill="var(--muted-foreground)"/>}{loss!==null&&loss>0&&<rect x={Math.max(0,Math.min(996,x(p.ts)-2))} y={35-loss*.3} width="4" height={Math.max(1,loss*.3)} fill="var(--warn)"/>}{p.latency===null&&<path d={`M${Math.min(996,Math.max(4,x(p.ts)))-3},4 l6,6 m0,-6 l-6,6`} stroke="var(--destructive)" vectorEffect="non-scaling-stroke"/>}<title>{new Date(p.ts*1000).toLocaleString(locale())} · {p.latency===null?tr('超时'):`${p.latency} ms`} · {tr('丢包')} {loss===null?'—':`${loss}%`}</title></g>})}
