@@ -37,7 +37,7 @@ for(const width of [320,390,720,900,1200,1350,1360,1440])test(`network readings 
    expect(label).not.toBeNull();expect(value).not.toBeNull()
    expect(value!.x).toBeGreaterThanOrEqual(label!.x+label!.width+4)
   }
-  const select=page.locator('.loss-track [data-slot=select]');await chooseOption(select,'2');await expect(select).toHaveAttribute('data-value','2')
+  const select=page.getByLabel(language==='zh'?'统计线路':'Summary route',{exact:true});await chooseOption(select,'2');await expect(select).toHaveAttribute('data-value','2')
   await expandRoutes(page);await expect(page.locator('.route-chips button>span').first()).toHaveCSS('text-overflow','ellipsis');await page.keyboard.press('Escape')
   const billing=page.locator('.overview-account')
   if(width<900){await page.locator('.detail-facts-toggle').click()}
@@ -81,9 +81,9 @@ test('loss timeline preserves zero, unknown and timeout and follows selected rou
  await slider.focus();await page.keyboard.press('Home');await expect(reading).toContainText('0 ms');await expect(reading).toContainText('丢包 0%')
  await page.keyboard.press('ArrowRight');await expect(reading).toContainText('丢包 —')
  await page.keyboard.press('ArrowRight');await expect(reading).toContainText('超时');await expect(reading).toContainText('100%')
- await chooseOption(track.locator('[data-slot=select]'),'3');await expect(reading).toContainText('丢包 —');await expect(track.locator('.loss-track-plot')).toHaveCount(0);await expect(track).toContainText('逐点丢包暂无统计');await expect(slider).toBeVisible()
- await expandRoutes(page);await page.getByRole('button',{name:'No packet statistics',exact:true}).click();await page.keyboard.press('Escape');await expect(track.locator('[data-slot=select]')).toHaveAttribute('data-value','1')
- await expandRoutes(page);await page.getByRole('button',{name:'Hong Kong backup route',exact:true}).click();await page.keyboard.press('Escape');await expect(track.locator('[data-slot=select]')).toHaveCount(0);await expect(track).toContainText('Tokyo primary route')
+ const select=page.getByLabel('统计线路',{exact:true});await chooseOption(select,'3');await expect(track.locator('.loss-track-plot,.loss-track-reading,input')).toHaveCount(0);await expect(track).toContainText('逐点丢包暂无统计')
+ await expandRoutes(page);await page.getByRole('button',{name:'No packet statistics',exact:true}).click();await page.keyboard.press('Escape');await expect(select).toHaveAttribute('data-value','1')
+ await expandRoutes(page);await page.getByRole('button',{name:'Hong Kong backup route',exact:true}).click();await page.keyboard.press('Escape');await expect(select).toHaveCount(0);await expect(page.locator('.latency-summary-route')).toContainText('Tokyo primary route');await expect(page.locator('.latency-summary-route')).toContainText('最新采样')
  await page.getByRole('button',{name:'1 小时',exact:true}).click();await expect(reading).toContainText('25%')
 })
 test('live trends accumulate real reports and clear on offline state',async({page})=>{

@@ -34,13 +34,13 @@ for(const width of [320,390])test(`mobile latency explanation stays between stat
  await page.route('**/api/nodes',r=>r.fulfill({json:{nodes:[nodes()[0]]}}))
  await page.route('**/api/nodes/*/metrics?*',r=>r.fulfill({json:metrics()}))
  await page.goto('/node/1?routes=1#latency')
- const summary=page.locator('.latency-summary'),route=summary.locator('.latency-summary-route'),chips=page.locator('.latency-view>.route-chips')
+ const summary=page.locator('.latency-summary'),route=summary.locator('.latency-summary-route'),chart=page.locator('.latency-view>.detail-chart-frame')
  await expect(summary).toBeVisible()
  const s=(await summary.boundingBox())!,r=(await route.boundingBox())!
  expect(r.x).toBeLessThanOrEqual(s.x+12)
  await page.getByRole('button',{name:'统计说明'}).click()
  const panel=page.locator('.latency-explanation-panel');await expect(panel).toBeVisible()
- const p=(await panel.boundingBox())!,c=(await chips.boundingBox())!
+ const p=(await panel.boundingBox())!,c=(await chart.boundingBox())!
  expect(p.y).toBeGreaterThanOrEqual(s.y+s.height)
  expect(p.y+p.height).toBeLessThanOrEqual(c.y)
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy()

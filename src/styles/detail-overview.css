@@ -11,15 +11,6 @@
 .overview-unavailable p {margin:0;color:var(--muted-foreground);font-size:12px;line-height:1.6}
 .detail-last-seen {display:flex;align-items:center;gap:6px;margin:8px 0 0;color:var(--muted-foreground);font-size:12px;line-height:1.5}
 .detail-last-seen svg {flex-shrink:0}
-.detail-network-reading {display:flex;align-items:center;gap:8px;max-width:100%;margin-top:12px}
-.detail-network-reading>button:first-child {display:flex;align-items:center;flex-wrap:wrap;gap:5px 12px;min-width:0;max-width:100%;min-height:36px;padding:7px 10px;border:1px solid var(--detail-line);border-radius:7px;background:var(--card);text-align:left;font-size:12px}
-.detail-network-reading>button:first-child:hover {border-color:var(--tone)}
-.detail-network-reading .detail-network-route {max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted-foreground)}
-.detail-network-reading strong {font-variant-numeric:tabular-nums;font-weight:600}
-.detail-network-reading small {color:var(--muted-foreground);font-size:var(--text-small)}
-.detail-network-reading[data-fresh=false] strong {color:var(--muted-foreground)}
-.detail-network-reading>button:first-child svg {margin-left:auto;flex-shrink:0;color:var(--muted-foreground)}
-.detail-network-retry {min-height:36px;padding:0 10px;border:1px solid var(--detail-line);border-radius:7px;background:var(--card);font-size:12px}
 .detail-overview-grid h3 {font-size:13px;font-weight:600;color:var(--foreground);margin:0 0 16px}
 .overview-group-heading {display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .overview-group-heading>small {font-size:var(--text-small);color:var(--muted-foreground)}
@@ -97,7 +88,6 @@
  .detail-overview-grid h3 {margin-bottom:12px}
  .node-detail .detail-live .speed-trend .micro-trend {height:32px}
  .node-detail .detail-information .detail-fact-groups {grid-template-columns:minmax(0,1fr)}
- .detail-network-reading>button:first-child {width:100%}
 }
 
 /* Current readings lead; billing is a quieter full-width row below them. */
@@ -133,8 +123,6 @@
 .overview-account-footer {flex:0 0 auto;padding:0;border:0}
 .overview-price {max-width:none}
 .detail-subtitle .detail-last-seen {margin:0 0 0 auto;font-size:11px}
-.detail-network-reading {margin-top:8px}
-.detail-network-reading>button:first-child {min-height:32px;padding:5px 8px}
 @media(max-width:899px){
  .detail-overview-grid,.detail-overview-grid[data-live=false] {grid-template-columns:minmax(0,1fr)}
  .detail-overview-grid>section {padding:12px 14px}

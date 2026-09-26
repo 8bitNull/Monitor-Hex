@@ -17,7 +17,8 @@ test('automatic latency updates preserve selected timestamps and settings, retai
  await page.getByRole('button',{name:'恢复范围',exact:true}).click();await expect(summary).toContainText('23.5 ms')
  fail=true;await page.clock.fastForward(30000);await expect(page.locator('.history-notice')).toContainText('保留上次历史记录');await expect(summary).toContainText('23.5 ms')
  fail=false;await page.clock.fastForward(30000);await expect(summary).toContainText('25.5 ms');await expect(page.locator('.history-notice')).toHaveCount(0)
- await expect(page.locator('.route-chips button[aria-pressed=true]')).toHaveCount(1)
+ await expect(page.locator('.latency-summary-route')).toContainText('Primary')
+ await expect(page.locator('.latency-view .recharts-line-curve')).toHaveCount(1)
 })
 test('latency polling pauses in background, refreshes on return and stops outside latency',async({page})=>{
  await setup(page);let calls=0,pending:any,hold=false

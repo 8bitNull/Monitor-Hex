@@ -74,7 +74,14 @@ test('loading empty failure and success share the same history canvas',async({pa
 })
 for(const count of [1,3,20])test(`route legends handle ${count} routes without resizing the plot`,async({page})=>{
  await page.setViewportSize({width:390,height:844});await setup(page,count);await page.getByRole('button',{name:'网络延迟',exact:true}).click()
- const plot=page.locator('.detail-chart-frame');const height=(await plot.boundingBox())!.height;await expandRoutes(page)
+ const plot=page.locator('.detail-chart-frame');const height=(await plot.boundingBox())!.height
+ if(count===1){
+  await expect(page.locator('.route-chips')).toHaveCount(0)
+  await expect(page.locator('.latency-summary-route')).toContainText('最新采样')
+  await expect(plot.locator('.recharts-line-curve')).toHaveCount(1)
+  return
+ }
+ await expandRoutes(page)
  await expect(page.locator('.route-chips button[aria-pressed]')).toHaveCount(count)
  const hidden=page.locator('.route-chips button[aria-pressed="false"]');if(await hidden.count()){await hidden.first().click();await expect(page.locator('.route-chips button[aria-pressed="true"]')).toHaveCount(Math.min(count,2))}
  expect((await plot.boundingBox())!.height).toBe(height);await expect(page.locator('.route-chips button[aria-pressed="true"] .route-chip-check').first()).toHaveText('✓')

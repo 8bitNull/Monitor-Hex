@@ -2,47 +2,23 @@ import type {Node} from '@/lib/api'
 import {liveMetrics,nodeState} from '@/lib/freshness'
 import {tr,locale} from '@/lib/i18n'
 import {percent,osName,uptime,bytes,pair,daysUntil,money,CYCLES,FOREVER} from '@/lib/format'
-import {Activity,Clock,Monitor,Network,MapPin,ArrowRight} from 'lucide-react'
+import {Activity,Clock,Monitor,Network,MapPin} from 'lucide-react'
 import {useState} from 'react'
-import {usePing} from '@/lib/usePing'
-import {useNodeProbe} from '@/lib/nodeProbes'
-import {primaryPing} from '@/lib/browse'
-import {isRecentPingSample} from '@/lib/pingRecency'
 import {NodePicker} from './NodePicker'
 import {Status} from './NodeIdentity'
 import {RemarkTags} from './RemarkTags'
 import {ResourceMetric} from './ResourceMetric'
 import {SpeedIndicators} from './SpeedIndicators'
 import {trafficUsage,trafficPeriodLabel} from '@/lib/traffic'
-export function DetailIdentity({node,nodes,probe,onSwitch,onLatency,showNetworkReading=true}:{node:Node;nodes:Node[];probe:string;onSwitch:(id:number)=>void;onLatency:()=>void;showNetworkReading?:boolean}){
+export function DetailIdentity({node,nodes,onSwitch}:{node:Node;nodes:Node[];onSwitch:(id:number)=>void}){
  let country=node.country;try{country=new Intl.DisplayNames([locale()],{type:'region'}).of(node.country.toUpperCase()) || node.country}catch{/* Preserve unknown country text. */}
  const lastSeen=node.last_seen>0?new Date(node.last_seen*1000):null
  const reported=lastSeen&&Number.isFinite(lastSeen.getTime())?lastSeen:null
  return (      <div className="detail-identity">
         <div className="detail-title-row"><div className="detail-title"><NodePicker node={node} nodes={nodes} onSwitch={onSwitch}/></div><div className="node-status-group"><div className="node-ip-tags" aria-label={tr("IP 协议")}>{(node.ipv4 || node.ipv4_pin) && <span className="tag">V4</span>}{(node.ipv6 || node.ipv6_pin) && <span className="tag">V6</span>}</div><Status node={node}/></div></div>
         <div className="detail-subtitle">{country&&<span><MapPin size={14}/>{country}</span>}<span title={tr("系统")}><Monitor size={14}/>{osName(node.os)}</span><span className="detail-last-seen"><Clock size={13}/>{reported?<time dateTime={reported.toISOString()}>{tr("上次上报：{0}",reported.toLocaleString(locale()))}</time>:tr("上次上报时间未知")}</span></div>
-        {showNetworkReading&&<DetailNetworkReading node={node} probe={probe} onLatency={onLatency}/>}
       </div>
 )
-}
-function DetailNetworkReading({node,probe,onLatency}:{node:Node;probe:string;onLatency:()=>void}){
- const {ref,snapshot,retry}=usePing(node.id)
- useNodeProbe(node.id,probe)
- const ping=snapshot?.data?primaryPing(node.id,probe):undefined
- const fresh=!!ping&&isRecentPingSample(ping.latest.ts)&&!snapshot?.failed
- const reading=!snapshot?.data?(snapshot?.failed?tr("读取失败"):tr("读取中…")):!ping?tr("暂无探测记录"):ping.latest.latency===null?tr("超时"):`${Math.round(ping.latest.latency)} ms`
- const sampled=ping?new Date(ping.latest.ts*1000):null
- return <div ref={ref} className="detail-network-reading" data-fresh={fresh}>
-  <button type="button" onClick={onLatency} title={tr("查看延迟统计与历史")}>
-   <span className="detail-network-route">{ping?.name??tr("所选线路延迟")}</span>
-   <strong>{reading}</strong>
-   {ping&&<span>{tr("24h 丢包")} {ping.loss===null?'—':`${ping.loss.toFixed(1)}%`}</span>}
-   <small>{ping?(isRecentPingSample(ping.latest.ts)?tr("采样：{0}",sampled!.toLocaleString(locale())):tr("较旧记录 · 采样：{0}",sampled!.toLocaleString(locale()))):''}</small>
-   {snapshot?.failed&&ping&&<small>{tr("更新失败 · 上次数据")}</small>}
-   <ArrowRight size={14} aria-hidden="true"/>
-  </button>
-  {snapshot?.failed&&<button type="button" className="detail-network-retry" onClick={retry}>{tr("重试")}</button>}
- </div>
 }
 export function DetailLiveOverview({node}:{node:Node}){
  const m=liveMetrics(node)

@@ -39,6 +39,9 @@ for(const width of [320,390])test(`mobile ${width} latency sample panel leaves t
  expect(panel.y).toBeGreaterThanOrEqual(after.y+after.height)
  expect(panel.x).toBeGreaterThanOrEqual(0)
  expect(panel.x+panel.width).toBeLessThanOrEqual(width)
+ expect(panel.height).toBeLessThan(180)
+ const range=(await page.locator('.latency-range-caption').boundingBox())!
+ expect(range.y).toBeGreaterThanOrEqual(panel.y+panel.height)
  await page.getByRole('button',{name:'关闭图表提示'}).click()
  await expect(tip).toBeHidden()
  expect((await frame.boundingBox())!.height).toBe(chart.height)
