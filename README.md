@@ -10,31 +10,11 @@ v0.3.1 精修手机端页面层级、分组筛选、详情图表与设备资料�
 
 [下载安装包](https://github.com/8bitNull/monitor-theme-hex/releases/latest/download/theme.tar.gz) · [查看发布记录](https://github.com/8bitNull/monitor-theme-hex/releases)
 
-## 页面预览
-
-以下截图来自本地演示数据，服务器名称、备注和数值仅用于展示。
-
-### 桌面端
-
-桌面端合入第二版精修，统一区块和工具栏间距，表格名称左对齐、指标数字对齐；地图、卡片、表格和详情继续沿用原有功能。
-
-![桌面首页](screenshots/readme/home-desktop.png)
-
-![桌面表格](screenshots/readme/table-desktop.png)
-
-![服务器详情](screenshots/readme/detail-desktop.png)
-
-### 手机端
-
-<img src="screenshots/readme/home-mobile.png" width="320" alt="手机节点页" /> <img src="screenshots/readme/overview-mobile.png" width="320" alt="手机概览页" />
-
-<img src="screenshots/readme/detail-mobile.png" width="320" alt="手机详情资料" /> <img src="screenshots/readme/settings-mobile.png" width="320" alt="手机设置" />
-
-### 手机桌面快捷方式
+## 手机桌面快捷方式
 
 安装新版主题后，使用 iPhone Safari 的分享菜单或 Android 浏览器菜单选择「添加到主屏幕」，即可使用与手机端一致的蓝底白色 H 图标。建议从网站首页添加；已有快捷方式可能需要删除后重新添加以刷新图标。此功能需要联网使用，不提供离线监控。
 
-### 管理员版本与更新
+## 管理员版本与更新
 
 管理员登录后，在手机端「设置 → 应用 → 版本与更新」查看 Hub 和 Agent 版本、待更新节点及发布说明。提醒点遵循后台开关；版本查询失败、尚未上报和无法比较会分别提示。升级需进入后台执行，主题不会自动升级 Hub 或 Agent。
 
@@ -144,3 +124,23 @@ npm run test:e2e
 ## 来源与许可
 
 HEX 是适配 monitor-probe 的独立主题。基础接口与部分组件源自 monitor-theme-default，部分视觉和地图资源参考 Komari Next。项目采用 MIT 许可，来源与第三方声明见 [NOTICE.md](NOTICE.md)、[LICENSE](LICENSE) 和 [LICENSE.komari-next](LICENSE.komari-next)。
+
+## 页面预览
+
+以下截图来自本地演示数据，服务器名称、备注和数值仅用于展示。
+
+### 桌面端
+
+桌面端合入第二版精修，统一区块和工具栏间距，表格名称左对齐、指标数字对齐；地图、卡片、表格和详情继续沿用原有功能。
+
+![桌面首页](screenshots/readme/home-desktop.png)
+
+![桌面表格](screenshots/readme/table-desktop.png)
+
+![服务器详情](screenshots/readme/detail-desktop.png)
+
+### 手机端
+
+<img src="screenshots/readme/home-mobile.png" width="320" alt="手机节点页" /> <img src="screenshots/readme/overview-mobile.png" width="320" alt="手机概览页" />
+
+<img src="screenshots/readme/detail-mobile.png" width="320" alt="手机详情资料" /> <img src="screenshots/readme/settings-mobile.png" width="320" alt="手机设置" />
