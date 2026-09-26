@@ -26,6 +26,8 @@ export type Metrics = {
 export type Node = {
   id: number
   name: string
+  /** Public backend group name; older hubs omit it. */
+  group?: string
   sort: number
   public: boolean
   online: boolean

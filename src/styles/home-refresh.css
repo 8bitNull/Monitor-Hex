@@ -57,6 +57,13 @@
 .desktop-results-toolbar h2 {font-size:16px;font-weight:650}
 .desktop-results-toolbar span {font-size:12px;color:var(--muted-foreground)}
 .desktop-results-toolbar .view-switch {margin:0}
+.desktop-results-toolbar>.results-heading {align-items:center;flex-wrap:wrap}
+.next-theme .node-group-picker {width:140px;min-width:0;max-width:100%;height:36px}
+.mobile-results-toolbar {display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.mobile-results-toolbar .results-heading {flex:1;min-width:0}
+.mobile-results-toolbar .node-group-picker {width:140px;max-width:100%;height:40px}
+.mobile-results-toolbar .view-toolbar {flex:none}
+.mobile-results-toolbar .view-switch {margin:0}
 .next-theme .node-card {border-radius:8px}
 .node-grid>.node-card.node-offline {align-self:start}
 .node-grid>.node-card.node-offline>.node-secondary {margin-top:0}

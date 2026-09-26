@@ -20,6 +20,7 @@ import { NodeTable } from '@/components/NodeTable';
 import { NodeCard } from "@/components/NodeCard";
 import { Summary } from "@/components/Summary";
 import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, useNodes } from "@/lib/api";
 type Me = {
@@ -98,6 +99,7 @@ export default function App({ siteDefaults = defaults }: {
     const toggleTheme = () => setPrefs(prev => ({ ...prev, appearance: dark ? 'light' : 'dark' }));
     const background = useBackground(prefs);
     const [system, setSystem] = useState(() => readCollection().system);
+    const [groupFilter, setGroupFilter] = useState('all');
     useEffect(() => { try { sessionStorage.setItem('monitor-next-collection-v1', JSON.stringify({ system })) } catch { /* Optional storage. */ } }, [system]);
     const [browseState, setBrowse] = useState<Browse>(() => {const old=readBrowse();return {...old,status:"all",query:"",sort:old.view === "table" ? old.sort : "default",direction:old.view === "table" ? old.direction : "asc"}});
     const browse = useMemo(()=>({...browseState, probe:prefs.probe}),[browseState,prefs.probe]);
@@ -168,11 +170,19 @@ export default function App({ siteDefaults = defaults }: {
             location.assign('/admin/');
     }, [me]);
     const sorted = [...(nodes ?? [])].sort((a, b) => a.sort - b.sort || a.id - b.id);
+    const nodeGroups = [...new Set(sorted.map(n => typeof n.group === 'string' ? n.group : '').filter(Boolean))];
+    const hasUngrouped = sorted.some(n => !n.group);
+    const group = groupFilter === 'none' ? (hasUngrouped ? 'none' : 'all') : groupFilter.startsWith('=') && nodeGroups.includes(groupFilter.slice(1)) ? groupFilter : 'all';
+    const groupPicker = nodeGroups.length > 0 ? <Select className="node-group-picker" aria-label={tr("节点分组")} value={group} onChange={event => setGroupFilter(event.target.value)}>
+      <option value="all">{tr("全部分组")}</option>
+      {nodeGroups.map(name => <option key={name} value={'='+name}>{name}</option>)}
+      {hasUngrouped && <option value="none">{tr("未分组")}</option>}
+    </Select> : null;
     const mapKey=JSON.stringify(sorted.filter(n=>(browse.status==='all'||(browse.status==='online'?n.online:!n.online))&&(system==='all'||systemKey(n.os)===system)).map(({id,name,country,online})=>({id,name,country,online})));
     const selected = sorted.find((n) => n.id === open);
-    const filtered = browseNodes(sorted, browse.view === "cards" ? {...browse,sort:"default"} : browse).filter(n => (system === 'all' || systemKey(n.os) === system));
+    const filtered = browseNodes(sorted, browse.view === "cards" ? {...browse,sort:"default"} : browse).filter(n => (system === 'all' || systemKey(n.os) === system) && (group === 'all' || (n.group || '') === (group === 'none' ? '' : group.slice(1))));
     const showFilterFeedback = (status !== 'all' && !prefs.modules.online || !!browse.query || region !== 'all' || system !== 'all') && !(mapVisible && region !== 'all');
-    const pageKey=JSON.stringify([browse.query,browse.status,browse.region,browse.sort,browse.direction,browse.probe,system]);
+    const pageKey=JSON.stringify([browse.query,browse.status,browse.region,browse.sort,browse.direction,browse.probe,system,group]);
     const [tablePage,setTablePage]=useState({key:pageKey,page:1});
     const page=Math.min(tablePage.key===pageKey?tablePage.page:1,Math.max(1,Math.ceil(filtered.length/20)));
     const viewSwitch = <div className="view-toolbar"><div className="view-switch"><button className={browse.view === 'cards' ? 'active' : ''} onClick={() => patchBrowse({view:'cards'})} aria-label={tr("卡片视图")} aria-pressed={browse.view === 'cards'}><LayoutGrid size={17}/>{tr("卡片")}</button><button className={browse.view === 'table' ? 'active' : ''} onClick={() => patchBrowse({view:'table'})} aria-label={tr("表格视图")} aria-pressed={browse.view === 'table'}><Table2 size={17}/>{tr("表格")}</button></div></div>;
@@ -239,7 +249,7 @@ export default function App({ siteDefaults = defaults }: {
             <section className="overview-heading"><div className="page-heading"><h1>{tr("服务器总览")}</h1><span className={`live-label connection-${connection}`} role="status" title={[{connecting:tr("正在连接"),realtime:tr("实时连接"),polling:tr("轮询更新"),disconnected:tr("连接中断 \u00B7 数据可能已过期")}[connection],lastUpdated ? new Date(lastUpdated).toLocaleString(locale()) : tr("等待首次数据")].join(" · ")}><Radio size={14}/><span>{{ connecting: tr("正在连接"), realtime: tr("实时连接"), polling: tr("轮询更新"), disconnected: tr("连接中断 \u00B7 数据可能已过期") }[connection]}</span></span></div>
             <p className="update-time">{lastUpdated ? tr("最后更新：{0}", new Date(lastUpdated).toLocaleString(locale())) : tr("等待首次数据")}</p></section>
             <Summary status={status} onStatus={setStatus} onCollapse={summaryCollapsed=>setPrefs(prev=>({...prev,summaryCollapsed}))} nodes={sorted} prefs={prefs} loadAlerts={loadAlerts} onAlert={event=>go(event.nodeId,"",`?eventStart=${event.start}&eventEnd=${event.end??event.last}`)}/>
-            <>{compactViewport&&<div className="mobile-node-toolbar"><div className="mobile-toolbar-main"><RegionPicker nodes={sorted} region={region} onChange={setRegion}/><div className="mobile-toolbar-actions">{viewSwitch}</div></div></div>}</>
+            <>{compactViewport&&<div className="mobile-node-toolbar"><div className="mobile-toolbar-main"><RegionPicker nodes={sorted} region={region} onChange={setRegion}/></div></div>}</>
             <section hidden={(status==='all' || prefs.modules.online) && (region==='all' || mapVisible) && !browse.query && (compactViewport || mapVisible) && system==='all' && new Set(sorted.map(n=>systemKey(n.os))).size<2} className="node-browser streamlined-browser" aria-label={tr("节点浏览")}>
             <div className="filters">{!compactViewport && !mapVisible && <div className="restored-regions" role="group" aria-label={tr("地区快速筛选")}><button className="all-regions-icon" aria-label={tr("所有地区")} title={tr("所有地区")} aria-pressed={region==='all'} onClick={()=>setRegion('all')}><Globe size={17}/></button>{groupRegions(sorted).map(r=><button key={r.code} aria-pressed={region===r.code} title={r.code} onClick={()=>setRegion(r.code)}>{r.code!==UNKNOWN_REGION&&<Flag code={r.code}/>}<span>{r.code===UNKNOWN_REGION?tr("未知地区"):countryName(r.code)}</span><small>{r.total}</small></button>)}</div>}<div className="filter-categories"><div className="system-pills" hidden={new Set(sorted.map(n=>systemKey(n.os))).size < 2 && system==='all'} role="group" aria-label={tr("系统快速筛选")}>{['all',...new Set(sorted.map(n=>systemKey(n.os)))].map(key=><button key={key} aria-pressed={system===key} onClick={()=>setSystem(key)}>{key==='all'?tr("所有系统"):key==='other'?tr("其他 / 未知系统"):key}</button>)}</div>
 </div>
@@ -250,14 +260,14 @@ export default function App({ siteDefaults = defaults }: {
 {!compactViewport && !mapVisible && region !== 'all' && <button aria-label={tr("清除地区筛选")} onClick={()=>setRegion('all')}>{region===UNKNOWN_REGION?tr("未知地区"):countryName(region)} ×</button>}
 {system !== 'all' && <button aria-label={tr("清除系统筛选")} onClick={()=>setSystem('all')}>{system} ×</button>}
 {browse.query && <button aria-label={tr("清除搜索筛选")} onClick={()=>setQuery('')}>{tr("搜索节点")}：{browse.query} ×</button>}
-{showFilterFeedback && <button className="clear-all-filters" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); }}>{tr("清除筛选")}</button>}
+{showFilterFeedback && <button className="clear-all-filters" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); setGroupFilter('all'); }}>{tr("清除筛选")}</button>}
 </div></section>
 
 
              {browse.view === 'table' && ['latency','loss'].includes(browse.sort) && <p className="sort-note">{tr("延迟和丢包按所选线路比较；无效或旧数据排在末尾。已读取")}{sorted.filter(n => getPing(n.id)?.data).length}/{sorted.length}{tr("个节点。")}{tr("各节点所选线路可能不同，延迟比较请注意探测目标。")}</p>}
             {mapVisible && <MapPanel viewSwitch={viewSwitch} nodeSnapshot={mapKey} region={region} onRegion={setRegion}/>}
 
-            <div id="node-results" tabIndex={-1}>{!compactViewport&&<div className="desktop-results-toolbar"><div><h2>{tr("节点")}</h2><span>{tr("匹配 {0} 个节点",filtered.length)}</span></div>{viewSwitch}</div>}{sorted.length === 0 ? (<div className="empty-state"><p>{tr("还没有节点")}</p>{me.authed ? <Button variant="outline" asChild><a href="/admin/">{tr("前往后台添加节点")}</a></Button> : <p>{tr("请联系管理员添加节点。")}</p>}</div>) : filtered.length === 0 ? (<div className="empty-state"><p>{tr("没有符合条件的节点")}</p><Button variant="outline" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); }}>{tr("清除筛选")}</Button></div>) : browse.view === "table" ? (<NodeTable page={page} onPageChange={page=>setTablePage({key:pageKey,page})} nodes={filtered} browse={{...browse,columns:shownColumns}} onSort={sortBy} onSortChange={(sort,direction)=>patchBrowse({sort,direction})} mobile={compactViewport} warn={prefs.latencyWarn} high={prefs.latencyHigh} onOpen={id => go(id)}/>) : (<div className="node-grid" data-columns={prefs.desktopColumns}>{filtered.map(n=><NodeCard key={n.id} node={n} mobile={mobileCards} prefs={prefs} info={mobileCards && prefs.mobileInfoMode==='custom' ? prefs.mobileCardInfo || prefs.cardInfo : prefs.cardInfo} probe={prefs.probe} onOpen={()=>go(n.id)} onOpenRoutes={route=>go(n.id,"latency",`?routes=${route.kind==="all"?"all":route.id}`)}/>)}</div>)}</div>
+            <div id="node-results" tabIndex={-1}><div className={compactViewport ? "mobile-results-toolbar" : "desktop-results-toolbar"}><div className="results-heading">{!compactViewport&&<h2>{tr("节点")}</h2>}{groupPicker}{!compactViewport&&<span>{tr("匹配 {0} 个节点",filtered.length)}</span>}</div>{viewSwitch}</div>{sorted.length === 0 ? (<div className="empty-state"><p>{tr("还没有节点")}</p>{me.authed ? <Button variant="outline" asChild><a href="/admin/">{tr("前往后台添加节点")}</a></Button> : <p>{tr("请联系管理员添加节点。")}</p>}</div>) : filtered.length === 0 ? (<div className="empty-state"><p>{tr("没有符合条件的节点")}</p><Button variant="outline" onClick={() => { setQuery(''); setStatus('all'); setRegion('all'); setSystem('all'); setGroupFilter('all'); }}>{tr("清除筛选")}</Button></div>) : browse.view === "table" ? (<NodeTable page={page} onPageChange={page=>setTablePage({key:pageKey,page})} nodes={filtered} browse={{...browse,columns:shownColumns}} onSort={sortBy} onSortChange={(sort,direction)=>patchBrowse({sort,direction})} mobile={compactViewport} warn={prefs.latencyWarn} high={prefs.latencyHigh} onOpen={id => go(id)}/>) : (<div className="node-grid" data-columns={prefs.desktopColumns}>{filtered.map(n=><NodeCard key={n.id} node={n} mobile={mobileCards} prefs={prefs} info={mobileCards && prefs.mobileInfoMode==='custom' ? prefs.mobileCardInfo || prefs.cardInfo : prefs.cardInfo} probe={prefs.probe} onOpen={()=>go(n.id)} onOpenRoutes={route=>go(n.id,"latency",`?routes=${route.kind==="all"?"all":route.id}`)}/>)}</div>)}</div>
           </>)}
       </main>
       {open === null && showScrollTop && <button type="button" className="back-to-top" aria-label={tr("返回顶部")} title={tr("返回顶部")} onClick={() => window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}><ArrowUp size={17}/></button>}

@@ -56,6 +56,7 @@ for(const width of [320,390,1440])test(`compact note tags open complete dialog a
  await expect(notes.locator('.detail-remark-tag')).toHaveCount(3);await expect(notes.locator('.remark-more')).toHaveText('+1')
  expect(await notes.evaluate(el=>{const count=el.querySelector('.remark-more')!.getBoundingClientRect(),button=el.getBoundingClientRect();return count.left>=button.left&&count.right<=button.right})).toBeTruthy()
  await expect(notes).toHaveAttribute('title','国际线路 · '+note+' · Backup · Production')
+ await card.locator('.ping-stats').scrollIntoViewIfNeeded()
  await card.locator(".latency-reading").first().waitFor();const height=(await card.boundingBox())!.height
  await notes.click();const dialog=page.getByRole('dialog',{name:'备注',exact:true});await expect(dialog).toBeVisible();await expect(dialog).toContainText(note)
  await page.keyboard.press('Escape');await expect(dialog).not.toBeVisible();await expect(notes).toBeFocused();expect((await card.boundingBox())!.height).toBe(height)

@@ -1,4 +1,7 @@
 export const english: Record<string, string> = {
+"节点分组":"Node group",
+"全部分组":"All groups",
+"未分组":"Ungrouped",
 "查看线路":"View route",
 "地区":"Region",
 "更多地区":"More regions",

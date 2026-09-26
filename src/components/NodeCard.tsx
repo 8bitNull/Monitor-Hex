@@ -63,7 +63,8 @@ export function NodeCard({ node, onOpen, onOpenRoutes, probe = 'auto', prefs, in
         {!mobile&&billing}
       </div></>}
     </button>
+      {mobile && billing && <div className="mobile-card-extra">{billing}</div>}
       <PingStats scale={prefs.latencyScale} latencyWindow={prefs.latencyWindow} warn={prefs.latencyWarn} high={prefs.latencyHigh} count={prefs.homeRoutes} online={node.online} id={node.id} probe={probe} onOpenRoutes={onOpenRoutes}/>
-      {mobile ? (billing || secondary) && <div className="mobile-card-extra">{billing}{secondary}</div> : secondary}
+      {mobile ? secondary && <div className="mobile-card-extra">{secondary}</div> : secondary}
   </article>;
 }

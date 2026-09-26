@@ -10,7 +10,7 @@ http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost')
   const reply = value => { res.setHeader('content-type', 'application/json'); res.end(JSON.stringify(value)) }
   if (url.pathname === '/api/me') return reply({ authed: false, github: false, site_name: 'HEX · 演示', public_page: true })
-  if (url.pathname === '/api/nodes') return reply({ nodes: nodes() })
+  if (url.pathname === '/api/nodes') return reply({ nodes: nodes().map((node, i) => process.env.THEME_DEMO_GROUPS === '1' ? { ...node, group: ['网站', '网站', '流量', '流量', '', ''][i] } : node) })
   if (/^\/api\/nodes\/\d+\/metrics$/.test(url.pathname)) return reply(metrics())
   if (url.pathname.startsWith('/api/')) { res.writeHead(404); return res.end() }
   try {
